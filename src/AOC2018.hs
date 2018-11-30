@@ -69,9 +69,11 @@ import qualified Data.Aeson                 as A
 import qualified Data.ByteString            as BS
 import qualified Data.Yaml                  as Y
 
+-- | A map of all challenges.
 challengeMap :: Map (Finite 25) (Map Char Challenge)
 challengeMap = mkChallengeMap $$(challengeList "src/AOC2018/Challenge")
 
+-- | A record of paths corresponding to a specific challenge.
 data ChallengePaths = CP { _cpDataUrl :: !FilePath
                          , _cpInput   :: !FilePath
                          , _cpAnswer  :: !FilePath
@@ -79,11 +81,14 @@ data ChallengePaths = CP { _cpDataUrl :: !FilePath
                          }
   deriving Show
 
+-- | A record of data (test inputs, answers) corresponding to a specific
+-- challenge.
 data ChallengeData = CD { _cdInp   :: !(Either [String] String)
                         , _cdAns   :: !(Maybe String)
                         , _cdTests :: ![(String, Maybe String)]
                         }
 
+-- | Generate a 'ChallengePaths' from a specification of a challenge.
 challengePaths :: ChallengeSpec -> ChallengePaths
 challengePaths (CS d p) = CP
     { _cpDataUrl = printf "https://adventofcode.com/2018/day/%d/input" d'
@@ -94,6 +99,9 @@ challengePaths (CS d p) = CP
   where
     d' = getFinite d + 1
 
+-- | Load data associated with a challenge from a given specification.
+-- Will fetch answers online and cache if required (and if giten a session
+-- token).
 challengeData
     :: Maybe String
     -> ChallengeSpec
@@ -140,12 +148,15 @@ challengeData sess spec = do
             let ans' = ans <$ guard (not (null ans))
             in  (unlines inp, ans') : parseTests rest
 
+-- | Configuration for auto-runner.
 newtype Config = Cfg { _cfgSession :: Maybe String }
   deriving (Generic)
 
+-- | Default math to find a configuration file.
 defConfPath :: FilePath
 defConfPath = "aoc-conf.yaml"
 
+-- | Load a 'Config' from a given filepath.
 configFile :: FilePath -> IO Config
 configFile fp = do
     cfgInp <- tryJust (guard . isDoesNotExistError)
@@ -164,6 +175,7 @@ configFile fp = do
   where
     emptyCfg = Cfg Nothing
 
+-- | Load a session token from the configuration file at a given filepath.
 session :: FilePath -> IO (Maybe String)
 session = fmap _cfgSession . configFile
 

@@ -38,6 +38,12 @@ import qualified Text.Megaparsec.Char       as P
 
 type Parser = P.Parsec Void String
 
+-- | Template Haskell splice to produce a list of all named challenges in
+-- a directory. Expects challenges as function names following the format
+-- @dayDDp@, where @DD@ is a two-digit zero-added day, and @p@ is
+-- a lower-case letter corresponding to the part of the challenge.
+--
+-- See 'mkChallengeMap' for a description of usage.
 challengeList :: FilePath -> Q (TExp [(Finite 25, (Char, Challenge))])
 challengeList dir = TExp
                   . ListE
