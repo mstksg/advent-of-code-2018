@@ -20,6 +20,7 @@ description: |
 ghc-options:
 - -Wall
 - -Wcompat
+- -Wno-partial-type-signatures
 
 dependencies:
 - base >= 4.7 && < 5
@@ -42,6 +43,7 @@ library:
   - lens
   - megaparsec
   - pointedlist
+  - profunctors
   - split
   - template-haskell
   - transformers
@@ -59,15 +61,16 @@ library:
   - KindSignatures
   - LambdaCase
   - MonadComprehensions
+  - MonoLocalBinds
   - MultiWayIf
   - NumDecimals
+  - PartialTypeSignatures
   - PatternGuards
   - PatternSynonyms
   - PolyKinds
   - RankNTypes
   - RecordWildCards
   - ScopedTypeVariables
-  - TemplateHaskell
   - TupleSections
   - TypeApplications
   - TypeInType

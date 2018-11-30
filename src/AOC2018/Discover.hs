@@ -1,3 +1,16 @@
+-- |
+-- Module      : AOC2018.Discover
+-- Copyright   : (c) Justin Le 2018
+-- License     : BSD3
+--
+-- Maintainer  : justin@jle.im
+-- Stability   : experimental
+-- Portability : non-portable
+--
+-- Template Haskell for discovering all named challenges in a given
+-- directory.
+--
+
 module AOC2018.Discover (
     mkChallengeMap
   , challengeList
@@ -35,7 +48,7 @@ challengeList dir = TExp
 -- | Meant to be called like:
 --
 -- @
--- mkChallengeMap $$(challengeList "src/AOC2018/Challenge")
+-- mkChallengeMap $$(challengeList "src\/AOC2018\/Challenge")
 -- @
 mkChallengeMap :: [(Finite 25, (Char, Challenge))] -> ChallengeMap
 mkChallengeMap = M.unionsWith M.union
