@@ -73,7 +73,7 @@ data ChallengeData = CD { _cdInp   :: !(Either [String] String)
 
 challengePaths :: ChallengeSpec -> ChallengePaths
 challengePaths (CS d p) = CP
-    { _cpDataUrl = printf "http://adventofcode.com/2018/day/%d/input" d'
+    { _cpDataUrl = printf "https://adventofcode.com/2018/day/%d/input" d'
     , _cpInput   = "data"     </> printf "%02d" d' <.> "txt"
     , _cpAnswer  = "data/ans" </> printf "%02d%c" d' p <.> "txt"
     , _cpTests   = "test-data" </> printf "%02d%c" d' p <.> "txt"
