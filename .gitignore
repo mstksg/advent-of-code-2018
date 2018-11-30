@@ -1,0 +1,5 @@
+.stack-work/
+/aoc2018.cabal
+*~
+/data
+/aoc-conf.yaml
