@@ -37,8 +37,8 @@ main :: IO ()
 main = do
     O{..} <- execParser $ info (parseOpts <**> helper)
                 ( fullDesc
-               <> header "aoc2017 - Advent of Code 2017 challenge runner"
-               <> progDesc "Run challenges from Advent of Code 2017"
+               <> header "aoc2018 - Advent of Code 2018 challenge runner"
+               <> progDesc "Run challenges from Advent of Code 2018"
                 )
     Cfg{..} <- configFile $ fromMaybe "aoc-conf.yaml" _oConfig
     let toRun = case _oTestSpec of
@@ -148,7 +148,7 @@ parseOpts = do
         ( long "config"
        <> short 'c'
        <> metavar "PATH"
-       <> help "Path to configuration file (default: aoc2017-conf.yaml)"
+       <> help "Path to configuration file (default: aoc2018-conf.yaml)"
         )
     pure $ let ts = case d of
                       Just d' -> case p of
