@@ -39,7 +39,7 @@ main = do
     O{..} <- execParser $ info (parseOpts <**> helper)
                 ( fullDesc
                <> header "aoc2018 - Advent of Code 2018 challenge runner"
-               <> progDesc ("Run challenges from Advent of Code 2018.  Available days: " ++ availableDays)
+               <> progDesc ("Run challenges from Advent of Code 2018. Available days: " ++ availableDays)
                 )
     Cfg{..} <- configFile $ fromMaybe "aoc-conf.yaml" _oConfig
     let toRun = case _oTestSpec of

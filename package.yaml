@@ -41,6 +41,8 @@ library:
   - hpack
   - lens
   - megaparsec
+  - pointedlist
+  - split
   - template-haskell
   - transformers
   - yaml
