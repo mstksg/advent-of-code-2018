@@ -1,5 +1,18 @@
 {-# LANGUAGE TemplateHaskell #-}
 
+-- |
+-- Module      : AOC2018
+-- Copyright   : (c) Justin Le 2018
+-- License     : BSD3
+--
+-- Maintainer  : justin@jle.im
+-- Stability   : experimental
+-- Portability : non-portable
+--
+-- Gather together all challenges and collect them into a single map.  Also
+-- contains general utilities used by the auto-runner executable.
+--
+
 module AOC2018 (
     module AOC
   , challengeMap
