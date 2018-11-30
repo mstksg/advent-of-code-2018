@@ -1,8 +1,12 @@
-Advent of Code 2018
-===================
+[Advent of Code 2018][aoc2018]
+==============================
 
-Automated fetching, testing, running environment for 2018 Advent of Code
-puzzles.
+It's the most wonderful time of the year!
+
+My Advent of Code 2018 Haskell solutions here, along with an automated
+fetching, testing, running environment.
+
+[aoc2018]: https://adventofcode.com/2018
 
 Executable
 ----------

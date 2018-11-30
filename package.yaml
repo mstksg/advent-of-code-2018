@@ -31,16 +31,17 @@ dependencies:
 library:
   source-dirs: src
   dependencies:
-  - filepath
-  - directory
-  - megaparsec
-  - hpack
-  - haskell-names
-  - template-haskell
-  - haskell-src-exts
   - aeson
   - bytestring
   - curl
+  - directory
+  - filepath
+  - haskell-names
+  - haskell-src-exts
+  - hpack
+  - lens
+  - megaparsec
+  - template-haskell
   - transformers
   - yaml
   default-extensions:
