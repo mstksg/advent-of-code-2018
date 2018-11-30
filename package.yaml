@@ -21,32 +21,6 @@ ghc-options:
 - -Wall
 - -Wcompat
 
-default-extensions:
-- ApplicativeDo
-- BangPatterns
-- BlockArguments
-- DeriveFoldable
-- DeriveFunctor
-- DeriveGeneric
-- DeriveTraversable
-- EmptyCase
-- GADTs
-- KindSignatures
-- LambdaCase
-- MonadComprehensions
-- MultiWayIf
-- NumDecimals
-- PatternGuards
-- PolyKinds
-- RankNTypes
-- RecordWildCards
-- ScopedTypeVariables
-- TemplateHaskell
-- TupleSections
-- TypeApplications
-- TypeInType
-- ViewPatterns
-
 dependencies:
 - base >= 4.7 && < 5
 - finite-typelits
@@ -69,6 +43,32 @@ library:
   - curl
   - transformers
   - yaml
+  default-extensions:
+  - ApplicativeDo
+  - BangPatterns
+  - BlockArguments
+  - DeriveFoldable
+  - DeriveFunctor
+  - DeriveGeneric
+  - DeriveTraversable
+  - EmptyCase
+  - GADTs
+  - KindSignatures
+  - LambdaCase
+  - MonadComprehensions
+  - MultiWayIf
+  - NumDecimals
+  - PatternGuards
+  - PatternSynonyms
+  - PolyKinds
+  - RankNTypes
+  - RecordWildCards
+  - ScopedTypeVariables
+  - TemplateHaskell
+  - TupleSections
+  - TypeApplications
+  - TypeInType
+  - ViewPatterns
 
 executables:
   aoc2018:

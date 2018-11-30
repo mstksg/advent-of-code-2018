@@ -1,3 +1,9 @@
+{-# LANGUAGE ApplicativeDo   #-}
+{-# LANGUAGE DataKinds       #-}
+{-# LANGUAGE LambdaCase      #-}
+{-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE ViewPatterns    #-}
+
 import           AOC2018
 import           Control.Applicative
 import           Control.DeepSeq
