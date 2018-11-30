@@ -79,7 +79,7 @@ main = do
           testCase False c inp _cdAns
 
         when _oBench . forM_ _cdInp $ \inp ->
-          benchmark (nf c inp)
+          benchmark (nf (runChallenge c) inp)
   where
     availableDays = intercalate ", "
                   . map (show . (+ 1) . getFinite)
@@ -100,7 +100,7 @@ runAll sess lock f = fmap void         $
     when lock $ do
       CD{..} <- challengeData sess (CS d p)
       forM_ _cdInp $ \inp ->
-        writeFile _cpAnswer =<< evaluate (force (c inp))
+        mapM_ (writeFile _cpAnswer) =<< evaluate (force (runChallenge c inp))
     f c =<< challengeData sess (CS d p)
 
 testCase
@@ -108,25 +108,31 @@ testCase
     -> Challenge
     -> String
     -> Maybe String
-    -> IO (Maybe Bool, String)
+    -> IO (Maybe Bool, Either ChallengeError String)
 testCase emph c inp ans = do
     ANSI.setSGR [ ANSI.SetColor ANSI.Foreground ANSI.Vivid color ]
     printf "[%c]" mark
     ANSI.setSGR [ ANSI.Reset ]
     if emph
-      then printf " (%s)\n" res
-      else printf " %s\n" res
+      then printf " (%s)\n" resStr
+      else printf " %s\n"   resStr
     forM_ showAns $ \a -> do
       ANSI.setSGR [ ANSI.SetColor ANSI.Foreground ANSI.Vivid ANSI.Red ]
       printf "(Expected: %s)\n" a
       ANSI.setSGR [ ANSI.Reset ]
     return (status, res)
   where
-    res = c inp
+    res = runChallenge c inp
+    resStr = case res of
+      Right r -> r
+      Left CEParse -> "ERROR: No parse"
+      Left CESolve -> "ERROR: No solution"
     (mark, showAns, status) = case ans of
-      Just (strip->ex)
-        | strip res == ex -> ('✓', Nothing, Just True )
-        | otherwise       -> ('✗', Just ex, Just False)
+      Just (strip->ex)    -> case res of
+        Right (strip->r)
+          | r == ex   -> ('✓', Nothing, Just True )
+          | otherwise -> ('✗', Just ex, Just False)
+        Left _        -> ('✗', Just ex, Just False)
       Nothing             -> ('?', Nothing, Nothing   )
     color = case status of
       Just True  -> ANSI.Green

@@ -6,6 +6,7 @@ import           AOC2018.Types       as P
 import           AOC2018.Util        as P
 import           Control.Applicative as P
 import           Control.Monad       as P hiding (fail)
+import           Control.DeepSeq     as P
 import           Control.Monad.Fail  as P
 import           Data.Bifunctor      as P
 import           Data.Char           as P
@@ -19,9 +20,11 @@ import           Data.Traversable    as P
 import           Data.Tuple          as P
 import           Data.Void           as P
 import           Text.Printf         as P
-import           Text.Read           as P
 
-import           Data.IntMap   as P (IntMap)
-import           Data.IntSet   as P (IntSet)
-import           Data.Map      as P (Map)
-import           Data.Set      as P (Set)
+import           Data.IntMap           as P (IntMap)
+import           Data.IntSet           as P (IntSet)
+import           Data.List.PointedList as P (PointedList)
+import           Data.Map              as P (Map)
+import           Data.Set              as P (Set)
+import           GHC.Generics          as P (Generic)
+import           Text.Read             as P (readMaybe)
