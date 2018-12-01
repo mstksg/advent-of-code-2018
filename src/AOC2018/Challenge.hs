@@ -21,10 +21,17 @@ module AOC2018.Challenge (
   , ChallengeSpec(..)
   ) where
 
+import           AOC2018.Util
 import           Control.DeepSeq
 import           Data.Finite
 import           Data.Map        (Map)
 import           GHC.Generics
+
+-- | A specification for a specific challenge.  Should consist of a day and
+-- a lowercase character.
+data ChallengeSpec = CS { _csDay  :: Finite 25
+                        , _csPart :: Char
+                        }
 
 -- | Abstracting over the type of a challenge solver to help with cleaner
 -- solutions.
@@ -63,8 +70,8 @@ instance NFData ChallengeError
 -- | Run a 'Challenge' on some input.
 runChallenge :: Challenge -> String -> Either ChallengeError String
 runChallenge MkC{..} s = do
-    x <- maybe (Left CEParse) Right $ cParse s
-    y <- maybe (Left CESolve) Right $ cSolve x
+    x <- maybeToEither CEParse . cParse $ s
+    y <- maybeToEither CESolve . cSolve $ x
     pure $ cShow y
 
 -- | Run a 'Challenge' on some input, retuning 'Maybe'
@@ -76,9 +83,3 @@ runChallenge' MkC{..} s = do
 
 -- | A map of days to parts to challenges.
 type ChallengeMap = Map (Finite 25) (Map Char Challenge)
-
--- | A specification for a specific challenge.  Should consist of a day and
--- a lowercase character.
-data ChallengeSpec = CS { _csDay  :: Finite 25
-                        , _csPart :: Char
-                        }

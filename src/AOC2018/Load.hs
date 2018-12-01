@@ -12,7 +12,6 @@
 -- Loading challenge data and prompts.
 --
 
-
 module AOC2018.Load (
     ChallengePaths(..), challengePaths
   , ChallengeData(..), challengeData
@@ -46,6 +45,7 @@ import qualified Text.Taggy.Lens            as H
 -- | A record of paths corresponding to a specific challenge.
 data ChallengePaths = CP { _cpPromptUrl :: !FilePath
                          , _cpDataUrl   :: !FilePath
+                         , _cpSubmitUrl :: !FilePath
                          , _cpPrompt    :: !FilePath
                          , _cpInput     :: !FilePath
                          , _cpAnswer    :: !FilePath
@@ -66,6 +66,7 @@ challengePaths :: ChallengeSpec -> ChallengePaths
 challengePaths (CS d p) = CP
     { _cpPromptUrl = printf "https://adventofcode.com/2018/day/%d" d'
     , _cpDataUrl   = printf "https://adventofcode.com/2018/day/%d/input" d'
+    , _cpSubmitUrl = printf "https://adventofcode.com/2018/day/%d/answer" d'
     , _cpPrompt    = "prompt"    </> printf "%02d%c" d' p <.> "txt"
     , _cpInput     = "data"      </> printf "%02d" d'     <.> "txt"
     , _cpAnswer    = "data/ans"  </> printf "%02d%c" d' p <.> "txt"
@@ -167,5 +168,4 @@ processPrompt html = runExceptT $ do
     exts = P.disableExtension P.Ext_header_attributes
          . P.disableExtension P.Ext_smart
          $ P.pandocExtensions
-
 
