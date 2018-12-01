@@ -1,12 +1,13 @@
-[Advent of Code 2018][aoc2018]
-==============================
+Advent of Code 2018
+===================
 
 It's the most wonderful time of the year!
 
-My Advent of Code 2018 Haskell solutions here, along with an automated
+My [Advent of Code 2018][aoc2018] Haskell solutions here, along with an automated
 fetching, testing, running environment.
 
 Check out reflections and commentary at the [package haddocks][haddock]!
+(individual links down below)
 
 [aoc2018]: https://adventofcode.com/2018
 [haddock]: https://mstksg.github.io/advent-of-code-2018/
@@ -17,10 +18,11 @@ Challenges and Reflections
 Links go to haddock source renders for code, with reflections in the
 documentation.  Note that haddock source renders have hyperlinked identifiers,
 so you can follow any unrecognized identifiers to see where I have defined them
-in the library.
+in the library.  Benchmark times for each part are listed after each link.
 
-*   [Day 1](https://mstksg.github.io/advent-of-code-2018/src/AOC2018.Challenge.Day01.html)
-    ( 2.9 ms / 140 ms )
+*   **[Day 1][]** *( 2.9 ms / 140 ms )*
+
+[Day 1]: https://mstksg.github.io/advent-of-code-2018/src/AOC2018.Challenge.Day01.html
 
 Executable
 ----------
