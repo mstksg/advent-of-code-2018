@@ -7,8 +7,9 @@
 -- Stability   : experimental
 -- Portability : non-portable
 --
--- Day 1!  Pretty straightforward Haskell pipeline.  Parse using
--- 'readMaybe' (remembering to 'stripPrefix' a positive sign first).
+-- Day 1!  Pretty straightforward Haskell pipeline.  Parse using manual
+-- pattern matching to strip a \'+\' prefix, because 'read' can't handle
+-- positive signs in front of numbers.
 --
 -- The first one is just a simple sum.
 --
@@ -19,15 +20,13 @@
 
 module AOC2018.Challenge.Day01 (day01a, day01b) where
 
-import           AOC2018.Types       (Challenge(..))
-import           AOC2018.Util        (firstRepeated)
-import           Control.Applicative ((<|>))
-import           Data.List           (stripPrefix)
-import           Text.Read           (readMaybe)
+import           AOC2018.Types (Challenge(..))
+import           AOC2018.Util  (firstRepeated)
+import           Text.Read     (readMaybe)
 
 parseItem :: String -> Maybe Int
-parseItem s = (readMaybe =<< "+" `stripPrefix` s)
-          <|> readMaybe s
+parseItem ('+':cs) = readMaybe cs
+parseItem cs       = readMaybe cs
 
 day01a :: Challenge
 day01a = MkC
