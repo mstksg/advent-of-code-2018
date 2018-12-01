@@ -51,5 +51,5 @@ import           AOC2018.Load      as AOC
 import           AOC2018.Util      as AOC
 
 -- | A map of all challenges.
-challengeMap :: ChallengeMap
-challengeMap = mkChallengeMap $$(challengeList "src/AOC2018/Challenge")
+challengeMap :: SolutionMap
+challengeMap = mkSolutionMap $$(solutionList "src/AOC2018/Challenge")

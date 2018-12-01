@@ -58,6 +58,7 @@ default-extensions:
 - TupleSections
 - TypeApplications
 - TypeInType
+- TypeOperators
 - ViewPatterns
 
 library:

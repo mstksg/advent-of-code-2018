@@ -88,7 +88,7 @@ main = do
 
         case (_oBench, _oRun) of
           (True , _    ) -> forM_ _cdInput $ \inp ->
-            benchmark (nf (runSomeChallenge c) inp)
+            benchmark (nf (runSomeSolution c) inp)
           (False, True ) -> forM_ _cdInput $ \inp ->
             testCase False c inp _cdAnswer
           (False, False) -> do
@@ -104,8 +104,8 @@ main = do
 runAll
     :: Maybe String       -- ^ session key
     -> Bool               -- ^ run and lock answer
-    -> (SomeChallenge -> ChallengeData -> IO ())
-    -> ChallengeMap
+    -> (SomeSolution -> ChallengeData -> IO ())
+    -> SolutionMap
     -> IO ()
 runAll sess lock f = fmap void         $
                      M.traverseWithKey $ \d ->
@@ -117,15 +117,15 @@ runAll sess lock f = fmap void         $
     when lock $ do
       CD{..} <- challengeData sess (CS d p)
       forM_ _cdInput $ \inp ->
-        mapM_ (writeFile _cpAnswer) =<< evaluate (force (runSomeChallenge c inp))
+        mapM_ (writeFile _cpAnswer) =<< evaluate (force (runSomeSolution c inp))
     f c =<< challengeData sess (CS d p)
 
 testCase
     :: Bool
-    -> SomeChallenge
+    -> SomeSolution
     -> String
     -> Maybe String
-    -> IO (Maybe Bool, Either ChallengeError String)
+    -> IO (Maybe Bool, Either SolutionError String)
 testCase emph c inp ans = do
     ANSI.setSGR [ ANSI.SetColor ANSI.Foreground ANSI.Dull color ]
     printf "[%c]" mark
@@ -139,11 +139,11 @@ testCase emph c inp ans = do
       ANSI.setSGR [ ANSI.Reset ]
     return (status, res)
   where
-    res = runSomeChallenge c inp
+    res = runSomeSolution c inp
     resStr = case res of
       Right r -> r
-      Left CEParse -> "ERROR: No parse"
-      Left CESolve -> "ERROR: No solution"
+      Left SEParse -> "ERROR: No parse"
+      Left SESolve -> "ERROR: No solution"
     (mark, showAns, status) = case ans of
       Just (strip->ex)    -> case res of
         Right (strip->r)

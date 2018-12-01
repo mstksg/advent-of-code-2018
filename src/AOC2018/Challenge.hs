@@ -12,13 +12,13 @@
 --
 
 module AOC2018.Challenge (
-    Challenge(..)
+    (:~>)(..)
   , withSolver, withSolver'
-  , SomeChallenge(..)
-  , ChallengeError(..)
-  , runChallenge
-  , runSomeChallenge
-  , ChallengeMap
+  , SomeSolution(..)
+  , SolutionError(..)
+  , runSolution
+  , runSomeSolution
+  , SolutionMap
   , ChallengeSpec(..)
   ) where
 
@@ -40,46 +40,47 @@ data ChallengeSpec = CS { _csDay  :: Finite 25
 -- Consists of a parser, a shower, and a solver.  The solver solves
 -- a general @a -> 'Maybe' b@ function, and the parser and shower are used
 -- to handle the boilerplate of parsing and printing the solution.
-data Challenge a b =
-    MkC { cParse :: String -> Maybe a    -- ^ parse input into an @a@
-        , cSolve :: a      -> Maybe b    -- ^ solve an @a@ input to a @b@ solution
-        , cShow  :: b      -> String     -- ^ print out the @b@ solution in a pretty way
-        }
+data a :~> b = MkSol
+    { sParse :: String -> Maybe a    -- ^ parse input into an @a@
+    , sSolve :: a      -> Maybe b    -- ^ solve an @a@ input to a @b@ solution
+    , sShow  :: b      -> String     -- ^ print out the @b@ solution in a pretty way
+    }
+
+data SomeSolution where
+    MkSomeSol :: a :~> b -> SomeSolution
+
+-- | A map of days to parts to solutions.
+type SolutionMap = Map (Finite 25) (Map Char SomeSolution)
+
+-- | Errors that might happen when running a 'Solution' on some input.
+data SolutionError = SEParse
+                   | SESolve
+  deriving (Show, Eq, Ord, Generic)
+
+instance NFData SolutionError
 
 -- | Construct a 'Challenge' from just a normal @String -> String@ solver.
 -- Does no parsing or special printing treatment.
-withSolver' :: (String -> String) -> Challenge String String
+withSolver' :: (String -> String) -> String :~> String
 withSolver' f = withSolver (Just . f)
 
 -- | Construct a 'Challenge' from a @String -> 'Maybe' String@
 -- solver, which might fail.  Does no parsing or special printing
 -- treatment.
-withSolver :: (String -> Maybe String) -> Challenge String String
-withSolver f = MkC { cParse = Just
-                   , cShow  = id
-                   , cSolve = f
-                   }
+withSolver :: (String -> Maybe String) -> String :~> String
+withSolver f = MkSol
+    { sParse = Just
+    , sShow  = id
+    , sSolve = f
+    }
 
-data SomeChallenge where
-    MkSC :: Challenge a b -> SomeChallenge
-
--- | Errors that might happen when running a 'Challenge' on some input.
-data ChallengeError = CEParse
-                    | CESolve
-  deriving (Show, Eq, Ord, Generic)
-
-instance NFData ChallengeError
+-- | Run a ':~>' on some input.
+runSolution :: a :~> b -> String -> Either SolutionError String
+runSolution MkSol{..} s = do
+    x <- maybeToEither SEParse . sParse $ s
+    y <- maybeToEither SESolve . sSolve $ x
+    pure $ sShow y
 
 -- | Run a 'Challenge' on some input.
-runChallenge :: Challenge a b -> String -> Either ChallengeError String
-runChallenge MkC{..} s = do
-    x <- maybeToEither CEParse . cParse $ s
-    y <- maybeToEither CESolve . cSolve $ x
-    pure $ cShow y
-
--- | Run a 'Challenge' on some input.
-runSomeChallenge :: SomeChallenge -> String -> Either ChallengeError String
-runSomeChallenge (MkSC c) = runChallenge c
-
--- | A map of days to parts to challenges.
-type ChallengeMap = Map (Finite 25) (Map Char SomeChallenge)
+runSomeSolution :: SomeSolution -> String -> Either SolutionError String
+runSomeSolution (MkSomeSol c) = runSolution c

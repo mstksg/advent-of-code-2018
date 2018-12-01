@@ -20,7 +20,7 @@
 
 module AOC2018.Challenge.Day01 (day01a, day01b) where
 
-import           AOC2018.Challenge (Challenge(..))
+import           AOC2018.Challenge ((:~>)(..))
 import           AOC2018.Util      (firstRepeated)
 import           Text.Read         (readMaybe)
 
@@ -28,18 +28,18 @@ parseItem :: String -> Maybe Int
 parseItem ('+':cs) = readMaybe cs
 parseItem cs       = readMaybe cs
 
-day01a :: Challenge [Int] Int
-day01a = MkC
-    { cParse = traverse parseItem . lines
-    , cShow  = show
-    , cSolve = Just . sum
+day01a :: [Int] :~> Int
+day01a = MkSol
+    { sParse = traverse parseItem . lines
+    , sShow  = show
+    , sSolve = Just . sum
     }
 
-day01b :: Challenge [Int] Int
-day01b = MkC
-    { cParse = traverse parseItem . lines
-    , cShow  = show
-    , cSolve = firstRepeated        -- get first repeated sum
+day01b :: [Int] :~> Int
+day01b = MkSol
+    { sParse = traverse parseItem . lines
+    , sShow  = show
+    , sSolve = firstRepeated        -- get first repeated sum
              . scanl (+) 0          -- compute running sum
              . cycle                -- infinitely cycle input
     }

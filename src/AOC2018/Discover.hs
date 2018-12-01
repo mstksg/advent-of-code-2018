@@ -14,8 +14,8 @@
 --
 
 module AOC2018.Discover (
-    mkChallengeMap
-  , challengeList
+    mkSolutionMap
+  , solutionList
   ) where
 
 import           AOC2018.Challenge
@@ -41,14 +41,14 @@ import qualified Text.Megaparsec.Char       as P
 
 type Parser = P.Parsec Void String
 
--- | Template Haskell splice to produce a list of all named challenges in
--- a directory. Expects challenges as function names following the format
+-- | Template Haskell splice to produce a list of all named solutions in
+-- a directory. Expects solutions as function names following the format
 -- @dayDDp@, where @DD@ is a two-digit zero-added day, and @p@ is
 -- a lower-case letter corresponding to the part of the challenge.
 --
--- See 'mkChallengeMap' for a description of usage.
-challengeList :: FilePath -> Q (TExp [(Finite 25, (Char, SomeChallenge))])
-challengeList dir = TExp
+-- See 'mkSolutionMap' for a description of usage.
+solutionList :: FilePath -> Q (TExp [(Finite 25, (Char, SomeSolution))])
+solutionList dir = TExp
                   . ListE
                   . map (unType . specExp)
                 <$> runIO (getChallengeSpecs dir)
@@ -57,19 +57,19 @@ challengeList dir = TExp
 -- | Meant to be called like:
 --
 -- @
--- mkChallengeMap $$(challengeList "src\/AOC2018\/Challenge")
+-- mkSolutionMap $$(solutionList "src\/AOC2018\/Challenge")
 -- @
-mkChallengeMap :: [(Finite 25, (Char, SomeChallenge))] -> ChallengeMap
-mkChallengeMap = M.unionsWith M.union
+mkSolutionMap :: [(Finite 25, (Char, SomeSolution))] -> SolutionMap
+mkSolutionMap = M.unionsWith M.union
                . map (uncurry M.singleton . second (uncurry M.singleton))
 
 
-specExp :: ChallengeSpec -> TExp (Finite 25, (Char, SomeChallenge))
+specExp :: ChallengeSpec -> TExp (Finite 25, (Char, SomeSolution))
 specExp s@(CS d p) = TExp $ TupE
     [ LitE (IntegerL (getFinite d))
     , TupE
         [ LitE (CharL p)
-        , ConE 'MkSC `AppE` VarE (mkName (specName s))
+        , ConE 'MkSomeSol `AppE` VarE (mkName (specName s))
         ]
     ]
 
@@ -100,12 +100,12 @@ defaultExtensions = do
     pure $ parseExtension <$> sectionDefaultExtensions
 
 moduleChallenges :: (Data l, Eq l) => [Module l] -> [ChallengeSpec]
-moduleChallenges = (foldMap . foldMap) (maybeToList . isChallenge)
+moduleChallenges = (foldMap . foldMap) (maybeToList . isSolution)
                  . flip resolve M.empty
 
 
-isChallenge :: Symbol -> Maybe ChallengeSpec
-isChallenge s = do
+isSolution :: Symbol -> Maybe ChallengeSpec
+isSolution s = do
     Value _ (Ident _ n) <- pure s
     Right c             <- pure $ P.runParser challengeName "" n
     pure c
