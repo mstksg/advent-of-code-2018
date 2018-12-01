@@ -20,7 +20,7 @@ documentation.  Haddock source renders have hyperlinked identifiers,
 so you can follow any unrecognized identifiers to see where I have defined them
 in the library.  Benchmark times for each part are listed after each link.
 
-*   **Day 1**: [Rendered][day01r] [Github][day01g] *( 2.9 ms / 140 ms )*
+*   **Day 1**: [Rendered][day01r] / [Github][day01g] *( 2.9 ms / 140 ms )*
 
 [day01r]: https://mstksg.github.io/advent-of-code-2018/src/AOC2018.Challenge.Day01.html
 [day01g]: https://github.com/mstksg/advent-of-code-2018/blob/master/src/AOC2018/Challenge/Day01.hs
@@ -39,7 +39,7 @@ data Challenge where
 ```
 
 This helps me mentally separate out parsing, solving, and showing, allowing for
-some cleaner code and to help me with planning out my solution.
+some cleaner code and an easier time planning my solution.
 
 Such a challenge can be "run" on string inputs by feeding the string into
 `cParse`, then `cSolve`, then `cShow`:
