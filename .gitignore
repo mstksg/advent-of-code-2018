@@ -2,4 +2,5 @@
 /aoc2018.cabal
 *~
 /data
+/prompt
 /aoc-conf.yaml

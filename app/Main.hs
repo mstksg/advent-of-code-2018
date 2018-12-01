@@ -57,7 +57,7 @@ main = do
     case toRun of
       Left e   -> putStrLn e
       Right cs -> flip (runAll _cfgSession _oLock) cs $ \c CD{..} -> do
-        case _cdInp of
+        case _cdInput of
           Left err | not _oTests || _oBench -> do
             putStrLn "[ERROR]"
             mapM_ (putStrLn . ("  " ++)) err
@@ -75,10 +75,10 @@ main = do
                 (length (filter id testRes))
                 (length testRes)
             ANSI.setSGR [ ANSI.Reset ]
-        when (_oTests || not _oBench) . forM_ _cdInp $ \inp ->
-          testCase False c inp _cdAns
+        when (_oTests || not _oBench) . forM_ _cdInput $ \inp ->
+          testCase False c inp _cdAnswer
 
-        when _oBench . forM_ _cdInp $ \inp ->
+        when _oBench . forM_ _cdInput $ \inp ->
           benchmark (nf (runChallenge c) inp)
   where
     availableDays = intercalate ", "
@@ -99,7 +99,7 @@ runAll sess lock f = fmap void         $
     printf ">> Day %02d%c\n" (getFinite d + 1) p
     when lock $ do
       CD{..} <- challengeData sess (CS d p)
-      forM_ _cdInp $ \inp ->
+      forM_ _cdInput $ \inp ->
         mapM_ (writeFile _cpAnswer) =<< evaluate (force (runChallenge c inp))
     f c =<< challengeData sess (CS d p)
 
