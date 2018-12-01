@@ -1,3 +1,5 @@
+{-# LANGUAGE TemplateHaskell #-}
+
 -- |
 -- Module      : AOC2018.Discover
 -- Copyright   : (c) Justin Le 2018
@@ -45,7 +47,7 @@ type Parser = P.Parsec Void String
 -- a lower-case letter corresponding to the part of the challenge.
 --
 -- See 'mkChallengeMap' for a description of usage.
-challengeList :: FilePath -> Q (TExp [(Finite 25, (Char, Challenge))])
+challengeList :: FilePath -> Q (TExp [(Finite 25, (Char, SomeChallenge))])
 challengeList dir = TExp
                   . ListE
                   . map (unType . specExp)
@@ -57,17 +59,17 @@ challengeList dir = TExp
 -- @
 -- mkChallengeMap $$(challengeList "src\/AOC2018\/Challenge")
 -- @
-mkChallengeMap :: [(Finite 25, (Char, Challenge))] -> ChallengeMap
+mkChallengeMap :: [(Finite 25, (Char, SomeChallenge))] -> ChallengeMap
 mkChallengeMap = M.unionsWith M.union
                . map (uncurry M.singleton . second (uncurry M.singleton))
 
 
-specExp :: ChallengeSpec -> TExp (Finite 25, (Char, Challenge))
+specExp :: ChallengeSpec -> TExp (Finite 25, (Char, SomeChallenge))
 specExp s@(CS d p) = TExp $ TupE
     [ LitE (IntegerL (getFinite d))
     , TupE
         [ LitE (CharL p)
-        , VarE (mkName (specName s))
+        , ConE 'MkSC `AppE` VarE (mkName (specName s))
         ]
     ]
 

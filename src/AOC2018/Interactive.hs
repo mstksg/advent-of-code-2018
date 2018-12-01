@@ -32,7 +32,7 @@ execChallenge cs@CS{..} = do
       Just c  -> pure c
     CD{..} <- challengeData _cfgSession cs
     case _cdInput of
-      Right inp -> case runChallenge c inp of
+      Right inp -> case runSomeChallenge c inp of
         Right res -> putStrLn res
         Left  e   -> print e
       Left  e   -> print e
@@ -47,7 +47,7 @@ execChallengeWith CS{..} inp = do
     c       <- case M.lookup _csPart <=< M.lookup _csDay $ challengeMap of
       Nothing -> fail "Challenge not yet implemented."
       Just c  -> pure c
-    case runChallenge c inp of
+    case runSomeChallenge c inp of
       Right res -> putStrLn res
       Left  e   -> print e
 
@@ -61,7 +61,7 @@ testChallenge cs@CS{..} = do
     CD{..} <- challengeData _cfgSession cs
     forM_ (zip [1..] _cdTests) $ \(i :: Int, (inp, ans)) ->
       case ans of
-        Just (strip->ex) -> case runChallenge c inp of
+        Just (strip->ex) -> case runSomeChallenge c inp of
           Right (strip->res)
             | ex == res -> printf "Test %d passed.\n" i
             | otherwise -> printf "Test %d failed.\n<<< %s\n>>> %s\n" i ex res

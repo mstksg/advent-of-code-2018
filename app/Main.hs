@@ -88,7 +88,7 @@ main = do
 
         case (_oBench, _oRun) of
           (True , _    ) -> forM_ _cdInput $ \inp ->
-            benchmark (nf (runChallenge c) inp)
+            benchmark (nf (runSomeChallenge c) inp)
           (False, True ) -> forM_ _cdInput $ \inp ->
             testCase False c inp _cdAnswer
           (False, False) -> do
@@ -104,7 +104,7 @@ main = do
 runAll
     :: Maybe String       -- ^ session key
     -> Bool               -- ^ run and lock answer
-    -> (Challenge -> ChallengeData -> IO ())
+    -> (SomeChallenge -> ChallengeData -> IO ())
     -> ChallengeMap
     -> IO ()
 runAll sess lock f = fmap void         $
@@ -117,12 +117,12 @@ runAll sess lock f = fmap void         $
     when lock $ do
       CD{..} <- challengeData sess (CS d p)
       forM_ _cdInput $ \inp ->
-        mapM_ (writeFile _cpAnswer) =<< evaluate (force (runChallenge c inp))
+        mapM_ (writeFile _cpAnswer) =<< evaluate (force (runSomeChallenge c inp))
     f c =<< challengeData sess (CS d p)
 
 testCase
     :: Bool
-    -> Challenge
+    -> SomeChallenge
     -> String
     -> Maybe String
     -> IO (Maybe Bool, Either ChallengeError String)
@@ -139,7 +139,7 @@ testCase emph c inp ans = do
       ANSI.setSGR [ ANSI.Reset ]
     return (status, res)
   where
-    res = runChallenge c inp
+    res = runSomeChallenge c inp
     resStr = case res of
       Right r -> r
       Left CEParse -> "ERROR: No parse"

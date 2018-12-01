@@ -28,14 +28,14 @@ parseItem :: String -> Maybe Int
 parseItem ('+':cs) = readMaybe cs
 parseItem cs       = readMaybe cs
 
-day01a :: Challenge
+day01a :: Challenge [Int] Int
 day01a = MkC
     { cParse = traverse parseItem . lines
     , cShow  = show
     , cSolve = Just . sum
     }
 
-day01b :: Challenge
+day01b :: Challenge [Int] Int
 day01b = MkC
     { cParse = traverse parseItem . lines
     , cShow  = show

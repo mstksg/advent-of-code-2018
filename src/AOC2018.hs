@@ -49,9 +49,7 @@ import           AOC2018.Config    as AOC
 import           AOC2018.Discover
 import           AOC2018.Load      as AOC
 import           AOC2018.Util      as AOC
-import           Data.Finite
-import           Data.Map          (Map)
 
 -- | A map of all challenges.
-challengeMap :: Map (Finite 25) (Map Char Challenge)
+challengeMap :: ChallengeMap
 challengeMap = mkChallengeMap $$(challengeList "src/AOC2018/Challenge")

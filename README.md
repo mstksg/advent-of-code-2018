@@ -46,8 +46,8 @@ Such a challenge can be "run" on string inputs by feeding the string into
 
 ```haskell
 -- | Run a 'Challenge' on some input, retuning 'Maybe'
-runChallenge' :: Challenge -> String -> Maybe String
-runChallenge' MkC{..} s = do
+runChallenge :: Challenge -> String -> Maybe String
+runChallenge MkC{..} s = do
     x <- cParse s
     y <- cSolve x
     pure $ cShow y

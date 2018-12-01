@@ -14,14 +14,14 @@ module AOC2018.Challenge.Day02 (day02a, day02b) where
 
 import           AOC2018.Prelude
 
-day02a :: Challenge
+day02a :: Challenge String String
 day02a = MkC
     { cParse = Just
     , cShow  = id
     , cSolve = Just
     }
 
-day02b :: Challenge
+day02b :: Challenge String String
 day02b = MkC
     { cParse = Just
     , cShow  = id
