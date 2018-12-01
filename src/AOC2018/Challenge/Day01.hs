@@ -12,7 +12,11 @@
 
 module AOC2018.Challenge.Day01 (day01a, day01b) where
 
-import           AOC2018.Prelude
+import           AOC2018.Types       (Challenge(..))
+import           AOC2018.Util        (firstRepeated)
+import           Control.Applicative ((<|>))
+import           Data.List           (stripPrefix)
+import           Text.Read           (readMaybe)
 
 parseItem :: String -> Maybe Int
 parseItem s = (readMaybe =<< ("+" `stripPrefix` s))

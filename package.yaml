@@ -32,6 +32,34 @@ dependencies:
 - deepseq
 - text
 
+default-extensions:
+- ApplicativeDo
+- BangPatterns
+- BlockArguments
+- DeriveFoldable
+- DeriveFunctor
+- DeriveGeneric
+- DeriveTraversable
+- EmptyCase
+- GADTs
+- KindSignatures
+- LambdaCase
+- MonadComprehensions
+- MonoLocalBinds
+- MultiWayIf
+- NumDecimals
+- PartialTypeSignatures
+- PatternGuards
+- PatternSynonyms
+- PolyKinds
+- RankNTypes
+- RecordWildCards
+- ScopedTypeVariables
+- TupleSections
+- TypeApplications
+- TypeInType
+- ViewPatterns
+
 library:
   source-dirs: src
   dependencies:
@@ -52,33 +80,9 @@ library:
   - template-haskell
   - transformers
   - yaml
-  default-extensions:
-  - ApplicativeDo
-  - BangPatterns
-  - BlockArguments
-  - DeriveFoldable
-  - DeriveFunctor
-  - DeriveGeneric
-  - DeriveTraversable
-  - EmptyCase
-  - GADTs
-  - KindSignatures
-  - LambdaCase
-  - MonadComprehensions
-  - MonoLocalBinds
-  - MultiWayIf
-  - NumDecimals
-  - PartialTypeSignatures
-  - PatternGuards
-  - PatternSynonyms
-  - PolyKinds
-  - RankNTypes
-  - RecordWildCards
-  - ScopedTypeVariables
-  - TupleSections
-  - TypeApplications
-  - TypeInType
-  - ViewPatterns
+  - show-prettyprint
+  - taggy
+  - taggy-lens
 
 executables:
   aoc2018:

@@ -27,6 +27,7 @@ import           Language.Haskell.Exts      as E
 import           Language.Haskell.Names
 import           Language.Haskell.TH        as TH
 import           Language.Haskell.TH.Syntax (TExp(..))
+import           Prelude
 import           System.Directory
 import           System.FilePath
 import           Text.Printf
