@@ -7,7 +7,14 @@
 -- Stability   : experimental
 -- Portability : non-portable
 --
--- Day 1!
+-- Day 1!  Pretty straightforward Haskell pipeline.  Parse using
+-- 'readMaybe' (remembering to 'stripPrefix' a positive sign first).
+--
+-- The first one is just a simple sum.
+--
+-- The second one lazily computes a running sum with @'scanl' (+) 0@ on the
+-- infinitely repeated list of inputs ('cycle'), and then uses a custom
+-- utility function 'firstRepeated' to get the first repeated running sum.
 --
 
 module AOC2018.Challenge.Day01 (day01a, day01b) where
