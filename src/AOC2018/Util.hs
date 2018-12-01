@@ -17,6 +17,8 @@ module AOC2018.Util (
   , dup
   , scanlT
   , scanrT
+  , eitherToMaybe
+  , maybeToEither
   ) where
 
 import           Data.List
@@ -47,3 +49,8 @@ scanlT f z = snd . mapAccumL (\x -> dup . f x) z
 scanrT :: Traversable t => (a -> b -> b) -> b -> t a -> t b
 scanrT f z = snd . mapAccumR (\x -> dup . flip f x) z
 
+eitherToMaybe :: Either e a -> Maybe a
+eitherToMaybe = either (const Nothing) Just
+
+maybeToEither :: e -> Maybe a -> Either e a
+maybeToEither e = maybe (Left e) Right

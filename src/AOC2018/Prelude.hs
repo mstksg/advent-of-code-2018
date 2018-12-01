@@ -19,6 +19,7 @@ import           Data.Semigroup      as P
 import           Data.Traversable    as P
 import           Data.Tuple          as P
 import           Data.Void           as P
+import           Debug.Trace         as P
 import           Text.Printf         as P
 
 import           Data.IntMap           as P (IntMap)

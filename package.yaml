@@ -45,6 +45,7 @@ library:
   - hpack
   - lens
   - megaparsec
+  - pandoc
   - pointedlist
   - profunctors
   - split

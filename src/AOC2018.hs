@@ -62,6 +62,7 @@ import           Data.List
 import           Data.Map                   (Map)
 import           GHC.Generics               (Generic)
 import           Network.Curl
+import           System.Directory
 import           System.FilePath
 import           System.IO.Error
 import           Text.Printf
@@ -99,6 +100,11 @@ challengePaths (CS d p) = CP
   where
     d' = getFinite d + 1
 
+makeChallengeDirs :: ChallengePaths -> IO ()
+makeChallengeDirs CP{..} =
+    mapM_ (createDirectoryIfMissing True . takeDirectory)
+          [_cpInput, _cpAnswer, _cpTests]
+
 -- | Load data associated with a challenge from a given specification.
 -- Will fetch answers online and cache if required (and if giten a session
 -- token).
@@ -107,6 +113,7 @@ challengeData
     -> ChallengeSpec
     -> IO ChallengeData
 challengeData sess spec = do
+    makeChallengeDirs ps
     inp   <- runExceptT . asum $
       [ ExceptT $ maybe (Left [fileErr]) Right <$> readFileMaybe _cpInput
       , fetchInput
@@ -115,7 +122,7 @@ challengeData sess spec = do
     ts    <- foldMap (parseTests . lines) <$> readFileMaybe _cpTests
     return $ CD inp ans ts
   where
-    CP{..} = challengePaths spec
+    ps@CP{..} = challengePaths spec
     fileErr = printf "Input file not found at %s" _cpInput
     readFileMaybe :: FilePath -> IO (Maybe String)
     readFileMaybe =
