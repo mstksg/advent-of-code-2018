@@ -16,7 +16,7 @@ Challenges and Reflections
 --------------------------
 
 Links go to haddock source renders for code, with reflections in the
-documentation.  Note that haddock source renders have hyperlinked identifiers,
+documentation.  Haddock source renders have hyperlinked identifiers,
 so you can follow any unrecognized identifiers to see where I have defined them
 in the library.  Benchmark times for each part are listed after each link.
 
@@ -24,6 +24,37 @@ in the library.  Benchmark times for each part are listed after each link.
 
 [day01r]: https://mstksg.github.io/advent-of-code-2018/src/AOC2018.Challenge.Day01.html
 [day01g]: https://github.com/mstksg/advent-of-code-2018/blob/master/src/AOC2018/Challenge/Day01.hs
+
+### `Challenge` type
+
+This year I'm implementing my solutions in terms of a `Challenge` record type:
+
+```haskell
+data Challenge where
+    MkC :: { cParse :: String -> Maybe a    -- ^ parse input into an `a`
+           , cSolve :: a      -> Maybe b    -- ^ solve an `a` input to a `b` solution
+           , cShow  :: b      -> String     -- ^ print out the `b` solution in a pretty way
+           }
+        -> Challenge
+```
+
+This helps me mentally separate out parsing, solving, and showing, allowing for
+some cleaner code and to help me with planning out my solution.
+
+Such a challenge can be "run" on string inputs by feeding the string into
+`cParse`, then `cSolve`, then `cShow`:
+
+```haskell
+-- | Run a 'Challenge' on some input, retuning 'Maybe'
+runChallenge' :: Challenge -> String -> Maybe String
+runChallenge' MkC{..} s = do
+    x <- cParse s
+    y <- cSolve x
+    pure $ cShow y
+```
+
+In the actual library, I have `runChallenge` return an `Either` so I can debug
+which stage the error happened in.
 
 Executable
 ----------

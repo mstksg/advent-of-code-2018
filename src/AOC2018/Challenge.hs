@@ -16,6 +16,7 @@ module AOC2018.Challenge (
   , withSolver, withSolver'
   , ChallengeError(..)
   , runChallenge
+  , runChallenge'
   , ChallengeMap
   , ChallengeSpec(..)
   ) where
@@ -64,6 +65,13 @@ runChallenge :: Challenge -> String -> Either ChallengeError String
 runChallenge MkC{..} s = do
     x <- maybe (Left CEParse) Right $ cParse s
     y <- maybe (Left CESolve) Right $ cSolve x
+    pure $ cShow y
+
+-- | Run a 'Challenge' on some input, retuning 'Maybe'
+runChallenge' :: Challenge -> String -> Maybe String
+runChallenge' MkC{..} s = do
+    x <- cParse s
+    y <- cSolve x
     pure $ cShow y
 
 -- | A map of days to parts to challenges.
