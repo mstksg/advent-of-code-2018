@@ -17,7 +17,7 @@ module AOC2018.Prelude (
     module P
   ) where
 
-import           AOC2018.Types       as P
+import           AOC2018.Challenge   as P
 import           AOC2018.Util        as P
 import           Control.Applicative as P
 import           Control.Monad       as P hiding (fail)

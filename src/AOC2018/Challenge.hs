@@ -11,7 +11,7 @@
 -- solutions.
 --
 
-module AOC2018.Types (
+module AOC2018.Challenge (
     Challenge(..)
   , withSolver, withSolver'
   , ChallengeError(..)
@@ -32,9 +32,9 @@ import           GHC.Generics
 -- a general @a -> 'Maybe' b@ function, and the parser and shower are used
 -- to handle the boilerplate of parsing and printing the solution.
 data Challenge where
-    MkC :: { cParse :: String -> Maybe a
-           , cSolve :: a      -> Maybe b
-           , cShow  :: b      -> String
+    MkC :: { cParse :: String -> Maybe a    -- ^ parse input into an @a@
+           , cSolve :: a      -> Maybe b    -- ^ solve an @a@ input to a @b@ solution
+           , cShow  :: b      -> String     -- ^ print out the @b@ solution in a pretty way
            }
         -> Challenge
 

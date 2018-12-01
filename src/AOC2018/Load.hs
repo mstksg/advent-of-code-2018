@@ -18,7 +18,7 @@ module AOC2018.Load (
   , ChallengeData(..), challengeData
   ) where
 
-import           AOC2018.Types              as AOC
+import           AOC2018.Challenge          as AOC
 import           AOC2018.Util               as AOC
 import           Control.DeepSeq
 import           Control.Exception
@@ -42,7 +42,6 @@ import qualified Data.Text.IO               as T
 import qualified Text.Pandoc                as P
 import qualified Text.Taggy                 as H
 import qualified Text.Taggy.Lens            as H
-
 
 -- | A record of paths corresponding to a specific challenge.
 data ChallengePaths = CP { _cpPromptUrl :: !FilePath

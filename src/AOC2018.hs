@@ -19,7 +19,7 @@ module AOC2018 (
   ) where
 
 import           AOC2018.Challenge.Day01 as AOC
--- import           AOC2018.Challenge.Day02 as AOC
+import           AOC2018.Challenge.Day02 as AOC
 -- import           AOC2018.Challenge.Day03 as AOC
 -- import           AOC2018.Challenge.Day04 as AOC
 -- import           AOC2018.Challenge.Day05 as AOC
@@ -44,13 +44,13 @@ import           AOC2018.Challenge.Day01 as AOC
 -- import           AOC2018.Challenge.Day24 as AOC
 -- import           AOC2018.Challenge.Day25 as AOC
 
-import           AOC2018.Config   as AOC
+import           AOC2018.Challenge as AOC
+import           AOC2018.Config    as AOC
 import           AOC2018.Discover
-import           AOC2018.Load     as AOC
-import           AOC2018.Types    as AOC
-import           AOC2018.Util     as AOC
+import           AOC2018.Load      as AOC
+import           AOC2018.Util      as AOC
 import           Data.Finite
-import           Data.Map         (Map)
+import           Data.Map          (Map)
 
 -- | A map of all challenges.
 challengeMap :: Map (Finite 25) (Map Char Challenge)

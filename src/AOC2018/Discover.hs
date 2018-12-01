@@ -16,7 +16,7 @@ module AOC2018.Discover (
   , challengeList
   ) where
 
-import           AOC2018.Types
+import           AOC2018.Challenge
 import           Data.Bifunctor
 import           Data.Data
 import           Data.Finite

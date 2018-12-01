@@ -1,5 +1,5 @@
 -- |
--- Module      : AOC2018.Challenge.Day1
+-- Module      : AOC2018.Challenge.Day01
 -- Copyright   : (c) Justin Le 2018
 -- License     : BSD3
 --
@@ -20,9 +20,9 @@
 
 module AOC2018.Challenge.Day01 (day01a, day01b) where
 
-import           AOC2018.Types (Challenge(..))
-import           AOC2018.Util  (firstRepeated)
-import           Text.Read     (readMaybe)
+import           AOC2018.Challenge (Challenge(..))
+import           AOC2018.Util      (firstRepeated)
+import           Text.Read         (readMaybe)
 
 parseItem :: String -> Maybe Int
 parseItem ('+':cs) = readMaybe cs
