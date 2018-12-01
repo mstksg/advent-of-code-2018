@@ -38,18 +38,21 @@ $ stack setup
 $ stack install
 ```
 
-The executable `aoc2018` includes a testing and benchmark suite
+The executable `aoc2018` includes a testing and benchmark suite, as well as a
+way to view prompts within the command line:
 
 ```
 $ aoc2018 --help
 aoc2018 - Advent of Code 2018 challenge runner
 
-Usage: aoc2018 DAY [PART] [-t|--tests] [-b|--bench]
+Usage: aoc2018 DAY [PART] [-p|--prompt] [-n|--no-run] [-t|--tests] [-b|--bench]
   Run challenges from Advent of Code 2018
 
 Available options:
   DAY                      Day of challenge (1 - 25), or "all"
   PART                     Challenge part (a, b, c, etc.)
+  -p,--prompt              Show problem prompt before running
+  -n,--no-run              Do not run solution on input
   -t,--tests               Run sample tests
   -b,--bench               Run benchmarks
   -h,--help                Show this help text
@@ -115,6 +118,8 @@ This can be provided in `aoc-conf.yaml`:
 ```yaml
 session:  [[ session token goes here ]]
 ```
+
+Session keys are also required to download "Part 2" prompts for each challenge.
 
 You can "lock in" your current answers (telling the executable that those are
 the correct answers) by passing in `--lock`.  This will lock in any final
