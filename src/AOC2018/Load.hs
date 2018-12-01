@@ -17,8 +17,8 @@ module AOC2018.Load (
   , ChallengeData(..), challengeData
   ) where
 
-import           AOC2018.Challenge          as AOC
-import           AOC2018.Util               as AOC
+import           AOC2018.Challenge
+import           AOC2018.Util
 import           Control.DeepSeq
 import           Control.Exception
 import           Control.Lens hiding        ((<.>))

@@ -14,7 +14,7 @@
 --
 
 module AOC2018.Discover (
-    mkSolutionMap
+    mkChallengeMap
   , solutionList
   ) where
 
@@ -46,7 +46,7 @@ type Parser = P.Parsec Void String
 -- @dayDDp@, where @DD@ is a two-digit zero-added day, and @p@ is
 -- a lower-case letter corresponding to the part of the challenge.
 --
--- See 'mkSolutionMap' for a description of usage.
+-- See 'mkChallengeMap' for a description of usage.
 solutionList :: FilePath -> Q (TExp [(Finite 25, (Char, SomeSolution))])
 solutionList dir = TExp
                   . ListE
@@ -57,10 +57,10 @@ solutionList dir = TExp
 -- | Meant to be called like:
 --
 -- @
--- mkSolutionMap $$(solutionList "src\/AOC2018\/Challenge")
+-- mkChallengeMap $$(solutionList "src\/AOC2018\/Challenge")
 -- @
-mkSolutionMap :: [(Finite 25, (Char, SomeSolution))] -> SolutionMap
-mkSolutionMap = M.unionsWith M.union
+mkChallengeMap :: [(Finite 25, (Char, SomeSolution))] -> ChallengeMap
+mkChallengeMap = M.unionsWith M.union
                . map (uncurry M.singleton . second (uncurry M.singleton))
 
 
@@ -91,7 +91,7 @@ getChallengeSpecs dir = do
       case res of
         ParseOk x       -> pure x
         ParseFailed l e -> fail $ printf "Failed parsing %s at %s: %s" f (show l) e
-    pure $ moduleChallenges parsed
+    pure $ moduleSolutions parsed
 
 defaultExtensions :: IO [E.Extension]
 defaultExtensions = do
@@ -99,9 +99,9 @@ defaultExtensions = do
     Just H.Section{..} <- pure $ H.packageLibrary decodeResultPackage
     pure $ parseExtension <$> sectionDefaultExtensions
 
-moduleChallenges :: (Data l, Eq l) => [Module l] -> [ChallengeSpec]
-moduleChallenges = (foldMap . foldMap) (maybeToList . isSolution)
-                 . flip resolve M.empty
+moduleSolutions :: (Data l, Eq l) => [Module l] -> [ChallengeSpec]
+moduleSolutions = (foldMap . foldMap) (maybeToList . isSolution)
+                . flip resolve M.empty
 
 
 isSolution :: Symbol -> Maybe ChallengeSpec

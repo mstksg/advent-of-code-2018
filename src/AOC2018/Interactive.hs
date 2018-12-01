@@ -11,9 +11,9 @@
 --
 
 module AOC2018.Interactive (
-    execChallenge
-  , execChallengeWith
-  , testChallenge
+    execSolution
+  , execSolutionWith
+  , testSolution
   , viewPrompt
   ) where
 
@@ -24,11 +24,11 @@ import qualified Data.Map      as M
 
 -- | Run the solution indicated by the challenge spec on the official
 -- puzzle input.
-execChallenge :: ChallengeSpec -> IO ()
-execChallenge cs@CS{..} = do
+execSolution :: ChallengeSpec -> IO ()
+execSolution cs@CS{..} = do
     Cfg{..} <- configFile "aoc-conf.yaml"
     c       <- case M.lookup _csPart <=< M.lookup _csDay $ challengeMap of
-      Nothing -> fail "Challenge not yet implemented."
+      Nothing -> fail "Solution not yet implemented."
       Just c  -> pure c
     CD{..} <- challengeData _cfgSession cs
     case _cdInput of
@@ -38,22 +38,22 @@ execChallenge cs@CS{..} = do
       Left  e   -> print e
 
 -- | Run the solution indicated by the challenge spec on a custom input.
-execChallengeWith
+execSolutionWith
     :: ChallengeSpec
     -> String               -- ^ custom puzzle input
     -> IO ()
-execChallengeWith CS{..} inp = do
+execSolutionWith CS{..} inp = do
     Cfg{..} <- configFile "aoc-conf.yaml"
     c       <- case M.lookup _csPart <=< M.lookup _csDay $ challengeMap of
-      Nothing -> fail "Challenge not yet implemented."
+      Nothing -> fail "Solution not yet implemented."
       Just c  -> pure c
     case runSomeSolution c inp of
       Right res -> putStrLn res
       Left  e   -> print e
 
 -- | Run test suite for a given challenge spec.
-testChallenge :: ChallengeSpec -> IO ()
-testChallenge cs@CS{..} = do
+testSolution :: ChallengeSpec -> IO ()
+testSolution cs@CS{..} = do
     Cfg{..} <- configFile "aoc-conf.yaml"
     c       <- case M.lookup _csPart <=< M.lookup _csDay $ challengeMap of
       Nothing -> fail "Challenge not implemented."

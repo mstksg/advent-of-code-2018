@@ -18,7 +18,7 @@ module AOC2018.Challenge (
   , SolutionError(..)
   , runSolution
   , runSomeSolution
-  , SolutionMap
+  , ChallengeMap
   , ChallengeSpec(..)
   ) where
 
@@ -37,6 +37,9 @@ data ChallengeSpec = CS { _csDay  :: Finite 25
 -- | Abstracting over the type of a challenge solver to help with cleaner
 -- solutions.
 --
+-- A @a ':~>' b@ encapsulates something that solves a challenge with input
+-- type @a@ into a response of type @b@.
+--
 -- Consists of a parser, a shower, and a solver.  The solver solves
 -- a general @a -> 'Maybe' b@ function, and the parser and shower are used
 -- to handle the boilerplate of parsing and printing the solution.
@@ -46,27 +49,28 @@ data a :~> b = MkSol
     , sShow  :: b      -> String     -- ^ print out the @b@ solution in a pretty way
     }
 
+-- | Wrap an @a ':~>' b@ and hide the type variables so we can put
+-- different solutions in a container.
 data SomeSolution where
     MkSomeSol :: a :~> b -> SomeSolution
 
 -- | A map of days to parts to solutions.
-type SolutionMap = Map (Finite 25) (Map Char SomeSolution)
+type ChallengeMap = Map (Finite 25) (Map Char SomeSolution)
 
--- | Errors that might happen when running a 'Solution' on some input.
+-- | Errors that might happen when running a ':~>' on some input.
 data SolutionError = SEParse
                    | SESolve
   deriving (Show, Eq, Ord, Generic)
 
 instance NFData SolutionError
 
--- | Construct a 'Challenge' from just a normal @String -> String@ solver.
+-- | Construct a ':~>' from just a normal @String -> String@ solver.
 -- Does no parsing or special printing treatment.
 withSolver' :: (String -> String) -> String :~> String
 withSolver' f = withSolver (Just . f)
 
--- | Construct a 'Challenge' from a @String -> 'Maybe' String@
--- solver, which might fail.  Does no parsing or special printing
--- treatment.
+-- | Construct a ':~>' from a @String -> 'Maybe' String@ solver, which
+-- might fail.  Does no parsing or special printing treatment.
 withSolver :: (String -> Maybe String) -> String :~> String
 withSolver f = MkSol
     { sParse = Just
@@ -81,6 +85,6 @@ runSolution MkSol{..} s = do
     y <- maybeToEither SESolve . sSolve $ x
     pure $ sShow y
 
--- | Run a 'Challenge' on some input.
+-- | Run a 'SomeSolution' on some input.
 runSomeSolution :: SomeSolution -> String -> Either SolutionError String
 runSomeSolution (MkSomeSol c) = runSolution c

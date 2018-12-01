@@ -105,7 +105,7 @@ runAll
     :: Maybe String       -- ^ session key
     -> Bool               -- ^ run and lock answer
     -> (SomeSolution -> ChallengeData -> IO ())
-    -> SolutionMap
+    -> ChallengeMap
     -> IO ()
 runAll sess lock f = fmap void         $
                      M.traverseWithKey $ \d ->

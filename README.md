@@ -25,35 +25,38 @@ in the library.  Benchmark times for each part are listed after each link.
 [day01r]: https://mstksg.github.io/advent-of-code-2018/src/AOC2018.Challenge.Day01.html
 [day01g]: https://github.com/mstksg/advent-of-code-2018/blob/master/src/AOC2018/Challenge/Day01.hs
 
-### `Challenge` type
+### `:~>` type
 
-This year I'm implementing my solutions in terms of a `Challenge` record type:
+This year I'm implementing my solutions in terms of a `:~>` record type:
 
 ```haskell
-data Challenge where
-    MkC :: { cParse :: String -> Maybe a    -- ^ parse input into an `a`
-           , cSolve :: a      -> Maybe b    -- ^ solve an `a` input to a `b` solution
-           , cShow  :: b      -> String     -- ^ print out the `b` solution in a pretty way
-           }
-        -> Challenge
+data a :~> b = MkSol
+    { sParse :: String -> Maybe a    -- ^ parse input into an `a`
+    , sSolve :: a      -> Maybe b    -- ^ solve an `a` input to a `b` solution
+    , sShow  :: b      -> String     -- ^ print out the `b` solution for submission
+    }
 ```
+
+An `a :~> b` is a solution to a challenge expecting input of type `a` and
+producing answers of type `b`.  It also packs in functions to parse a `String`
+into an `a`, and functions to show a `b` as a `String` to submit as an answer.
 
 This helps me mentally separate out parsing, solving, and showing, allowing for
 some cleaner code and an easier time planning my solution.
 
 Such a challenge can be "run" on string inputs by feeding the string into
-`cParse`, then `cSolve`, then `cShow`:
+`sParse`, then `sSolve`, then `sShow`:
 
 ```haskell
--- | Run a 'Challenge' on some input, retuning 'Maybe'
-runChallenge :: Challenge -> String -> Maybe String
-runChallenge MkC{..} s = do
-    x <- cParse s
-    y <- cSolve x
-    pure $ cShow y
+-- | Run a ':~>' on some input, retuning 'Maybe'
+runSolution :: Challenge -> String -> Maybe String
+runSolution MkSol{..} s = do
+    x <- sParse s
+    y <- sSolve x
+    pure $ sShow y
 ```
 
-In the actual library, I have `runChallenge` return an `Either` so I can debug
+In the actual library, I have `runSolution` return an `Either` so I can debug
 which stage the error happened in.
 
 Executable
