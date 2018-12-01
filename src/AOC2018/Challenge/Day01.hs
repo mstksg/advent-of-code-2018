@@ -26,7 +26,7 @@ import           Data.List           (stripPrefix)
 import           Text.Read           (readMaybe)
 
 parseItem :: String -> Maybe Int
-parseItem s = (readMaybe =<< ("+" `stripPrefix` s))
+parseItem s = (readMaybe =<< "+" `stripPrefix` s)
           <|> readMaybe s
 
 day01a :: Challenge
@@ -40,5 +40,7 @@ day01b :: Challenge
 day01b = MkC
     { cParse = traverse parseItem . lines
     , cShow  = show
-    , cSolve = firstRepeated . scanl (+) 0 . cycle
+    , cSolve = firstRepeated        -- get first repeated sum
+             . scanl (+) 0          -- compute running sum
+             . cycle                -- infinitely cycle input
     }
