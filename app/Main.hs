@@ -29,6 +29,7 @@ data TestSpec = TSAll
 
 data Opts = O { _oTestSpec :: TestSpec
               , _oPrompt   :: Bool
+              , _oRun      :: Bool
               , _oTests    :: Bool
               , _oBench    :: Bool
               , _oLock     :: Bool
@@ -57,7 +58,7 @@ main = do
             return $ M.singleton d (M.singleton p c)
     case toRun of
       Left e   -> putStrLn e
-      Right cs -> flip (runAll _cfgSession _oLock) cs $ \c CD{..} -> do
+      Right cs -> flip (runAll _cfgSession (_oRun && _oLock)) cs $ \c CD{..} -> do
         when _oPrompt $
           case _cdPrompt of
             Left err -> do
@@ -66,7 +67,7 @@ main = do
             Right pmpt -> putStrLn pmpt >> putStrLn ""
 
         case _cdInput of
-          Left err | not _oTests || _oBench -> do
+          Left err | not _oTests || _oBench || _oRun -> do
             putStrLn "[INPUT ERROR]"
             mapM_ (putStrLn . ("  " ++)) err
           _ ->
@@ -85,11 +86,15 @@ main = do
                 (length testRes)
             ANSI.setSGR [ ANSI.Reset ]
 
-        when (_oTests || not _oBench) . forM_ _cdInput $ \inp ->
-          testCase False c inp _cdAnswer
-
-        when _oBench . forM_ _cdInput $ \inp ->
-          benchmark (nf (runChallenge c) inp)
+        case (_oBench, _oRun) of
+          (True , _    ) -> forM_ _cdInput $ \inp ->
+            benchmark (nf (runChallenge c) inp)
+          (False, True ) -> forM_ _cdInput $ \inp ->
+            testCase False c inp _cdAnswer
+          (False, False) -> do
+            ANSI.setSGR [ ANSI.SetColor ANSI.Foreground ANSI.Dull ANSI.Magenta ]
+            putStrLn "Run skipped."
+            ANSI.setSGR [ ANSI.Reset ]
   where
     availableDays = intercalate ", "
                   . map (show . (+ 1) . getFinite)
@@ -97,8 +102,8 @@ main = do
                   $ challengeMap
 
 runAll
-    :: Maybe String
-    -> Bool
+    :: Maybe String       -- ^ session key
+    -> Bool               -- ^ run and lock answer
     -> (Challenge -> ChallengeData -> IO ())
     -> ChallengeMap
     -> IO ()
@@ -106,7 +111,9 @@ runAll sess lock f = fmap void         $
                      M.traverseWithKey $ \d ->
                      M.traverseWithKey $ \p c -> do
     let CP{..} = challengePaths (CS d p)
+    ANSI.setSGR [ ANSI.SetColor ANSI.Foreground ANSI.Dull ANSI.Blue ]
     printf ">> Day %02d%c\n" (getFinite d + 1) p
+    ANSI.setSGR [ ANSI.Reset ]
     when lock $ do
       CD{..} <- challengeData sess (CS d p)
       forM_ _cdInput $ \inp ->
@@ -120,7 +127,7 @@ testCase
     -> Maybe String
     -> IO (Maybe Bool, Either ChallengeError String)
 testCase emph c inp ans = do
-    ANSI.setSGR [ ANSI.SetColor ANSI.Foreground ANSI.Vivid color ]
+    ANSI.setSGR [ ANSI.SetColor ANSI.Foreground ANSI.Dull color ]
     printf "[%c]" mark
     ANSI.setSGR [ ANSI.Reset ]
     if emph
@@ -160,6 +167,9 @@ parseOpts = do
     v <- switch $ long "prompt"
                <> short 'p'
                <> help "Show problem prompt before running"
+    n <- switch $ long "no-run"
+               <> short 'n'
+               <> help "Do not run solution on input"
     t <- switch $ long "tests"
                <> short 't'
                <> help "Run sample tests"
@@ -182,6 +192,7 @@ parseOpts = do
                       Nothing -> TSAll
            in  O { _oTestSpec = ts
                  , _oPrompt   = v
+                 , _oRun      = not n
                  , _oTests    = t
                  , _oBench    = b
                  , _oLock     = l
