@@ -1,5 +1,18 @@
 {-# LANGUAGE OverloadedStrings #-}
 
+-- |
+-- Module      : AOC2018.Load
+-- Copyright   : (c) Justin Le 2018
+-- License     : BSD3
+--
+-- Maintainer  : justin@jle.im
+-- Stability   : experimental
+-- Portability : non-portable
+--
+-- Loading challenge data and prompts.
+--
+
+
 module AOC2018.Load (
     ChallengePaths(..), challengePaths
   , ChallengeData(..), challengeData

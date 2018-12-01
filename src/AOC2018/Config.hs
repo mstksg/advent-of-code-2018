@@ -1,3 +1,15 @@
+-- |
+-- Module      : AOC2018.Config
+-- Copyright   : (c) Justin Le 2018
+-- License     : BSD3
+--
+-- Maintainer  : justin@jle.im
+-- Stability   : experimental
+-- Portability : non-portable
+--
+-- Utilities for loading configuration file.
+--
+
 
 module AOC2018.Config (
     Config(..), configFile, defConfPath

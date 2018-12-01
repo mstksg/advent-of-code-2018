@@ -28,6 +28,7 @@ data TestSpec = TSAll
   deriving Show
 
 data Opts = O { _oTestSpec :: TestSpec
+              , _oPrompt   :: Bool
               , _oTests    :: Bool
               , _oBench    :: Bool
               , _oLock     :: Bool
@@ -57,12 +58,20 @@ main = do
     case toRun of
       Left e   -> putStrLn e
       Right cs -> flip (runAll _cfgSession _oLock) cs $ \c CD{..} -> do
+        when _oPrompt $
+          case _cdPrompt of
+            Left err -> do
+              putStrLn "[PROMPT ERROR]"
+              mapM_ (putStrLn . ("  " ++)) err
+            Right pmpt -> putStrLn pmpt >> putStrLn ""
+
         case _cdInput of
           Left err | not _oTests || _oBench -> do
-            putStrLn "[ERROR]"
+            putStrLn "[INPUT ERROR]"
             mapM_ (putStrLn . ("  " ++)) err
           _ ->
             return ()
+
         when _oTests $ do
           testRes <- mapMaybe fst <$> mapM (uncurry (testCase True c)) _cdTests
           unless (null testRes) $ do
@@ -75,6 +84,7 @@ main = do
                 (length (filter id testRes))
                 (length testRes)
             ANSI.setSGR [ ANSI.Reset ]
+
         when (_oTests || not _oBench) . forM_ _cdInput $ \inp ->
           testCase False c inp _cdAnswer
 
@@ -147,6 +157,9 @@ parseOpts = do
     p <- optional $ argument pPart ( metavar "PART"
                                   <> help "Challenge part (a, b, c, etc.)"
                                    )
+    v <- switch $ long "prompt"
+               <> short 'p'
+               <> help "Show problem prompt before running"
     t <- switch $ long "tests"
                <> short 't'
                <> help "Run sample tests"
@@ -167,7 +180,13 @@ parseOpts = do
                         Just p' -> TSDayPart d' p'
                         Nothing -> TSDayAll  d'
                       Nothing -> TSAll
-           in  O ts t b l c
+           in  O { _oTestSpec = ts
+                 , _oPrompt   = v
+                 , _oTests    = t
+                 , _oBench    = b
+                 , _oLock     = l
+                 , _oConfig   = c
+                 }
   where
     pFin = eitherReader $ \s -> do
         n <- maybe (Left "Invalid day") Right $ readMaybe s
