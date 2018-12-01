@@ -11,6 +11,17 @@ Check out reflections and commentary at the [package haddocks][haddock]!
 [aoc2018]: https://adventofcode.com/2018
 [haddock]: https://mstksg.github.io/advent-of-code-2018/
 
+Challenges and Reflections
+--------------------------
+
+Links go to haddock source renders for code, with reflections in the
+documentation.  Note that haddock source renders have hyperlinked identifiers,
+so you can follow any unrecognized identifiers to see where I have defined them
+in the library.
+
+*   [Day 1](https://mstksg.github.io/advent-of-code-2018/src/AOC2018.Challenge.Day01.html)
+    ( 2.9 ms / 140 ms )
+
 Executable
 ----------
 
