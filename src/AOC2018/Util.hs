@@ -19,10 +19,12 @@ module AOC2018.Util (
   , scanrT
   , eitherToMaybe
   , maybeToEither
+  , firstRepeated
   ) where
 
 import           Data.List
-import qualified Data.Text        as T
+import qualified Data.Set  as S
+import qualified Data.Text as T
 
 -- | Strict (!!)
 (!!!) :: [a] -> Int -> a
@@ -54,3 +56,13 @@ eitherToMaybe = either (const Nothing) Just
 
 maybeToEither :: e -> Maybe a -> Either e a
 maybeToEither e = maybe (Left e) Right
+
+-- | Lazily find the first repeated item.
+firstRepeated :: Ord a => [a] -> Maybe a
+firstRepeated = go S.empty
+  where
+    go s (x:xs)
+      | x `S.member` s = Just x
+      | otherwise      = go (x `S.insert` s) xs
+    go _ []     = Nothing
+
