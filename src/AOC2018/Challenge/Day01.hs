@@ -22,11 +22,10 @@ parseItem s = (readMaybe =<< ("+" `stripPrefix` s))
 firstRepeated :: Ord a => [a] -> Maybe a
 firstRepeated = go S.empty
   where
-    go s = \case
-      x:xs
-        | x `S.member` s -> Just x
-        | otherwise      -> go (x `S.insert` s) xs
-      []                 -> Nothing
+    go s (x:xs)
+      | x `S.member` s = Just x
+      | otherwise      = go (x `S.insert` s) xs
+    go _ []     = Nothing
 
 day01a :: Challenge
 day01a = MkC
