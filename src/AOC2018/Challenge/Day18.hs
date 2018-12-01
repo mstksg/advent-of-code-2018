@@ -2,7 +2,7 @@
 {-# OPTIONS_GHC -Wno-unused-top-binds #-}
 
 -- |
--- Module      : AOC2018.Challenge.Day02
+-- Module      : AOC2018.Challenge.Day18
 -- Copyright   : (c) Justin Le 2018
 -- License     : BSD3
 --
@@ -10,7 +10,7 @@
 -- Stability   : experimental
 -- Portability : non-portable
 --
--- Day 2.  See "AOC2018.Challenge" for the types used in this module!
+-- Day 18.  See "AOC2018.Challenge" for the types used in this module!
 --
 -- After completing the challenge, it is recommended to:
 --
@@ -23,22 +23,22 @@
 --     solution.  You can delete the type signatures completely and GHC
 --     will recommend what should go in place of the underscores.
 
-module AOC2018.Challenge.Day02 (
-    -- day02a
-  -- , day02b
+module AOC2018.Challenge.Day18 (
+    -- day18a
+  -- , day18b
   ) where
 
 import           AOC2018.Prelude
 
-day02a :: _ :~> _
-day02a = MkSol
+day18a :: _ :~> _
+day18a = MkSol
     { sParse = Just
     , sShow  = id
     , sSolve = Just
     }
 
-day02b :: _ :~> _
-day02b = MkSol
+day18b :: _ :~> _
+day18b = MkSol
     { sParse = Just
     , sShow  = id
     , sSolve = Just
