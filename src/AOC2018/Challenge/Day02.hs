@@ -31,12 +31,12 @@ day02a :: [String] :~> Int
 day02a = MkSol
     { sParse = Just . lines
     , sShow  = show
-    , sSolve = mulTwoThree                   -- * lookup how many times
+    , sSolve = mulTwoThree                   -- > lookup how many times
                                              --     2 and 3 occurred, and
                                              --     multiply
-             . freqs                         -- * build a frequency map of
+             . freqs                         -- > build a frequency map of
                                              --     all seen frequencies
-             . concatMap                     -- * get the frequency map of
+             . concatMap                     -- > get the frequency map of
                 (nubOrd . M.elems . freqs)   --     each string, and then
                                              --     combine all of the
                                              --     frequencies into a big
