@@ -6,7 +6,6 @@ import           Control.DeepSeq
 import           Control.Exception
 import           Control.Monad
 import           Control.Monad.Except
-import           Control.Monad.IO.Class
 import           Criterion
 import           Data.Bifunctor
 import           Data.Char
@@ -39,6 +38,7 @@ data Mode = MRun    { _mTestSpec :: TestSpec
           | MSubmit { _mSpec     :: ChallengeSpec
                     , _mNoTest   :: Bool
                     , _mForce    :: Bool
+                    , _mNoLock   :: Bool
                     }
 
 data Opts = O { _oMode   :: Mode
@@ -62,7 +62,7 @@ main = do
             putStrLn "[PROMPT ERROR]"
             mapM_ (putStrLn . ("  " ++)) err
           Right pmpt -> putStrLn pmpt >> putStrLn ""
-      MSubmit{..} -> mainSubmit cfg _mSpec _mNoTest _mForce >>= \case
+      MSubmit{..} -> mainSubmit cfg _mSpec _mNoTest _mForce _mNoLock >>= \case
         Left   e -> mapM_ putStrLn e
         Right () -> pure ()
 
@@ -116,8 +116,8 @@ mainRun Cfg{..} testSpec test bench' lock = case toRun of
                 M.lookup p ps
         return $ M.singleton d (M.singleton p c)
 
-mainSubmit :: Config -> ChallengeSpec -> Bool -> Bool -> IO (Either [String] ())
-mainSubmit Cfg{..} spec@CS{..} test force' = runExceptT $ do
+mainSubmit :: Config -> ChallengeSpec -> Bool -> Bool -> Bool -> IO (Either [String] ())
+mainSubmit Cfg{..} spec@CS{..} test force' noLock = runExceptT $ do
     CD{..} <- liftIO $ challengeData _cfgSession spec
     dMap   <- maybeToEither [printf "Day not yet available: %d" d'] $
                 M.lookup _csDay challengeMap
@@ -167,7 +167,9 @@ mainSubmit Cfg{..} spec@CS{..} test force' = runExceptT $ do
       ANSI.setSGR [ ANSI.Reset ]
       T.putStrLn resp
       when lock $
-        writeFile _cpAnswer res
+        if noLock
+          then putStrLn "Not locking correct answer (--no-lock)"
+          else putStrLn "Locking correct answer." >> writeFile _cpAnswer res
   where
     CP{..} = challengePaths spec
     d' = getFinite _csDay + 1
@@ -308,11 +310,14 @@ parseOpts = do
     parseSubmit :: Parser Mode
     parseSubmit = do
         s <- parseChallengeSpec
-        n <- switch $ long "no-test"
-                   <> short 'n'
+        t <- switch $ long "skip-tests"
+                   <> short 's'
                    <> help "Skip running tests before submission"
         f <- switch $ long "force"
                    <> short 'f'
                    <> help "Always submit, even if tests fail"
-        pure $ MSubmit s n f
+        n <- switch $ long "no-lock"
+                   <> short 'n'
+                   <> help "Do not lock in answer, even if correct submission was received"
+        pure $ MSubmit s t f n
 
