@@ -31,7 +31,9 @@ import qualified Text.Taggy.Lens            as H
 data SubmitRes = SubCorrect
                | SubWrong
                | SubWait
+               | SubInvalid
                | SubUnknown
+  deriving Show
 
 data API :: Bool -> Type -> Type where
     -- | Fetch prompts
@@ -75,7 +77,7 @@ apiCurl sess = \case
                      : method_GET
     ASubmit _ p ans -> sessionKeyCookie sess
                      : CurlPostFields [ printf "level=%d" (partNum p)
-                                      , printf "answer=%d" (strip ans)
+                                      , printf "answer=%s" (strip ans)
                                       ]
                      : CurlHttpHeaders ["Content-Type: application/x-www-form-urlencoded"]
                      : method_POST
@@ -133,7 +135,8 @@ processHTML pretty html = runExceptT $ do
 
 parseSubmitRes :: T.Text -> SubmitRes
 parseSubmitRes t
-    | "the right answer!"       `T.isInfixOf` t = SubCorrect
-    | "not the right answer."   `T.isInfixOf` t = SubWrong
-    | "an answer too recently;" `T.isInfixOf` t = SubWait
-    | otherwise                                 = SubUnknown
+    | "the right answer!"        `T.isInfixOf` t = SubCorrect
+    | "not the right answer."    `T.isInfixOf` t = SubWrong
+    | "an answer too recently;"  `T.isInfixOf` t = SubWait
+    | "solving the right level." `T.isInfixOf` t = SubInvalid
+    | otherwise                                  = SubUnknown

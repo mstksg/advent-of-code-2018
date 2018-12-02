@@ -25,6 +25,7 @@ import           Control.DeepSeq     as P
 import           Control.Monad.Fail  as P
 import           Data.Bifunctor      as P
 import           Data.Char           as P
+import           Data.Either         as P
 import           Data.Foldable       as P
 import           Data.Function       as P
 import           Data.Kind           as P
