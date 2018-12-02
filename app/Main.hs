@@ -23,92 +23,104 @@ data TestSpec = TSAll
   deriving Show
 
 data Mode = MRun    { _mTestSpec :: TestSpec
-                    , _mTests    :: Bool
+                    , _mTest     :: Bool
                     , _mBench    :: Bool
                     , _mLock     :: Bool
                     }
           | MView   { _mSpec     :: ChallengeSpec
                     }
           | MSubmit { _mSpec     :: ChallengeSpec
-                    , _mTests    :: Bool
+                    , _mTest     :: Bool
                     }
 
 data Opts = O { _oMode   :: Mode
               , _oConfig :: Maybe FilePath
               }
 
-          -- _oTestSpec :: TestSpec
-          --     , _oPrompt   :: Bool
-          --     , _oRun      :: Bool
-          --     , _oTests    :: Bool
-          --     , _oBench    :: Bool
-          --     , _oLock     :: Bool
-
 main :: IO ()
-main = putStrLn "hi"
--- main = do
---     O{..} <- execParser $ info (parseOpts <**> helper)
---                 ( fullDesc
---                <> header "aoc2018 - Advent of Code 2018 challenge runner"
---                <> progDesc ("Run challenges from Advent of Code 2018. Available days: " ++ availableDays)
---                 )
---     Cfg{..} <- configFile $ fromMaybe "aoc-conf.yaml" _oConfig
---     let toRun = case _oTestSpec of
---           TSAll -> Right challengeMap
---           TSDayAll d ->
---             case M.lookup d challengeMap of
---               Nothing -> Left  $ printf "Day not yet available: %d" (getFinite d + 1)
---               Just cs -> Right $ M.singleton d cs
---           TSDayPart d p -> do
---             ps <- maybe (Left $ printf "Day not yet available: %d" (getFinite d + 1)) Right $
---                     M.lookup d challengeMap
---             c  <- maybe (Left $ printf "Part not found: %c" p) Right $
---                     M.lookup p ps
---             return $ M.singleton d (M.singleton p c)
---     case toRun of
---       Left e   -> putStrLn e
---       Right cs -> flip (runAll _cfgSession (_oRun && _oLock)) cs $ \c CD{..} -> do
---         when _oPrompt $
---           case _cdPrompt of
---             Left err -> do
---               putStrLn "[PROMPT ERROR]"
---               mapM_ (putStrLn . ("  " ++)) err
---             Right pmpt -> putStrLn pmpt >> putStrLn ""
+main = do
+    O{..} <- execParser $ info (parseOpts <**> helper)
+                ( fullDesc
+               <> header "aoc2018 - Advent of Code 2018 challenge runner"
+               <> progDesc ("Run challenges from Advent of Code 2018. Available days: " ++ availableDays)
+                )
+    cfg@Cfg{..} <- configFile $ fromMaybe "aoc-conf.yaml" _oConfig
+    case _oMode of
+      MRun{..} -> mainRun cfg _mTestSpec _mTest _mBench _mLock
+      MView{..} -> do
+        CD{..} <- challengeData _cfgSession _mSpec
+        case _cdPrompt of
+          Left err -> do
+            putStrLn "[PROMPT ERROR]"
+            mapM_ (putStrLn . ("  " ++)) err
+          Right pmpt -> putStrLn pmpt >> putStrLn ""
+      MSubmit{..} -> mainSubmit cfg _mSpec _mTest
 
---         case _cdInput of
---           Left err | not _oTests || _oBench || _oRun -> do
---             putStrLn "[INPUT ERROR]"
---             mapM_ (putStrLn . ("  " ++)) err
---           _ ->
---             return ()
+  where
+    availableDays = intercalate ", "
+                  . map (show . (+ 1) . getFinite)
+                  . M.keys
+                  $ challengeMap
 
---         when _oTests $ do
---           testRes <- mapMaybe fst <$> mapM (uncurry (testCase True c)) _cdTests
---           unless (null testRes) $ do
---             let (mark, color)
---                     | and testRes = ('✓', ANSI.Green)
---                     | otherwise   = ('✗', ANSI.Red  )
---             ANSI.setSGR [ ANSI.SetColor ANSI.Foreground ANSI.Vivid color ]
---             printf "[%c] Passed %d out of %d test(s)\n"
---                 mark
---                 (length (filter id testRes))
---                 (length testRes)
---             ANSI.setSGR [ ANSI.Reset ]
 
---         case (_oBench, _oRun) of
---           (True , _    ) -> forM_ _cdInput $ \inp ->
---             benchmark (nf (runSomeSolution c) inp)
---           (False, True ) -> forM_ _cdInput $ \inp ->
---             testCase False c inp _cdAnswer
---           (False, False) -> do
---             ANSI.setSGR [ ANSI.SetColor ANSI.Foreground ANSI.Dull ANSI.Magenta ]
---             putStrLn "Run skipped."
---             ANSI.setSGR [ ANSI.Reset ]
---   where
---     availableDays = intercalate ", "
---                   . map (show . (+ 1) . getFinite)
---                   . M.keys
---                   $ challengeMap
+mainRun :: Config -> TestSpec -> Bool -> Bool -> Bool -> IO ()
+mainRun Cfg{..} testSpec test bench' lock = case toRun of
+    Left e   -> putStrLn e
+    Right cs -> flip (runAll _cfgSession lock) cs $ \c CD{..} -> do
+
+      case _cdInput of
+        Left err | not test || bench' -> do
+          putStrLn "[INPUT ERROR]"
+          mapM_ (putStrLn . ("  " ++)) err
+        _ ->
+          return ()
+
+      when test $ do
+        testRes <- mapMaybe fst <$> mapM (uncurry (testCase True c)) _cdTests
+        unless (null testRes) $ do
+          let (mark, color)
+                  | and testRes = ('✓', ANSI.Green)
+                  | otherwise   = ('✗', ANSI.Red  )
+          ANSI.setSGR [ ANSI.SetColor ANSI.Foreground ANSI.Vivid color ]
+          printf "[%c] Passed %d out of %d test(s)\n"
+              mark
+              (length (filter id testRes))
+              (length testRes)
+          ANSI.setSGR [ ANSI.Reset ]
+
+      forM_ _cdInput $ \inp ->
+        if bench'
+          then void $ benchmark (nf (runSomeSolution c) inp)
+          else void $ testCase False c inp _cdAnswer
+  where
+    toRun = case testSpec of
+      TSAll -> Right challengeMap
+      TSDayAll d ->
+        case M.lookup d challengeMap of
+          Nothing -> Left  $ printf "Day not yet available: %d" (getFinite d + 1)
+          Just cs -> Right $ M.singleton d cs
+      TSDayPart d p -> do
+        ps <- maybe (Left $ printf "Day not yet available: %d" (getFinite d + 1)) Right $
+                M.lookup d challengeMap
+        c  <- maybe (Left $ printf "Part not found: %c" p) Right $
+                M.lookup p ps
+        return $ M.singleton d (M.singleton p c)
+
+mainSubmit :: Config -> ChallengeSpec -> Bool -> IO ()
+mainSubmit Cfg{..} spec test = putStrLn "Unimplemented"
+--     CD{..} <- challengeData _cfgSession spec
+--     when test $ do
+--       testRes <- mapMaybe fst <$> mapM (uncurry (testCase True c)) _cdTests
+--       unless (null testRes) $ do
+--         let (mark, color)
+--                 | and testRes = ('✓', ANSI.Green)
+--                 | otherwise   = ('✗', ANSI.Red  )
+--         ANSI.setSGR [ ANSI.SetColor ANSI.Foreground ANSI.Vivid color ]
+--         printf "[%c] Passed %d out of %d test(s)\n"
+--             mark
+--             (length (filter id testRes))
+--             (length testRes)
+--         ANSI.setSGR [ ANSI.Reset ]
 
 runAll
     :: Maybe String       -- ^ session key
@@ -130,7 +142,7 @@ runAll sess lock f = fmap void         $
     f c =<< challengeData sess (CS d p)
 
 testCase
-    :: Bool
+    :: Bool             -- ^ is just an example
     -> SomeSolution
     -> String
     -> Maybe String
@@ -220,62 +232,34 @@ parseOpts = do
       <> short 'c'
       <> metavar "PATH"
       <> help "Path to configuration file (default: aoc2018-conf.yaml)"
-    -- m <- subparser $
-    --      command "run" _
-    --   <> command "view" _
-    --   <> command "submit" _
-    pure O { _oMode   = undefined
+    m <- subparser $
+         command "run"    (info parseRun    (progDesc "Run, test, and benchmark challenges"   ))
+      <> command "view"   (info parseView   (progDesc "View a prompt for a given challenge"   ))
+      <> command "submit" (info parseSubmit (progDesc "Test and submit answers for challenges"))
+    pure O { _oMode   = m
            , _oConfig = c
            }
-    -- d <- argument pDay ( metavar "DAY"
-    --                   <> help "Day of challenge (1 - 25), or \"all\""
-    --                    )
-    -- p <- optional $ argument pPart ( metavar "PART"
-    --                               <> help "Challenge part (a, b, c, etc.)"
-    --                                )
-    -- v <- switch $ long "prompt"
-    --            <> short 'p'
-    --            <> help "Show problem prompt before running"
-    -- n <- switch $ long "no-run"
-    --            <> short 'n'
-    --            <> help "Do not run solution on input"
-    -- t <- switch $ long "tests"
-    --            <> short 't'
-    --            <> help "Run sample tests"
-    -- b <- switch $ long "bench"
-    --            <> short 'b'
-    --            <> help "Run benchmarks"
-    -- l <- switch $ long "lock"
-    --            <> short 'l'
-    --            <> help "Lock in results as \"correct\" answers"
-    -- c <- optional $ strOption
-    --     ( long "config"
-    --    <> short 'c'
-    --    <> metavar "PATH"
-    --    <> help "Path to configuration file (default: aoc2018-conf.yaml)"
-    --     )
-    -- pure $ let ts = case d of
-    --                   Just d' -> case p of
-    --                     Just p' -> TSDayPart d' p'
-    --                     Nothing -> TSDayAll  d'
-    --                   Nothing -> TSAll
-    --        in  O { _oTestSpec = ts
-    --              , _oPrompt   = v
-    --              , _oRun      = not n
-    --              , _oTests    = t
-    --              , _oBench    = b
-    --              , _oLock     = l
-    --              , _oConfig   = c
-    --              }
-  -- where
-    -- pFin = eitherReader $ \s -> do
-    --     n <- maybe (Left "Invalid day") Right $ readMaybe s
-    --     maybe (Left "Day out of range") Right $ packFinite (n - 1)
-    -- pDay = Nothing <$ maybeReader (guard . (== "all") . map toLower)
-    --    <|>    Just <$> pFin
-    -- pPart = eitherReader $ \case
-    --     []  -> Left "No part"
-    --     [p] | isAlpha p -> Right (toLower p)
-    --         | otherwise -> Left "Invalid part (not an alphabet letter)"
-    --     _   -> Left "Invalid part (not a single alphabet letter)"
+  where
+    parseRun    :: Parser Mode
+    parseRun = do
+        s <- parseTestSpec
+        t <- switch $ long "test"
+                   <> short 't'
+                   <> help "Run sample tests"
+        b <- switch $ long "bench"
+                   <> short 'b'
+                   <> help "Run benchmarks"
+        l <- switch $ long "lock"
+                   <> short 'l'
+                   <> help "Lock in results as \"correct\" answers"
+        pure $ MRun s t b l
+    parseView   :: Parser Mode
+    parseView = MView <$> parseChallengeSpec
+    parseSubmit :: Parser Mode
+    parseSubmit = do
+        s <- parseChallengeSpec
+        t <- switch $ long "test"
+                   <> short 't'
+                   <> help "Run sample tests"
+        pure $ MSubmit s t
 
