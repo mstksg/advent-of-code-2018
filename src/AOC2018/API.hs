@@ -72,6 +72,11 @@ sessionKeyCookieMaybe :: SessionKey k -> Maybe CurlOption
 sessionKeyCookieMaybe (HasKey s) = Just (sessionKeyCookie (HasKey s))
 sessionKeyCookieMaybe NoKey      = Nothing
 
+-- | Wrap a @'Maybe' 'String'@ (a possible session key) into a 'SessionKey'
+-- based on the expectations of a given 'API' command.  If the API
+-- command requires a key, 'Nothing' will be returned if no key is given.
+-- If the API command doesn't require a key, 'Just' will always be
+-- returned.
 sessionKey :: API k a -> Maybe String -> Maybe (SessionKey k)
 sessionKey = \case
     APrompt{} -> Just . maybe NoKey HasKey
