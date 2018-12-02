@@ -14,9 +14,14 @@ module AOC2018.Challenge.Day02 (
   , day02b
   ) where
 
-import           AOC2018.Prelude
-import qualified Data.Map        as M
-import qualified Data.Set        as S
+import           AOC2018.Challenge         ((:~>)(..))
+import           AOC2018.Util              (freqs, perturbations)
+import           Control.Monad             (guard)
+import           Data.Containers.ListUtils (nubOrd)
+import           Data.List                 (find)
+import           Data.Maybe                (catMaybes)
+import qualified Data.Map                  as M
+import qualified Data.Set                  as S
 
 -- | We compute a frequency map of all of the characters in a string, and
 -- then get all of the frequencies that happened for each line.

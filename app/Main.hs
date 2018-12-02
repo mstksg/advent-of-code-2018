@@ -91,12 +91,11 @@ mainRun Cfg{..} testSpec test bench' lock = case toRun of
           let (mark, color)
                   | and testRes = ('✓', ANSI.Green)
                   | otherwise   = ('✗', ANSI.Red  )
-          ANSI.setSGR [ ANSI.SetColor ANSI.Foreground ANSI.Vivid color ]
-          printf "[%c] Passed %d out of %d test(s)\n"
-              mark
-              (length (filter id testRes))
-              (length testRes)
-          ANSI.setSGR [ ANSI.Reset ]
+          withColor ANSI.Vivid color $
+            printf "[%c] Passed %d out of %d test(s)\n"
+                mark
+                (length (filter id testRes))
+                (length testRes)
 
       forM_ _cdInput $ \inp ->
         if bench'
@@ -134,12 +133,11 @@ mainSubmit Cfg{..} spec@CS{..} test force' noLock = runExceptT $ do
                 | and testRes = ('✓', ANSI.Green)
                 | otherwise   = ('✗', ANSI.Red  )
         liftIO $ do
-          ANSI.setSGR [ ANSI.SetColor ANSI.Foreground ANSI.Vivid color ]
-          printf "[%c] Passed %d out of %d test(s)\n"
-              mark
-              (length (filter id testRes))
-              (length testRes)
-          ANSI.setSGR [ ANSI.Reset ]
+          withColor ANSI.Vivid color $
+            printf "[%c] Passed %d out of %d test(s)\n"
+                mark
+                (length (filter id testRes))
+                (length testRes)
         unless (and testRes) $ do
           if force'
             then liftIO $ putStrLn "Proceeding with submission despite test failures (--force)"
@@ -162,9 +160,8 @@ mainSubmit Cfg{..} spec@CS{..} test force' noLock = runExceptT $ do
           SubInvalid -> (ANSI.Blue   , False, "Submission was rejected.  Maybe not unlocked yet, or already answered?")
           SubUnknown -> (ANSI.Magenta, False, "Response from server was not recognized.")
     liftIO $ do
-      ANSI.setSGR [ ANSI.SetColor ANSI.Foreground ANSI.Vivid color ]
-      putStrLn out
-      ANSI.setSGR [ ANSI.Reset ]
+      withColor ANSI.Vivid color $
+        putStrLn out
       T.putStrLn resp
       when lock $
         if noLock
@@ -184,9 +181,8 @@ runAll sess lock f = fmap void         $
                      M.traverseWithKey $ \d ->
                      M.traverseWithKey $ \p c -> do
     let CP{..} = challengePaths (CS d p)
-    ANSI.setSGR [ ANSI.SetColor ANSI.Foreground ANSI.Dull ANSI.Blue ]
-    printf ">> Day %02d%c\n" (getFinite d + 1) p
-    ANSI.setSGR [ ANSI.Reset ]
+    withColor ANSI.Dull ANSI.Blue $
+      printf ">> Day %02d%c\n" (getFinite d + 1) p
     when lock $ do
       CD{..} <- challengeData sess (CS d p)
       forM_ _cdInput $ \inp ->
@@ -200,16 +196,14 @@ testCase
     -> Maybe String
     -> IO (Maybe Bool, Either SolutionError String)
 testCase emph c inp ans = do
-    ANSI.setSGR [ ANSI.SetColor ANSI.Foreground ANSI.Dull color ]
-    printf "[%c]" mark
-    ANSI.setSGR [ ANSI.Reset ]
+    withColor ANSI.Dull color $
+      printf "[%c]" mark
     if emph
       then printf " (%s)\n" resStr
       else printf " %s\n"   resStr
     forM_ showAns $ \a -> do
-      ANSI.setSGR [ ANSI.SetColor ANSI.Foreground ANSI.Vivid ANSI.Red ]
-      printf "(Expected: %s)\n" a
-      ANSI.setSGR [ ANSI.Reset ]
+      withColor ANSI.Vivid ANSI.Red $
+        printf "(Expected: %s)\n" a
     return (status, res)
   where
     res = runSomeSolution c inp
@@ -228,6 +222,16 @@ testCase emph c inp ans = do
       Just True  -> ANSI.Green
       Just False -> ANSI.Red
       Nothing    -> ANSI.Blue
+
+withColor
+    :: ANSI.ColorIntensity
+    -> ANSI.Color
+    -> IO ()
+    -> IO ()
+withColor ci c act = do
+    ANSI.setSGR [ ANSI.SetColor ANSI.Foreground ci c ]
+    act
+    ANSI.setSGR [ ANSI.Reset ]
 
 -- ---------
 -- | Parsers
