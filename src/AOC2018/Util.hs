@@ -22,9 +22,11 @@ module AOC2018.Util (
   , firstRepeated
   ) where
 
+import           Control.Applicative
+import           Control.Monad.Except
 import           Data.List
-import qualified Data.Set  as S
-import qualified Data.Text as T
+import qualified Data.Set             as S
+import qualified Data.Text            as T
 
 -- | Strict (!!)
 (!!!) :: [a] -> Int -> a
@@ -51,11 +53,11 @@ scanlT f z = snd . mapAccumL (\x -> dup . f x) z
 scanrT :: Traversable t => (a -> b -> b) -> b -> t a -> t b
 scanrT f z = snd . mapAccumR (\x -> dup . flip f x) z
 
-eitherToMaybe :: Either e a -> Maybe a
-eitherToMaybe = either (const Nothing) Just
+eitherToMaybe :: Alternative m => Either e a -> m a
+eitherToMaybe = either (const empty) pure
 
-maybeToEither :: e -> Maybe a -> Either e a
-maybeToEither e = maybe (Left e) Right
+maybeToEither :: MonadError e m => e -> Maybe a -> m a
+maybeToEither e = maybe (throwError e) pure
 
 -- | Lazily find the first repeated item.
 firstRepeated :: Ord a => [a] -> Maybe a

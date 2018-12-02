@@ -17,36 +17,25 @@ module AOC2018.Load (
   , ChallengeData(..), challengeData
   ) where
 
+import           AOC2018.API
 import           AOC2018.Challenge
 import           AOC2018.Util
 import           Control.DeepSeq
 import           Control.Exception
-import           Control.Lens hiding        ((<.>))
 import           Control.Monad
-import           Control.Monad.IO.Class
-import           Control.Monad.Trans.Class
 import           Control.Monad.Trans.Except
 import           Data.Finite
 import           Data.Foldable
 import           Data.List
-import           Data.Text.Lens
-import           Network.Curl
 import           System.Directory
 import           System.FilePath
 import           System.IO.Error
 import           Text.Printf
 import qualified Data.Map                   as M
 import qualified Data.Text                  as T
-import qualified Data.Text.IO               as T
-import qualified Text.Pandoc                as P
-import qualified Text.Taggy                 as H
-import qualified Text.Taggy.Lens            as H
 
 -- | A record of paths corresponding to a specific challenge.
-data ChallengePaths = CP { _cpPromptUrl :: !FilePath
-                         , _cpDataUrl   :: !FilePath
-                         , _cpSubmitUrl :: !FilePath
-                         , _cpPrompt    :: !FilePath
+data ChallengePaths = CP { _cpPrompt    :: !FilePath
                          , _cpInput     :: !FilePath
                          , _cpAnswer    :: !FilePath
                          , _cpTests     :: !FilePath
@@ -64,10 +53,7 @@ data ChallengeData = CD { _cdPrompt :: !(Either [String] String)
 -- | Generate a 'ChallengePaths' from a specification of a challenge.
 challengePaths :: ChallengeSpec -> ChallengePaths
 challengePaths (CS d p) = CP
-    { _cpPromptUrl = printf "https://adventofcode.com/2018/day/%d" d'
-    , _cpDataUrl   = printf "https://adventofcode.com/2018/day/%d/input" d'
-    , _cpSubmitUrl = printf "https://adventofcode.com/2018/day/%d/answer" d'
-    , _cpPrompt    = "prompt"    </> printf "%02d%c" d' p <.> "txt"
+    { _cpPrompt    = "prompt"    </> printf "%02d%c" d' p <.> "txt"
     , _cpInput     = "data"      </> printf "%02d" d'     <.> "txt"
     , _cpAnswer    = "data/ans"  </> printf "%02d%c" d' p <.> "txt"
     , _cpTests     = "test-data" </> printf "%02d%c" d' p <.> "txt"
@@ -113,35 +99,26 @@ challengeData sess spec = do
         (traverse (evaluate . force) . either (const Nothing) Just =<<)
        . tryJust (guard . isDoesNotExistError)
        . readFile
-    fetchUrl :: FilePath -> ExceptT [String] IO String
-    fetchUrl u = do
-      s <- maybe (throwE ["Session key needed to fetch input"]) return
-        sess
-      (cc, r) <- liftIO . withCurlDo . curlGetString u $
-          CurlCookie (printf "session=%s" s) : method_GET
-      case cc of
-        CurlOK -> return ()
-        _      -> throwE [ "Error contacting advent of code server to fetch input"
-                         , "Possible invalid session key"
-                         , printf "Url: %s" u
-                         , printf "Server response: %s" r
-                         ]
-      return r
     fetchInput :: ExceptT [String] IO String
     fetchInput = do
-      r <- fetchUrl _cpDataUrl
-      liftIO $ writeFile _cpInput r
-      return r
+        s <- maybeToEither ["Session key needed to fetch input"] $
+              sessionKey a sess
+        fmap T.unpack . ExceptT $ runAPI s a
+      where
+        a = AInput $ _csDay spec
     fetchPrompt :: ExceptT [String] IO String
     fetchPrompt = do
-      rHtml <- fetchUrl _cpPromptUrl
-      let pmts = M.fromList . zip ['a'..] . processPrompt $ rHtml
-      pMaybe <- maybe (throwE ["Part not yet released"]) pure
-              . M.lookup (_csPart spec)
-              $ pmts
-      pmt    <- either throwE pure pMaybe
-      liftIO $ T.writeFile _cpPrompt pmt
-      return $ T.unpack pmt
+        prompts <- ExceptT $ runAPI s a
+        fmap T.unpack
+          . maybeToEither [e]
+          . M.lookup (_csPart spec)
+          $ prompts
+      where
+        s = maybe NoKey HasKey sess
+        a = APrompt $ _csDay spec
+        e = case sess of
+          Just _  -> "Part not yet released"
+          Nothing -> "Part not yet released, or may require session key"
     parseTests :: [String] -> [(String, Maybe String)]
     parseTests xs = case break (">>> " `isPrefixOf`) xs of
       (inp,[])
@@ -152,20 +129,4 @@ challengeData sess spec = do
         | otherwise ->
             let ans' = ans <$ guard (not (null ans))
             in  (unlines inp, ans') : parseTests rest
-
-processPrompt :: String -> [Either [String] T.Text]
-processPrompt html = runExceptT $ do
-    article <- lift $ html ^.. packed . H.html
-                             . H.allNamed (only "article")
-                             . to (set H.name "body")
-                             . to H.NodeElement
-    let articleText = unpacked . packed . H.html # article
-    either (throwE . (:[]) . show) pure . P.runPure $ do
-      p <- P.readHtml (P.def { P.readerExtensions = exts })
-              articleText
-      P.writeMarkdown (P.def { P.writerExtensions = exts }) p
-  where
-    exts = P.disableExtension P.Ext_header_attributes
-         . P.disableExtension P.Ext_smart
-         $ P.pandocExtensions
 
