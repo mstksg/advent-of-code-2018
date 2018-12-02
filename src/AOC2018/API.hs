@@ -1,5 +1,17 @@
 {-# LANGUAGE OverloadedStrings #-}
 
+-- |
+-- Module      : AOC2018.API
+-- Copyright   : (c) Justin Le 2018
+-- License     : BSD3
+--
+-- Maintainer  : justin@jle.im
+-- Stability   : experimental
+-- Portability : non-portable
+--
+-- Haskell bindings for Advent of Code 2018 REST API.
+--
+
 module AOC2018.API (
     API(..), SessionKey(..), SubmitRes(..)
   , sessionKey
@@ -28,6 +40,7 @@ import qualified Text.Pandoc                as P
 import qualified Text.Taggy                 as H
 import qualified Text.Taggy.Lens            as H
 
+-- | The result of a submission.
 data SubmitRes = SubCorrect
                | SubWrong
                | SubWait
@@ -35,6 +48,9 @@ data SubmitRes = SubCorrect
                | SubUnknown
   deriving Show
 
+-- | An API command.  An @'API' k a@ an AoC API request that returns
+-- results of type @a@; if @k@ is ''True', it requires a session key.  If
+-- @k@ is ''False', it does not.
 data API :: Bool -> Type -> Type where
     -- | Fetch prompts
     APrompt :: Finite 25 -> API 'False (Map Char Text)
@@ -43,6 +59,8 @@ data API :: Bool -> Type -> Type where
     -- | Submit answer
     ASubmit :: Finite 25 -> Char -> String -> API 'True (Text, SubmitRes)
 
+-- | Holds a session key.  @'SessionKey' ''True'@ contains a session key
+-- for sure, but @'SessionKey' ''False'@ may or may not contain one.
 data SessionKey :: Bool -> Type where
     HasKey :: String -> SessionKey k
     NoKey  :: SessionKey 'False
@@ -84,6 +102,11 @@ apiCurl sess = \case
   where
     partNum p = ord p - ord 'a' + 1
 
+-- | Run an 'API' command with a given 'SessionKey' to produce the result
+-- or a list of (lines of) errors.
+--
+-- __WARNING__: Does not escape submission answers or limit their length,
+-- for 'ASubmit'.
 runAPI :: SessionKey k -> API k a -> IO (Either [String] a)
 runAPI sess a = withCurlDo . runExceptT $ do
     (cc, r) <- liftIO $ curlGetString u (apiCurl sess a)
