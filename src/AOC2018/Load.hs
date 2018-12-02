@@ -77,11 +77,13 @@ challengeData
 challengeData sess spec = do
     makeChallengeDirs ps
     inp   <- runExceptT . asum $
-      [ ExceptT $ maybe (Left [fileErr]) Right <$> readFileMaybe _cpInput
+      [ maybeToEither [printf "Input file not found at %s" _cpInput]
+          =<< liftIO (readFileMaybe _cpInput)
       , fetchInput
       ]
     prompt <- runExceptT . asum $
-      [ ExceptT $ maybe (Left [fileErr]) Right <$> readFileMaybe _cpPrompt
+      [ maybeToEither [printf "Prompt file not found at %s" _cpPrompt]
+          =<< liftIO (readFileMaybe _cpPrompt)
       , fetchPrompt
       ]
     ans    <- readFileMaybe _cpAnswer
@@ -94,7 +96,6 @@ challengeData sess spec = do
       }
   where
     ps@CP{..} = challengePaths spec
-    fileErr = printf "Input file not found at %s" _cpInput
     readFileMaybe :: FilePath -> IO (Maybe String)
     readFileMaybe =
         (traverse (evaluate . force) . either (const Nothing) Just =<<)
