@@ -77,13 +77,14 @@ library:
   - pandoc
   - pointedlist
   - profunctors
+  - show-prettyprint
+  - singletons
   - split
+  - taggy
+  - taggy-lens
   - template-haskell
   - transformers
   - yaml
-  - show-prettyprint
-  - taggy
-  - taggy-lens
 
 executables:
   aoc2018:
