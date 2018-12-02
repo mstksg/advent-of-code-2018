@@ -37,7 +37,8 @@ data Mode = MRun    { _mTestSpec :: TestSpec
           | MView   { _mSpec     :: ChallengeSpec
                     }
           | MSubmit { _mSpec     :: ChallengeSpec
-                    , _mTest     :: Bool
+                    , _mNoTest   :: Bool
+                    , _mForce    :: Bool
                     }
 
 data Opts = O { _oMode   :: Mode
@@ -61,7 +62,7 @@ main = do
             putStrLn "[PROMPT ERROR]"
             mapM_ (putStrLn . ("  " ++)) err
           Right pmpt -> putStrLn pmpt >> putStrLn ""
-      MSubmit{..} -> mainSubmit cfg _mSpec _mTest >>= \case
+      MSubmit{..} -> mainSubmit cfg _mSpec _mNoTest _mForce >>= \case
         Left   e -> mapM_ putStrLn e
         Right () -> pure ()
 
@@ -115,8 +116,8 @@ mainRun Cfg{..} testSpec test bench' lock = case toRun of
                 M.lookup p ps
         return $ M.singleton d (M.singleton p c)
 
-mainSubmit :: Config -> ChallengeSpec -> Bool -> IO (Either [String] ())
-mainSubmit Cfg{..} spec@CS{..} test = runExceptT $ do
+mainSubmit :: Config -> ChallengeSpec -> Bool -> Bool -> IO (Either [String] ())
+mainSubmit Cfg{..} spec@CS{..} test force' = runExceptT $ do
     CD{..} <- liftIO $ challengeData _cfgSession spec
     dMap   <- maybeToEither [printf "Day not yet available: %d" d'] $
                 M.lookup _csDay challengeMap
@@ -140,11 +141,14 @@ mainSubmit Cfg{..} spec@CS{..} test = runExceptT $ do
               (length testRes)
           ANSI.setSGR [ ANSI.Reset ]
         unless (and testRes) $ do
-          conf <- liftIO . H.runInputT H.defaultSettings $
-            H.getInputChar "Some tests failed. Are you sure you wish to proceed? y/(n)"
-          case toLower <$> conf of
-            Just 'y' -> pure ()
-            _        -> throwError ["Submission aborted."]
+          if force'
+            then liftIO $ putStrLn "Proceeding with submission despite test failures (--force)"
+            else do
+              conf <- liftIO . H.runInputT H.defaultSettings $
+                H.getInputChar "Some tests failed. Are you sure you wish to proceed? y/(n)"
+              case toLower <$> conf of
+                Just 'y' -> pure ()
+                _        -> throwError ["Submission aborted."]
 
     resEither <- liftIO . evaluate . force . runSomeSolution c $ inp
     res       <- liftEither . first (("[SOLUTION ERROR]":) . (:[]) . show) $ resEither
@@ -162,9 +166,8 @@ mainSubmit Cfg{..} spec@CS{..} test = runExceptT $ do
       putStrLn out
       ANSI.setSGR [ ANSI.Reset ]
       T.putStrLn resp
-      when lock $ do
+      when lock $
         writeFile _cpAnswer res
-
   where
     CP{..} = challengePaths spec
     d' = getFinite _csDay + 1
@@ -305,8 +308,11 @@ parseOpts = do
     parseSubmit :: Parser Mode
     parseSubmit = do
         s <- parseChallengeSpec
-        t <- switch $ long "test"
-                   <> short 't'
-                   <> help "Run sample tests"
-        pure $ MSubmit s t
+        n <- switch $ long "no-test"
+                   <> short 'n'
+                   <> help "Skip running tests before submission"
+        f <- switch $ long "force"
+                   <> short 'f'
+                   <> help "Always submit, even if tests fail"
+        pure $ MSubmit s n f
 
