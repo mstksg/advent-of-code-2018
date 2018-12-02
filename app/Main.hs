@@ -1,9 +1,14 @@
+{-# OPTIONS_GHC -Werror=incomplete-patterns #-}
+
 import           AOC2018
 import           Control.Applicative
 import           Control.DeepSeq
 import           Control.Exception
 import           Control.Monad
+import           Control.Monad.Except
+import           Control.Monad.IO.Class
 import           Criterion
+import           Data.Bifunctor
 import           Data.Char
 import           Data.Finite
 import           Data.Foldable
@@ -12,8 +17,10 @@ import           Data.Maybe
 import           Options.Applicative
 import           Text.Printf
 import           Text.Read
-import qualified Data.Map            as M
-import qualified System.Console.ANSI as ANSI
+import qualified Data.Map                 as M
+import qualified Data.Text.IO             as T
+import qualified System.Console.ANSI      as ANSI
+import qualified System.Console.Haskeline as H
 
 data TestSpec = TSAll
               | TSDayAll  { _tsDay  :: Finite 25 }
@@ -54,7 +61,9 @@ main = do
             putStrLn "[PROMPT ERROR]"
             mapM_ (putStrLn . ("  " ++)) err
           Right pmpt -> putStrLn pmpt >> putStrLn ""
-      MSubmit{..} -> mainSubmit cfg _mSpec _mTest
+      MSubmit{..} -> mainSubmit cfg _mSpec _mTest >>= \case
+        Left   e -> mapM_ putStrLn e
+        Right () -> pure ()
 
   where
     availableDays = intercalate ", "
@@ -100,27 +109,65 @@ mainRun Cfg{..} testSpec test bench' lock = case toRun of
           Nothing -> Left  $ printf "Day not yet available: %d" (getFinite d + 1)
           Just cs -> Right $ M.singleton d cs
       TSDayPart d p -> do
-        ps <- maybe (Left $ printf "Day not yet available: %d" (getFinite d + 1)) Right $
+        ps <- maybeToEither (printf "Day not yet available: %d" (getFinite d + 1)) $
                 M.lookup d challengeMap
-        c  <- maybe (Left $ printf "Part not found: %c" p) Right $
+        c  <- maybeToEither (printf "Part not found: %c" p) $
                 M.lookup p ps
         return $ M.singleton d (M.singleton p c)
 
-mainSubmit :: Config -> ChallengeSpec -> Bool -> IO ()
-mainSubmit Cfg{..} spec test = putStrLn "Unimplemented"
---     CD{..} <- challengeData _cfgSession spec
---     when test $ do
---       testRes <- mapMaybe fst <$> mapM (uncurry (testCase True c)) _cdTests
---       unless (null testRes) $ do
---         let (mark, color)
---                 | and testRes = ('✓', ANSI.Green)
---                 | otherwise   = ('✗', ANSI.Red  )
---         ANSI.setSGR [ ANSI.SetColor ANSI.Foreground ANSI.Vivid color ]
---         printf "[%c] Passed %d out of %d test(s)\n"
---             mark
---             (length (filter id testRes))
---             (length testRes)
---         ANSI.setSGR [ ANSI.Reset ]
+mainSubmit :: Config -> ChallengeSpec -> Bool -> IO (Either [String] ())
+mainSubmit Cfg{..} spec@CS{..} test = runExceptT $ do
+    CD{..} <- liftIO $ challengeData _cfgSession spec
+    dMap   <- maybeToEither [printf "Day not yet available: %d" d'] $
+                M.lookup _csDay challengeMap
+    c      <- maybeToEither [printf "Part not found: %c" _csPart] $
+                M.lookup _csPart dMap
+    inp    <- liftEither . first ("[PROMPT ERROR]":) $ _cdInput
+    sess   <- HasKey <$> maybeToEither ["ERROR: Session Key Required to Submit"] _cfgSession
+
+    when test $ do
+      testRes <- liftIO $
+          mapMaybe fst <$> mapM (uncurry (testCase True c)) _cdTests
+      unless (null testRes) $ do
+        let (mark, color)
+                | and testRes = ('✓', ANSI.Green)
+                | otherwise   = ('✗', ANSI.Red  )
+        liftIO $ do
+          ANSI.setSGR [ ANSI.SetColor ANSI.Foreground ANSI.Vivid color ]
+          printf "[%c] Passed %d out of %d test(s)\n"
+              mark
+              (length (filter id testRes))
+              (length testRes)
+          ANSI.setSGR [ ANSI.Reset ]
+        unless (and testRes) $ do
+          conf <- liftIO . H.runInputT H.defaultSettings $
+            H.getInputChar "Some tests failed. Are you sure you wish to proceed? y/(n)"
+          case toLower <$> conf of
+            Just 'y' -> pure ()
+            _        -> throwError ["Submission aborted."]
+
+    resEither <- liftIO . evaluate . force . runSomeSolution c $ inp
+    res       <- liftEither . first (("[SOLUTION ERROR]":) . (:[]) . show) $ resEither
+    liftIO $ printf "Submitting solution: %s\n" res
+
+    (resp, status) <- ExceptT $ runAPI sess (ASubmit _csDay _csPart res)
+    let (color, lock, out) = case status of
+          SubCorrect -> (ANSI.Green  , True , "Answer was correct!"          )
+          SubWrong   -> (ANSI.Red    , False, "Answer was incorrect!"        )
+          SubWait    -> (ANSI.Yellow , False, "Answer re-submitted too soon.")
+          SubInvalid -> (ANSI.Blue   , False, "Submission was rejected.  Maybe not unlocked yet, or already answered?")
+          SubUnknown -> (ANSI.Magenta, False, "Response from server was not recognized.")
+    liftIO $ do
+      ANSI.setSGR [ ANSI.SetColor ANSI.Foreground ANSI.Vivid color ]
+      putStrLn out
+      ANSI.setSGR [ ANSI.Reset ]
+      T.putStrLn resp
+      when lock $ do
+        writeFile _cpAnswer res
+
+  where
+    CP{..} = challengePaths spec
+    d' = getFinite _csDay + 1
 
 runAll
     :: Maybe String       -- ^ session key

@@ -48,6 +48,7 @@ import           AOC2018.Challenge.Day25 as AOC
 import           AOC2018.Config    as AOC
 import           AOC2018.Discover
 import           AOC2018.Load      as AOC
+import           AOC2018.API       as AOC
 import           AOC2018.Challenge as AOC
 import           AOC2018.Util      as AOC
 

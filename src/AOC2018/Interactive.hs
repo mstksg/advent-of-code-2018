@@ -25,9 +25,9 @@ import qualified Data.Map      as M
 -- | Run the solution indicated by the challenge spec on the official
 -- puzzle input.
 execSolution :: ChallengeSpec -> IO ()
-execSolution cs@CS{..} = do
+execSolution cs = do
     Cfg{..} <- configFile "aoc-conf.yaml"
-    c       <- case M.lookup _csPart <=< M.lookup _csDay $ challengeMap of
+    c       <- case lookupSolution cs challengeMap of
       Nothing -> fail "Solution not yet implemented."
       Just c  -> pure c
     CD{..} <- challengeData _cfgSession cs
@@ -42,9 +42,9 @@ execSolutionWith
     :: ChallengeSpec
     -> String               -- ^ custom puzzle input
     -> IO ()
-execSolutionWith CS{..} inp = do
+execSolutionWith cs inp = do
     Cfg{..} <- configFile "aoc-conf.yaml"
-    c       <- case M.lookup _csPart <=< M.lookup _csDay $ challengeMap of
+    c       <- case lookupSolution cs challengeMap of
       Nothing -> fail "Solution not yet implemented."
       Just c  -> pure c
     case runSomeSolution c inp of

@@ -20,13 +20,16 @@ module AOC2018.Challenge (
   , runSomeSolution
   , ChallengeMap
   , ChallengeSpec(..)
+  , lookupSolution
   ) where
 
 import           AOC2018.Util
 import           Control.DeepSeq
+import           Control.Monad
 import           Data.Finite
 import           Data.Map        (Map)
 import           GHC.Generics
+import qualified Data.Map        as M
 
 -- | A specification for a specific challenge.  Should consist of a day and
 -- a lowercase character.
@@ -88,3 +91,7 @@ runSolution MkSol{..} s = do
 -- | Run a 'SomeSolution' on some input.
 runSomeSolution :: SomeSolution -> String -> Either SolutionError String
 runSomeSolution (MkSomeSol c) = runSolution c
+
+-- | Lookup up a solution from a 'ChallengeMap'
+lookupSolution :: ChallengeSpec -> ChallengeMap -> Maybe SomeSolution
+lookupSolution CS{..} = M.lookup _csPart <=< M.lookup _csDay
