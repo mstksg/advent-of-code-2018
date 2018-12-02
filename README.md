@@ -21,7 +21,7 @@ so you can follow any unrecognized identifiers to see where I have defined them
 in the library.  Benchmark times for each part are listed after each link.
 
 *   **Day 1**: [Rendered][day01r] / [Github][day01g] *( 2.9 ms / 140 ms )*
-*   **Day 2**: [Rendered][day02r] / [Github][day02g] *( 1.2 ms / 50. ms )*
+*   **Day 2**: [Rendered][day02r] / [Github][day02g] *( 1.2 ms / 68 ms )*
 
 [day01r]: https://mstksg.github.io/advent-of-code-2018/src/AOC2018.Challenge.Day01.html
 [day01g]: https://github.com/mstksg/advent-of-code-2018/blob/master/src/AOC2018/Challenge/Day01.hs

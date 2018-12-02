@@ -17,11 +17,11 @@ module AOC2018.Challenge.Day02 (
 import           AOC2018.Prelude
 import qualified Data.Map        as M
 import qualified Data.Set        as S
-import           Control.Lens
 
-mulTwoThree :: Map Int Int -> Maybe Int
-mulTwoThree m = (*) <$> (2 `M.lookup` m) <*> (3 `M.lookup` m)
-
+-- | We compute a frequency map of all of the characters in a string, and
+-- then get all of the frequencies that happened for each line.
+--
+-- Then we build a frequency map of the frequencies!
 day02a :: [String] :~> Int
 day02a = MkSol
     { sParse = Just . lines
@@ -30,7 +30,14 @@ day02a = MkSol
              . freqs
              . concatMap (nubOrd . M.elems . freqs)
     }
+  where
+    mulTwoThree m = (*) <$> (2 `M.lookup` m) <*> (3 `M.lookup` m)
 
+-- | The main work is in 'firstNeighbor', which looks thorugh a list of
+-- items and finds the first item whose neighbor was already seen.
+--
+-- Then we take the two "almost matching" strings and filter out all of the
+-- characters that aren't the same, using 'zipWith' and 'catMaybes'.
 day02b :: [String] :~> String
 day02b = MkSol
     { sParse = Just . lines
@@ -42,19 +49,15 @@ day02b = MkSol
     onlySame xs = catMaybes . zipWith (\x y -> x <$ guard (x == y)) xs
 
 -- | Find the first string in a list that is a neighbor of a previous
--- string
+-- string.
 firstNeighbor :: [String] -> Maybe (String, String)
 firstNeighbor = go S.empty
   where
-    go s (x:xs) = case find (`S.member` s) (neighbors x) of
+    go seen (x:xs) = case find (`S.member` seen) (neighbors x) of
         Just n  -> Just (x, n)
-        Nothing -> go (x `S.insert` s) xs
+        Nothing -> go (x `S.insert` seen) xs
     go _ [] = Nothing
 
 -- | Get all one-character neighbors of a given string
 neighbors :: String -> [String]
-neighbors s = [ s & ix i .~ c
-              | i <- [0 .. length s - 1]
-              , c <- ['a' .. 'z']
-              ]
-
+neighbors = perturbations (const ['a'..'z'])
