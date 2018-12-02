@@ -20,11 +20,14 @@ module AOC2018.Util (
   , eitherToMaybe
   , maybeToEither
   , firstRepeated
+  , freqs
   ) where
 
 import           Control.Applicative
 import           Control.Monad.Except
 import           Data.List
+import           Data.Map             (Map)
+import qualified Data.Map             as M
 import qualified Data.Set             as S
 import qualified Data.Text            as T
 
@@ -68,3 +71,6 @@ firstRepeated = go S.empty
       | otherwise      = go (x `S.insert` s) xs
     go _ []     = Nothing
 
+-- | Build a frequency map
+freqs :: Ord a => [a] -> Map a Int
+freqs = M.fromListWith (+) . map (,1)

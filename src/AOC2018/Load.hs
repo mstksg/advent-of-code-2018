@@ -23,6 +23,7 @@ import           AOC2018.Util
 import           Control.DeepSeq
 import           Control.Exception
 import           Control.Monad
+import           Control.Monad.IO.Class
 import           Control.Monad.Trans.Except
 import           Data.Finite
 import           Data.Foldable
@@ -103,16 +104,20 @@ challengeData sess spec = do
     fetchInput = do
         s <- maybeToEither ["Session key needed to fetch input"] $
               sessionKey a sess
-        fmap T.unpack . ExceptT $ runAPI s a
+        inp <- fmap T.unpack . ExceptT $ runAPI s a
+        liftIO $ writeFile _cpInput inp
+        pure inp
       where
         a = AInput $ _csDay spec
     fetchPrompt :: ExceptT [String] IO String
     fetchPrompt = do
         prompts <- ExceptT $ runAPI (sessionKey_ sess) a
-        fmap T.unpack
+        prompt  <- fmap T.unpack
           . maybeToEither [e]
           . M.lookup (_csPart spec)
           $ prompts
+        liftIO $ writeFile _cpPrompt prompt
+        pure prompt
       where
         a = APrompt $ _csDay spec
         e = case sess of
