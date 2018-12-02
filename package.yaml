@@ -76,9 +76,11 @@ library:
   - hpack
   - lens
   - megaparsec
+  - mtl
   - pandoc
   - pointedlist
   - profunctors
+  - recursion-schemes
   - show-prettyprint
   - singletons
   - split
@@ -86,7 +88,6 @@ library:
   - taggy-lens
   - template-haskell
   - yaml
-  - mtl
 
 executables:
   aoc2018:

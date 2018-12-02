@@ -35,7 +35,7 @@ day01b :: [Int] :~> Int
 day01b = MkSol
     { sParse = traverse parseItem . lines
     , sShow  = show
-    , sSolve = firstRepeated        -- get first repeated sum
-             . scanl (+) 0          -- compute running sum
-             . cycle                -- infinitely cycle input
+    , sSolve = firstRepeated        -- * get first repeated sum
+             . scanl (+) 0          -- * compute running sum
+             . cycle                -- * infinitely cycle input
     }
