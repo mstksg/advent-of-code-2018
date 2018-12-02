@@ -50,18 +50,27 @@ data SubmitRes = SubCorrect
                | SubWait
                | SubInvalid
                | SubUnknown
-  deriving Show
+  deriving (Show, Eq, Ord)
 
 -- | An API command.  An @'API' k a@ an AoC API request that returns
 -- results of type @a@; if @k@ is ''True', it requires a session key.  If
 -- @k@ is ''False', it does not.
 data API :: Bool -> Type -> Type where
-    -- | Fetch prompts
-    APrompt :: Finite 25 -> API 'False (Map Char Text)
+    -- | Fetch prompts, as Markdown.
+    APrompt
+        :: Finite 25                    -- ^ Day.
+        -> API 'False (Map Char Text)   -- ^ Map of prompts (as markdown). Part 1 is under \'a\',
+                                        --   Part 2 is under \'b\', etc.
     -- | Fetch input
-    AInput :: Finite 25  -> API 'True Text
-    -- | Submit answer
-    ASubmit :: Finite 25 -> Char -> String -> API 'True (Text, SubmitRes)
+    AInput
+        :: Finite 25                -- ^ Day.
+        -> API 'True Text
+    -- | Submit answer.
+    ASubmit
+        :: Finite 25                    -- ^ Day.
+        -> Char                         -- ^ Part.  \'a\' for part 1, \'b\' for part 2, etc.
+        -> String                       -- ^ Answer.  __WARNING__: not escaped or length-limited.
+        -> API 'True (Text, SubmitRes)  -- ^ Submission reply (as markdown), and result token
 
 -- | Holds a session key.  @'SessionKey' ''True'@ contains a session key
 -- for sure, but @'SessionKey' ''False'@ may or may not contain one.
