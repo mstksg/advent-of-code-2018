@@ -43,7 +43,7 @@ day02a = MkSol
                                              --     list of frequencies
     }
   where
-    mulTwoThree m = (*) <$> (2 `M.lookup` m) <*> (3 `M.lookup` m)
+    mulTwoThree m = (*) <$> M.lookup 2 m <*> M.lookup 3 m
 
 -- | The main work is in 'firstNeighbor', which looks thorugh a list of
 -- items and finds the first item whose neighbor was already seen.
