@@ -215,15 +215,18 @@ parseTestSpec = do
 
 parseOpts :: Parser Opts
 parseOpts = do
-    c <- optional $ strOption
-        ( long "config"
-       <> short 'c'
-       <> metavar "PATH"
-       <> help "Path to configuration file (default: aoc2018-conf.yaml)"
-        )
-    pure $ O { _oMode   = undefined
-             , _oConfig = c
-             }
+    c <- optional . strOption $
+         long "config"
+      <> short 'c'
+      <> metavar "PATH"
+      <> help "Path to configuration file (default: aoc2018-conf.yaml)"
+    -- m <- subparser $
+    --      command "run" _
+    --   <> command "view" _
+    --   <> command "submit" _
+    pure O { _oMode   = undefined
+           , _oConfig = c
+           }
     -- d <- argument pDay ( metavar "DAY"
     --                   <> help "Day of challenge (1 - 25), or \"all\""
     --                    )
