@@ -13,9 +13,13 @@
 --
 
 module AOC2018.API (
-    API(..), SessionKey(..), SubmitRes(..)
-  , sessionKey
+  -- * API
+    API(..), SubmitRes(..)
   , runAPI
+  -- * Session Keys
+  , SessionKey(..)
+  , sessionKey
+  , sessionKey_
   ) where
 
 import           AOC2018.Util
@@ -79,9 +83,15 @@ sessionKeyCookieMaybe NoKey      = Nothing
 -- returned.
 sessionKey :: API k a -> Maybe String -> Maybe (SessionKey k)
 sessionKey = \case
-    APrompt{} -> Just . maybe NoKey HasKey
+    APrompt{} -> Just . sessionKey_
     AInput{}  -> fmap HasKey
     ASubmit{} -> fmap HasKey
+
+-- | Convert a @'Maybe' 'String'@ (a possible session key) into
+-- a @'SessionKey' ''False'@ --- a 'SessionKey' that may or may not contain
+-- a key.
+sessionKey_ :: Maybe String -> SessionKey 'False
+sessionKey_ = maybe NoKey HasKey
 
 apiUrl :: API k a -> FilePath
 apiUrl = \case

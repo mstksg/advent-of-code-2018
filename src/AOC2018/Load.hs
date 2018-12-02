@@ -108,13 +108,12 @@ challengeData sess spec = do
         a = AInput $ _csDay spec
     fetchPrompt :: ExceptT [String] IO String
     fetchPrompt = do
-        prompts <- ExceptT $ runAPI s a
+        prompts <- ExceptT $ runAPI (sessionKey_ sess) a
         fmap T.unpack
           . maybeToEither [e]
           . M.lookup (_csPart spec)
           $ prompts
       where
-        s = maybe NoKey HasKey sess
         a = APrompt $ _csDay spec
         e = case sess of
           Just _  -> "Part not yet released"
