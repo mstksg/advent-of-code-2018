@@ -34,6 +34,11 @@ Challenges and Reflections
 [d03r]: https://github.com/mstksg/advent-of-code-2018/blob/master/reflections.md#day-3
 [d03b]: https://github.com/mstksg/advent-of-code-2018/blob/master/reflections.md#day-3-benchmarks
 
+"Rendered" links go to haddock source renders for code, with reflections in the
+documentation.  Haddock source renders have hyperlinked identifiers,
+so you can follow any unrecognized identifiers to see where I have defined them
+in the library.
+
 ### `:~>` type
 
 This year I'm implementing my solutions in terms of a `:~>` record type:
