@@ -196,7 +196,7 @@ to keep things clean:
 
 ```haskell
 type Coord = V2 Int
- 
+
 data Rect = R { rStart :: Coord
               , rSize  :: Coord
               }
@@ -232,7 +232,7 @@ than 1.  We can do that by filtering and counting how many are left.
 import qualified Data.Map as M
 
 day03a :: [Rect] -> Int
-day03a = length . filter (>= 2) . toList . layTiles
+day03a = length . filter (>= 2) . M.elems . layTiles
 ```
 
 For `day03`, we can just use `find` to search our list of claims by id's,

@@ -18,7 +18,6 @@ import           AOC2018.Solver ((:~>)(..))
 import           AOC2018.Util   (freqs, findMaybe)
 import           Control.Monad  (guard)
 import           Data.Char      (isDigit)
-import           Data.Foldable  (toList)
 import           Data.Ix        (range)
 import           Data.Map       (Map)
 import           Data.Maybe     (mapMaybe)
@@ -69,7 +68,7 @@ day03a = MkSol
     , sSolve = Just
              . length           -- > how many?
              . filter (>= 2)    -- > only frequencies >= 2
-             . toList           -- > get all frequencies
+             . M.elems          -- > get all frequencies
              . layTiles         -- > lay the tiles
     }
 
