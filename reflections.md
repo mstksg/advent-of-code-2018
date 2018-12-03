@@ -231,8 +231,8 @@ than 1.  We can do that by filtering and counting how many are left.
 ```haskell
 import qualified Data.Map as M
 
-day02a :: [Rect] -> Int
-day02a = length . filter (>= 2) . toList . layTiles
+day03a :: [Rect] -> Int
+day03a = length . filter (>= 2) . toList . layTiles
 ```
 
 For `day03`, we can just use `find` to search our list of claims by id's,
