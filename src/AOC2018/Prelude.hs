@@ -21,8 +21,9 @@ import           AOC2018.Challenge         as P
 import           AOC2018.Util              as P
 import           Control.Applicative       as P
 import           Control.DeepSeq           as P
-import           Control.Monad             as P hiding (fail)
-import           Control.Monad.Fail        as P
+import           Control.Monad             as P
+import           Control.Monad.Except      as P
+import           Control.Monad.State       as P
 import           Data.Bifunctor            as P
 import           Data.Char                 as P
 import           Data.Containers.ListUtils as P

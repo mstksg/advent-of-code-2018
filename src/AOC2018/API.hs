@@ -26,23 +26,22 @@ import           AOC2018.Util
 import           Control.Applicative.Lift
 import           Control.Lens
 import           Control.Monad
-import           Control.Monad.IO.Class
-import           Control.Monad.Trans.Class
-import           Control.Monad.Trans.Except
+import           Control.Monad.Except
+import           Data.Bifunctor
 import           Data.Char
 import           Data.Finite
 import           Data.Kind
-import           Data.Map                   (Map)
+import           Data.Map                  (Map)
 import           Data.Maybe
-import           Data.Text                  (Text)
+import           Data.Text                 (Text)
 import           Data.Text.Lens
 import           Network.Curl
 import           Text.Printf
-import qualified Data.Map                   as M
-import qualified Data.Text                  as T
-import qualified Text.Pandoc                as P
-import qualified Text.Taggy                 as H
-import qualified Text.Taggy.Lens            as H
+import qualified Data.Map                  as M
+import qualified Data.Text                 as T
+import qualified Text.Pandoc               as P
+import qualified Text.Taggy                as H
+import qualified Text.Taggy.Lens           as H
 
 -- | The result of a submission.
 data SubmitRes = SubCorrect
@@ -138,12 +137,13 @@ runAPI sess a = withCurlDo . runExceptT $ do
     (cc, r) <- liftIO $ curlGetString u (apiCurl sess a)
     case cc of
       CurlOK -> return ()
-      _      -> throwE [ "Error contacting Advent of Code server to fetch input"
-                       , "Possible invalid session key"
-                       , printf "Url: %s" u
-                       , printf "Server response: %s" r
-                       ]
-    either throwE pure . processAPI a $ r
+      _      -> throwError
+                    [ "Error contacting Advent of Code server to fetch input"
+                    , "Possible invalid session key"
+                    , printf "Url: %s" u
+                    , printf "Server response: %s" r
+                    ]
+    liftEither . processAPI a $ r
   where
     u = apiUrl a
 
@@ -170,7 +170,7 @@ processHTML pretty html = runExceptT $ do
                              . to (set H.name "body")
                              . to H.NodeElement
     let articleText = unpacked . packed . H.html # article
-    either (throwE . (:[]) . show) pure . P.runPure $ do
+    liftEither . first ((:[]) . show) . P.runPure $ do
       p <- P.readHtml (P.def { P.readerExtensions = exts })
               articleText
       writer (P.def { P.writerExtensions = exts }) p

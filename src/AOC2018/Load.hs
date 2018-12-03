@@ -24,7 +24,7 @@ import           Control.DeepSeq
 import           Control.Exception
 import           Control.Monad
 import           Control.Monad.IO.Class
-import           Control.Monad.Trans.Except
+import           Control.Monad.Except
 import           Data.Finite
 import           Data.Foldable
 import           Data.List

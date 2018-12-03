@@ -24,16 +24,7 @@ ghc-options:
 - -Wall
 - -Wcompat
 - -Wno-partial-type-signatures
-
-dependencies:
-- base >= 4.7 && < 5
-- containers
-- deepseq
-- finite-typelits
-- lens
-- mtl
-- text
-- transformers
+- -Wredundant-constraints
 
 default-extensions:
 - ApplicativeDo
@@ -64,6 +55,16 @@ default-extensions:
 - TypeOperators
 - ViewPatterns
 
+
+dependencies:
+- base >= 4.7 && < 5
+- containers
+- deepseq
+- finite-typelits
+- lens
+- mtl
+- text
+
 library:
   source-dirs: src
   dependencies:
@@ -87,6 +88,7 @@ library:
   - taggy
   - taggy-lens
   - template-haskell
+  - transformers
   - yaml
 
 executables:
