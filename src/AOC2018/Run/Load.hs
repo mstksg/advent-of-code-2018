@@ -24,7 +24,6 @@ import           Control.DeepSeq
 import           Control.Exception
 import           Control.Monad
 import           Control.Monad.Except
-import           Data.Finite
 import           Data.Foldable
 import           Data.List
 import           Data.Text            (Text)
@@ -63,7 +62,7 @@ challengePaths (CS d p) = CP
     , _cpLog       = "logs/submission" </> printf "%02d%c" d' p <.> "txt"
     }
   where
-    d' = getFinite d + 1
+    d' = dayToInt d
 
 makeChallengeDirs :: ChallengePaths -> IO ()
 makeChallengeDirs CP{..} =

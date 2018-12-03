@@ -19,7 +19,7 @@ module AOC2018.Challenge (
   , ChallengeSpec(..)
   , challengeMap
   , lookupSolution
-  , showDay
+  , dayToInt
   ) where
 
 import           AOC2018.Challenge.Day01 as AOC
@@ -62,7 +62,3 @@ challengeMap = mkChallengeMap $$(solutionList "src/AOC2018/Challenge")
 -- | Lookup up a solution from a 'ChallengeMap'
 lookupSolution :: ChallengeSpec -> Map (Finite 25) (Map Char a) -> Maybe a
 lookupSolution CS{..} = M.lookup _csPart <=< M.lookup _csDay
-
--- | Show a day represented by a 'Finite 25'.
-showDay :: Finite 25 -> String
-showDay = show . (+ 1) . getFinite

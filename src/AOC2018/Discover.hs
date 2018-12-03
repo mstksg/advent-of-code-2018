@@ -18,6 +18,7 @@ module AOC2018.Discover (
   , solutionList
   , ChallengeMap
   , ChallengeSpec(..)
+  , dayToInt
   ) where
 
 import           AOC2018.Solver
@@ -54,6 +55,11 @@ type ChallengeMap = Map (Finite 25) (Map Char SomeSolution)
 
 type Parser = P.Parsec Void String
 
+-- | Turn a day represented by a @'Finite' 25@ into an integer day (1
+-- - 25).
+dayToInt :: Finite 25 -> Int
+dayToInt = fromIntegral . (+ 1) . getFinite
+
 -- | Template Haskell splice to produce a list of all named solutions in
 -- a directory. Expects solutions as function names following the format
 -- @dayDDp@, where @DD@ is a two-digit zero-added day, and @p@ is
@@ -87,7 +93,7 @@ specExp s@(CS d p) = TExp $ TupE
     ]
 
 specName :: ChallengeSpec -> String
-specName (CS d p) = printf "day%02d%c" (getFinite d + 1) p
+specName (CS d p) = printf "day%02d%c" (dayToInt d) p
 
 getChallengeSpecs
     :: FilePath                 -- ^ directory of modules

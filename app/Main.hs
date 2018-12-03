@@ -44,7 +44,7 @@ main = do
       mapM_ putStrLn e
   where
     availableDays = intercalate ", "
-                  . map showDay
+                  . map (show . dayToInt)
                   . M.keys
                   $ challengeMap
 

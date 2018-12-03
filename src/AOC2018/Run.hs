@@ -113,10 +113,10 @@ defaultMSO cs = MSO { _msoSpec  = cs
 filterChallengeMap :: TestSpec -> Either String ChallengeMap
 filterChallengeMap = \case
     TSAll      -> pure challengeMap
-    TSDayAll d -> maybeToEither (printf "Day not yet avaiable: %s" (showDay d)) $
+    TSDayAll d -> maybeToEither (printf "Day not yet avaiable: %d" (dayToInt d)) $
                      M.singleton d <$> M.lookup d challengeMap
     TSDayPart (CS d p) -> do
-      ps <- maybeToEither (printf "Day not yet available: %s" (showDay d)) $
+      ps <- maybeToEither (printf "Day not yet available: %d" (dayToInt d)) $
               M.lookup d challengeMap
       c  <- maybeToEither (printf "Part not found: %c" p) $
               M.lookup p ps
@@ -130,19 +130,9 @@ mainRun
     -> m (Map (Finite 25) (Map Char (Maybe Bool, Either [String] String)))  -- whether or not passed tests, and result
 mainRun Cfg{..} MRO{..} =  do
     toRun <- liftEither . first (:[]) . filterChallengeMap $ _mroSpec
-    liftIO . runAll _cfgSession _mroLock _mroInput toRun $ \c inp0 CD{..} -> do
-      testResMaybe <- forM (guard _mroTest) $ \_ -> do
-        testRes <- mapMaybe fst <$> mapM (uncurry (testCase True c)) _cdTests
-        unless (null testRes) $ do
-          let (mark, color)
-                  | and testRes = ('✓', ANSI.Green)
-                  | otherwise   = ('✗', ANSI.Red  )
-          withColor ANSI.Vivid color $
-            printf "[%c] Passed %d out of %d test(s)\n"
-                mark
-                (length (filter id testRes))
-                (length testRes)
-        pure $ and testRes <$ guard (not (null testRes))
+    liftIO . runAll _cfgSession _mroLock _mroInput toRun $ \c inp0 cd@CD{..} -> do
+      testResMaybe <- forM (guard _mroTest) $ \_ ->
+        runTestSuite c cd
 
       let inp1 = maybe _cdInput  Right           inp0
           ans1 = maybe _cdAnswer (const Nothing) inp0
@@ -171,7 +161,7 @@ mainView Cfg{..} MVO{..} = do
       pmpt   <- liftEither . first ("[PROMPT ERROR]":) $ _cdPrompt
       liftIO $ do
         withColor ANSI.Dull ANSI.Blue $
-          printf ">> Day %02d%c\n" (getFinite d + 1) p
+          printf ">> Day %02d%c\n" (dayToInt d) p
         T.putStrLn pmpt
         putStrLn ""
       pure pmpt
@@ -188,35 +178,25 @@ mainSubmit
     -> MainSubmitOpts
     -> m (Text, SubmitRes)
 mainSubmit Cfg{..} MSO{..} = do
-    CD{..} <- liftIO $ challengeData _cfgSession _msoSpec
-    dMap   <- maybeToEither [printf "Day not yet available: %d" d'] $
-                M.lookup _csDay challengeMap
-    c      <- maybeToEither [printf "Part not found: %c" _csPart] $
-                M.lookup _csPart dMap
-    inp    <- liftEither . first ("[PROMPT ERROR]":) $ _cdInput
-    sess   <- HasKey <$> maybeToEither ["ERROR: Session Key Required to Submit"] _cfgSession
+    cd@CD{..} <- liftIO $ challengeData _cfgSession _msoSpec
+    dMap      <- maybeToEither [printf "Day not yet available: %d" d'] $
+                   M.lookup _csDay challengeMap
+    c         <- maybeToEither [printf "Part not found: %c" _csPart] $
+                   M.lookup _csPart dMap
+    inp       <- liftEither . first ("[PROMPT ERROR]":) $ _cdInput
+    sess      <- HasKey <$> maybeToEither ["ERROR: Session Key Required to Submit"] _cfgSession
 
     when _msoTest $ do
-      testRes <- liftIO $
-          mapMaybe fst <$> mapM (uncurry (testCase True c)) _cdTests
-      unless (null testRes) $ do
-        let (mark, color)
-                | and testRes = ('✓', ANSI.Green)
-                | otherwise   = ('✗', ANSI.Red  )
-        liftIO .  withColor ANSI.Vivid color $
-          printf "[%c] Passed %d out of %d test(s)\n"
-              mark
-              (length (filter id testRes))
-              (length testRes)
-        unless (and testRes) $
-          if _msoForce
-            then liftIO $ putStrLn "Proceeding with submission despite test failures (--force)"
-            else do
-              conf <- liftIO . H.runInputT H.defaultSettings $
-                H.getInputChar "Some tests failed. Are you sure you wish to proceed? y/(n)"
-              case toLower <$> conf of
-                Just 'y' -> pure ()
-                _        -> throwError ["Submission aborted."]
+      testRes <- liftIO $ runTestSuite c cd
+      unless (and testRes) $
+        if _msoForce
+          then liftIO $ putStrLn "Proceeding with submission despite test failures (--force)"
+          else do
+            conf <- liftIO . H.runInputT H.defaultSettings $
+              H.getInputChar "Some tests failed. Are you sure you wish to proceed? y/(n) "
+            case toLower <$> conf of
+              Just 'y' -> pure ()
+              _        -> throwError ["Submission aborted."]
 
     resEither <- liftIO . evaluate . force . runSomeSolution c $ inp
     res       <- liftEither . first (("[SOLUTION ERROR]":) . (:[]) . show) $ resEither
@@ -246,7 +226,7 @@ mainSubmit Cfg{..} MSO{..} = do
     correctMsg (Just r) = printf "Answer was correct, and you made the global leaderboard at rank %d !!" r
     CS{..} = _msoSpec
     CP{..} = challengePaths _msoSpec
-    d' = getFinite _csDay + 1
+    d' = dayToInt _csDay
     formatResp = T.unpack . T.intercalate "\n" . map ("> " <>) . T.lines
     logFmt = unlines [ "[%s]"
                      , "Submission: %s"
@@ -265,7 +245,7 @@ runAll sess lock rep cm f = flip M.traverseWithKey cm' $ \d ->
                             M.traverseWithKey $ \p (inp0, c) -> do
     let CP{..} = challengePaths (CS d p)
     withColor ANSI.Dull ANSI.Blue $
-      printf ">> Day %02d%c\n" (getFinite d + 1) p
+      printf ">> Day %02d%c\n" (dayToInt d) p
     when lock $ do
       CD{..} <- challengeData sess (CS d p)
       forM_ (inp0 <|> eitherToMaybe _cdInput) $ \inp ->
@@ -278,25 +258,20 @@ runAll sess lock rep cm f = flip M.traverseWithKey cm' $ \d ->
                             (pullMap rep)
                             (pullMap cm)
 
-pullMap
-    :: Map a (Map b c)
-    -> Map (a, b) c
-pullMap = M.fromDistinctAscList
-        . concatMap (uncurry go . second M.toAscList)
-        . M.toAscList
-  where
-    go x = (map . first) (x,)
+runTestSuite :: SomeSolution -> ChallengeData -> IO (Maybe Bool)
+runTestSuite c CD{..} = do
+    testRes <- mapMaybe fst <$> mapM (uncurry (testCase True c)) _cdTests
+    unless (null testRes) $ do
+      let (mark, color)
+              | and testRes = ('✓', ANSI.Green)
+              | otherwise   = ('✗', ANSI.Red  )
+      withColor ANSI.Vivid color $
+        printf "[%c] Passed %d out of %d test(s)\n"
+            mark
+            (length (filter id testRes))
+            (length testRes)
+    pure $ and testRes <$ guard (not (null testRes))
 
-pushMap
-    :: Eq a
-    => Map (a, b) c
-    -> Map a (Map b c)
-pushMap = fmap M.fromDistinctAscList
-        . M.fromAscListWith (flip (++))
-        . map (uncurry go)
-        . M.toAscList
-  where
-    go (x, y) z = (x, [(y, z)])
 
 testCase
     :: Bool             -- ^ is just an example
@@ -310,7 +285,7 @@ testCase emph c inp ans = do
     if emph
       then printf " (%s)\n" resStr
       else printf " %s\n"   resStr
-    forM_ showAns $ \a -> do
+    forM_ showAns $ \a ->
       withColor ANSI.Vivid ANSI.Red $
         printf "(Expected: %s)\n" a
     return (status, res)
@@ -342,3 +317,23 @@ withColor ci c act = do
     ANSI.setSGR [ ANSI.SetColor ANSI.Foreground ci c ]
     act
     ANSI.setSGR [ ANSI.Reset ]
+
+pullMap
+    :: Map a (Map b c)
+    -> Map (a, b) c
+pullMap = M.fromDistinctAscList
+        . concatMap (uncurry go . second M.toAscList)
+        . M.toAscList
+  where
+    go x = (map . first) (x,)
+
+pushMap
+    :: Eq a
+    => Map (a, b) c
+    -> Map a (Map b c)
+pushMap = fmap M.fromDistinctAscList
+        . M.fromAscListWith (flip (++))
+        . map (uncurry go)
+        . M.toAscList
+  where
+    go (x, y) z = (x, [(y, z)])
