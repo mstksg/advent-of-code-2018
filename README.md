@@ -41,7 +41,8 @@ in the library.
 
 ### `:~>` type
 
-This year I'm implementing my solutions in terms of a `:~>` record type:
+If you're looking at my actual github solutions, you'll notice thattThis year
+I'm implementing my solutions in terms of a `:~>` record type:
 
 ```haskell
 data a :~> b = MkSol
@@ -73,6 +74,26 @@ runSolution MkSol{..} s = do
 In the actual library, I have `runSolution` return an `Either` so I can debug
 which stage the error happened in.
 
+Interactive
+-----------
+
+The *[AOC2018.Run.Interactive][interactive]* module has code for testing
+your solutions and submitting within GHCI, so you don't have to re-compile.
+If you edit your solution programs, they are automatically updated when you hit
+`:r` in ghci.
+
+[interactive]: https://mstksg.github.io/advent-of-code-2018/AOC2018-Run-Interactive.html
+
+```haskell
+ghci> execSolution_   $ mkCS 2 'a'  -- get answer for challenge based on solution
+ghci> testSolution_   $ mkCS 2 'a'  -- run solution against test suite
+ghci> viewPrompt_     $ mkCS 2 'a'  -- view the prompt for a part
+ghci> submitSolution_ $ mkCS 2 'a'  -- submit a solution
+```
+
+These are loaded with session key stored in the configuration file (see next
+section).
+
 Executable
 ----------
 
@@ -94,65 +115,65 @@ way to view prompts within the command line:
 $ aoc2018 --help
 aoc2018 - Advent of Code 2018 challenge runner
 
-Usage: aoc2018 DAY [PART] [-p|--prompt] [-n|--no-run] [-t|--tests] [-b|--bench]
-  Run challenges from Advent of Code 2018
+Usage: aoc2018 [-c|--config PATH] COMMAND
+  Run challenges from Advent of Code 2018. Available days: 1, 2, 3 (..)
 
 Available options:
-  DAY                      Day of challenge (1 - 25), or "all"
-  PART                     Challenge part (a, b, c, etc.)
-  -p,--prompt              Show problem prompt before running
-  -n,--no-run              Do not run solution on input
-  -t,--tests               Run sample tests
-  -b,--bench               Run benchmarks
+  -c,--config PATH         Path to configuration file (default: aoc-conf.yaml)
   -h,--help                Show this help text
 
-$ aoc2018 5 b
->> Day 05b
->> [✓] 27720699
+Available commands:
+  run                      Run, test, and benchmark challenges
+  view                     View a prompt for a given challenge
+  submit                   Test and submit answers for challenges
+  test                     Alias for run --test
+  bench                    Alias for run --bench
+
+$ aoc2018 3 b
+>> Day 03b
+>> [✓] 243
 ```
 
 Benchmarking is implemented using *criterion*
 
 ```
-$ aoc2018 2 --bench
+$ aoc2018 bench 2
 >> Day 02a
 benchmarking...
-time                 729.1 μs   (695.0 μs .. 784.2 μs)
-                     0.967 R²   (0.926 R² .. 0.995 R²)
-mean                 740.4 μs   (711.9 μs .. 783.6 μs)
-std dev              116.8 μs   (70.44 μs .. 172.8 μs)
-variance introduced by outliers: 89% (severely inflated)
+time                 1.317 ms   (1.271 ms .. 1.392 ms)
+                     0.982 R²   (0.966 R² .. 0.999 R²)
+mean                 1.324 ms   (1.298 ms .. 1.373 ms)
+std dev              115.5 μs   (77.34 μs .. 189.0 μs)
+variance introduced by outliers: 65% (severely inflated)
 
 >> Day 02b
 benchmarking...
-time                 782.4 μs   (761.3 μs .. 812.9 μs)
-                     0.983 R²   (0.966 R² .. 0.998 R²)
-mean                 786.7 μs   (764.1 μs .. 849.4 μs)
-std dev              110.8 μs   (42.44 μs .. 228.5 μs)
-variance introduced by outliers: 86% (severely inflated)
+time                 69.61 ms   (68.29 ms .. 72.09 ms)
+                     0.998 R²   (0.996 R² .. 1.000 R²)
+mean                 69.08 ms   (68.47 ms .. 69.99 ms)
+std dev              1.327 ms   (840.8 μs .. 1.835 ms)
 ```
 
 Test suites run the example problems given in the puzzle description, and
 outputs are colorized in ANSI terminals.
 
 ```
-$ aoc2018 1 --tests
-[9] [!35732] $ aoc2018 1 --tests
+$ aoc2018 test 1
 >> Day 01a
 [✓] (3)
-[✓] (4)
+[✓] (3)
 [✓] (0)
-[✓] (9)
+[✓] (-6)
 [✓] Passed 4 out of 4 test(s)
-[✓] 1097
+[✓] 416
 >> Day 01b
-[✓] (6)
+[✓] (2)
 [✓] (0)
-[✓] (4)
-[✓] (12)
-[✓] (4)
+[✓] (10)
+[✓] (5)
+[✓] (14)
 [✓] Passed 5 out of 5 test(s)
-[✓] 1188
+[✓] 56752
 ```
 
 This should only work if you're running `aoc2018` in the project directory.
@@ -175,6 +196,38 @@ the correct answers) by passing in `--lock`.  This will lock in any final
 puzzle solutions encountered as the verified official answers.  Later, if you
 edit or modify your solutions, they will be checked on the locked-in answers.
 
-These are store in `data/ans/XXpart.txt`.  That is, the target output for Day 7
+These are stored in `data/ans/XXpart.txt`.  That is, the target output for Day 7
 (Part 2, `b`) will be expected at `data/ans/07b.txt`.  You can also manually
 edit these files.
+
+You can view prompts:
+
+```
+$ aoc2018 view 3 b
+>> Day 03b
+--- Part Two ---
+----------------
+
+Amidst the chaos, you notice that exactly one claim doesn't overlap by
+even a single square inch of fabric with any other claim. If you can
+somehow draw attention to it, maybe the Elves will be able to make
+Santa's suit after all!
+
+For example, in the claims above, only claim `3` is intact after all
+claims are made.
+
+*What is the ID of the only claim that doesn't overlap?*
+```
+
+You can also submit answers:
+
+```
+$ aoc2018 submit 1 a
+```
+
+Submissions will automatically run the test suite.  If any tests fail, you will
+be asked to confirm submission or else abort.  The submit command will output
+the result of your submission: The message from the AoC website, and whether or
+not your answer was correct (or invalid or ignored).  Answers that are
+confirmed correct will be locked in and saved for future testing against, in
+case you change your solution.

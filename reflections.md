@@ -211,9 +211,9 @@ Int)`!  It's basically a sparse grid.  It maps coordinates to values at each
 coordinate.
 
 We're going to use `V2 Int` (from *linear*) instead of `(Int, Int)` (they're
-the same thing), because get to use the overloaded `+` operator to do
-point-wise addition.  Let's also define a rectangle specification record type
-to keep things clean:
+the same thing), because we get to use the overloaded `+` operator to do
+point-wise addition.  Let's also define a rectangle specification and claim
+record type to keep things clean:
 
 ```haskell
 type Coord = V2 Int
@@ -221,6 +221,10 @@ type Coord = V2 Int
 data Rect = R { rStart :: Coord
               , rSize  :: Coord
               }
+
+data Claim = C { cId   :: Int
+               , cRect :: Rect
+               }
 ```
 
 Now, we want to make a function that, given a rectangle, produces a list of
@@ -272,8 +276,8 @@ noOverlap tilesClaimed r = all isAlone (tiles r)
 And that's our Part 2:
 
 ```haskell
-day03b :: [(Int, Rect)] -> Maybe Int
-day03b ts = fst <$> find (noOverlap stakes . snd) ts
+day03b :: [Claim] -> Maybe Int
+day03b ts = cId <$> find (noOverlap stakes . cRect) ts
   where
     stakes = layTiles (map snd ts)
 ```
@@ -283,13 +287,13 @@ out all non-digit characters and using `words` to split up a string into its
 constituent words, and `readMaybe` to read each one.
 
 ```haskell
-parseLine :: String -> Maybe (Int, Rect)
+parseLine :: String -> Maybe Claim
 parseLine = mkLine
           . mapMaybe readMaybe
           . words
           . map onlyDigits
   where
-    mkLine [i,x0,y0,w,h] = Just (i, R (V2 x0 y0) (V2 w h))
+    mkLine [i,x0,y0,w,h] = Just $ Claim i (R (V2 x0 y0) (V2 w h))
     mkLine _             = Nothing
     onlyDigits c
       | isDigit c = c
