@@ -1,7 +1,9 @@
+{-# LANGUAGE TemplateHaskell                #-}
 {-# OPTIONS_GHC -Werror=incomplete-patterns #-}
 
 import           AOC2018
 import           Control.Applicative
+import           Control.Lens hiding (argument)
 import           Control.DeepSeq
 import           Control.Exception
 import           Control.Monad
@@ -44,6 +46,8 @@ data Mode = MRun    { _mTestSpec :: TestSpec
 data Opts = O { _oMode   :: Mode
               , _oConfig :: Maybe FilePath
               }
+
+makeLenses ''Mode
 
 main :: IO ()
 main = do
@@ -292,6 +296,8 @@ parseOpts = do
          command "run"    (info parseRun    (progDesc "Run, test, and benchmark challenges"   ))
       <> command "view"   (info parseView   (progDesc "View a prompt for a given challenge"   ))
       <> command "submit" (info parseSubmit (progDesc "Test and submit answers for challenges"))
+      <> command "test"   (info parseTest   (progDesc "Alias for run --test"))
+      <> command "bench"  (info parseBench  (progDesc "Alias for run --bench"))
     pure O { _oMode   = m
            , _oConfig = c
            }
@@ -324,4 +330,8 @@ parseOpts = do
                    <> short 'n'
                    <> help "Do not lock in answer, even if correct submission was received"
         pure $ MSubmit s t f n
+    parseTest  :: Parser Mode
+    parseTest  = parseRun & mapped . mTest  .~ True
+    parseBench :: Parser Mode
+    parseBench = parseRun & mapped . mBench .~ True
 
