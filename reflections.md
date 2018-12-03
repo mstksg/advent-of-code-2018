@@ -197,8 +197,8 @@ to keep things clean:
 ```haskell
 type Coord = V2 Int
  
-data Rect = R { _rStart :: Coord
-              , _rSize  :: Coord
+data Rect = R { rStart :: Coord
+              , rSize  :: Coord
               }
 ```
 
