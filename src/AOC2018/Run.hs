@@ -36,6 +36,7 @@ import           AOC2018.Run.Config
 import           AOC2018.Run.Load
 import           AOC2018.Solver
 import           AOC2018.Util
+import           Control.Applicative
 import           Control.DeepSeq
 import           Control.Exception
 import           Control.Lens
@@ -50,6 +51,7 @@ import           Data.Maybe
 import           Data.Time
 import           Text.Printf
 import qualified Data.Map                 as M
+import qualified Data.Map.Merge.Lazy      as M
 import qualified Data.Text                as T
 import qualified Data.Text.IO             as T
 import qualified System.Console.ANSI      as ANSI
@@ -66,6 +68,7 @@ data MainRunOpts = MRO { _mroSpec  :: !TestSpec
                        , _mroTest  :: !Bool     -- ^ Run tests?  (Default: False)
                        , _mroBench :: !Bool     -- ^ Benchmark?  (Default: False)
                        , _mroLock  :: !Bool     -- ^ Lock in answer as correct?  (Default: False)
+                       , _mroInput :: !(Map (Finite 25) (Map Char String))  -- ^ Manually supply input.  (Default: 'M.empty')
                        }
   deriving Show
 
@@ -94,6 +97,7 @@ defaultMRO ts = MRO { _mroSpec  = ts
                     , _mroTest  = False
                     , _mroBench = False
                     , _mroLock  = False
+                    , _mroInput = M.empty
                     }
 
 -- | Default options for 'mainSubmit'.
@@ -122,7 +126,7 @@ mainRun Cfg{..} MRO{..} =  do
                 M.lookup p ps
         pure $ M.singleton d (M.singleton p c)
 
-    void . liftIO . flip (runAll _cfgSession _mroLock) toRun $ \c CD{..} -> do
+    void . liftIO . runAll _cfgSession _mroLock _mroInput toRun $ \c inp0 CD{..} -> do
       when _mroTest $ do
         testRes <- mapMaybe fst <$> mapM (uncurry (testCase True c)) _cdTests
         unless (null testRes) $ do
@@ -135,10 +139,12 @@ mainRun Cfg{..} MRO{..} =  do
                 (length (filter id testRes))
                 (length testRes)
 
-      case _cdInput of
+      let inp1 = maybe _cdInput  Right           inp0
+          ans1 = maybe _cdAnswer (const Nothing) inp0
+      case inp1 of
         Right inp
           | _mroBench -> benchmark (nf (runSomeSolution c) inp)
-          | otherwise -> void $ testCase False c inp _cdAnswer
+          | otherwise -> void . testCase False c inp $ ans1
         Left e
           | _mroTest  -> pure ()
           | otherwise -> putStrLn "[INPUT ERROR]" *> mapM_ putStrLn e
@@ -178,13 +184,12 @@ mainSubmit Cfg{..} MSO{..} = do
         let (mark, color)
                 | and testRes = ('✓', ANSI.Green)
                 | otherwise   = ('✗', ANSI.Red  )
-        liftIO $ do
-          withColor ANSI.Vivid color $
-            printf "[%c] Passed %d out of %d test(s)\n"
-                mark
-                (length (filter id testRes))
-                (length testRes)
-        unless (and testRes) $ do
+        liftIO .  withColor ANSI.Vivid color $
+          printf "[%c] Passed %d out of %d test(s)\n"
+              mark
+              (length (filter id testRes))
+              (length testRes)
+        unless (and testRes) $
           if _msoForce
             then liftIO $ putStrLn "Proceeding with submission despite test failures (--force)"
             else do
@@ -199,7 +204,8 @@ mainSubmit Cfg{..} MSO{..} = do
     liftIO $ printf "Submitting solution: %s\n" res
 
     (resp, status) <- liftEither =<< liftIO (runAPI sess (ASubmit _csDay _csPart res))
-    let (color, lock, out) = case status of
+    let resp' = formatResp resp
+        (color, lock, out) = case status of
           SubCorrect -> (ANSI.Green  , True , "Answer was correct!"          )
           SubWrong   -> (ANSI.Red    , False, "Answer was incorrect!"        )
           SubWait    -> (ANSI.Yellow , False, "Answer re-submitted too soon.")
@@ -208,13 +214,13 @@ mainSubmit Cfg{..} MSO{..} = do
     liftIO $ do
       withColor ANSI.Vivid color $
         putStrLn out
-      T.putStrLn resp
+      putStrLn resp'
       when lock $
         if _msoLock
           then putStrLn "Locking correct answer." >> writeFile _cpAnswer res
           else putStrLn "Not locking correct answer (--no-lock)"
       zt <- getZonedTime
-      appendFile _cpLog $ printf logFmt (show zt) res (showSubmitRes status) (formatResp resp)
+      appendFile _cpLog $ printf logFmt (show zt) res (showSubmitRes status) resp'
   where
     CS{..} = _msoSpec
     CP{..} = challengePaths _msoSpec
@@ -229,19 +235,46 @@ mainSubmit Cfg{..} MSO{..} = do
 runAll
     :: Maybe String       -- ^ session key
     -> Bool               -- ^ run and lock answer
-    -> (SomeSolution -> ChallengeData -> IO a)
+    -> Map (Finite 25) (Map Char String)        -- ^ replacements
     -> ChallengeMap
+    -> (SomeSolution -> Maybe String -> ChallengeData -> IO a)  -- ^ callback. given solution, "replacement" input, and data
     -> IO (Map (Finite 25) (Map Char a))
-runAll sess lock f = M.traverseWithKey $ \d ->
-                     M.traverseWithKey $ \p c -> do
+runAll sess lock rep cm f = flip M.traverseWithKey cm' $ \d ->
+                            M.traverseWithKey $ \p (inp0, c) -> do
     let CP{..} = challengePaths (CS d p)
     withColor ANSI.Dull ANSI.Blue $
       printf ">> Day %02d%c\n" (getFinite d + 1) p
     when lock $ do
       CD{..} <- challengeData sess (CS d p)
-      forM_ _cdInput $ \inp ->
+      forM_ (inp0 <|> eitherToMaybe _cdInput) $ \inp ->
         mapM_ (writeFile _cpAnswer) =<< evaluate (force (runSomeSolution c inp))
-    f c =<< challengeData sess (CS d p)
+    f c inp0 =<< challengeData sess (CS d p)
+  where
+    cm' = pushMap $ M.merge M.dropMissing
+                            (M.mapMissing     $ \_   c -> (Nothing, c))
+                            (M.zipWithMatched $ \_ r c -> (Just r , c))
+                            (pullMap rep)
+                            (pullMap cm)
+
+pullMap
+    :: Map a (Map b c)
+    -> Map (a, b) c
+pullMap = M.fromDistinctAscList
+        . concatMap (uncurry go . second M.toAscList)
+        . M.toAscList
+  where
+    go x = (map . first) (x,)
+
+pushMap
+    :: Eq a
+    => Map (a, b) c
+    -> Map a (Map b c)
+pushMap = fmap M.fromDistinctAscList
+        . M.fromAscListWith (++)
+        . map (uncurry go)
+        . M.toAscList
+  where
+    go (x, y) z = (x, [(y, z)])
 
 testCase
     :: Bool             -- ^ is just an example

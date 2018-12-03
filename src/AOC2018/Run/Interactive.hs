@@ -27,6 +27,7 @@ import           Control.Lens
 import           Control.Monad.Except
 import           Data.Finite
 import           Text.Printf
+import qualified Data.Map             as M
 
 -- | Run the solution indicated by the challenge spec on the official
 -- puzzle input.
@@ -42,13 +43,11 @@ execSolutionWith
     -> String               -- ^ custom puzzle input
     -> IO ()
 execSolutionWith cs inp = do
-    Cfg{..} <- configFile "aoc-conf.yaml"
-    c       <- case lookupSolution cs challengeMap of
-      Nothing -> fail "Solution not yet implemented."
-      Just c  -> pure c
-    case runSomeSolution c inp of
-      Right res -> putStrLn res
-      Left  e   -> print e
+    cfg <- configFile "aoc-conf.yaml"
+    out <- runExceptT . mainRun cfg $ (defaultMRO (TSDayPart cs))
+      { _mroInput = M.singleton (_csDay cs) . M.singleton (_csPart cs) $ inp
+      }
+    traverseOf_ (_Left . folded) putStrLn out
 
 -- | Run test suite for a given challenge spec.
 testSolution :: ChallengeSpec -> IO ()
