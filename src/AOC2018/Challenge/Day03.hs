@@ -54,18 +54,25 @@ tiles (R start size) = range (start, start + size - 1)
 layTiles :: [Rect] -> Map Coord Int
 layTiles = freqs . concatMap tiles
 
-day03a :: [(Int, Rect)] :~> Int
+-- | Lends itself pretty well to a functional approach.
+--
+-- 1. Lay the tiles.
+-- 2. Get all the frequencies at each time
+-- 3. Filter for the frequencies greater than 2
+-- 4. Count them
+day03a :: [Rect] :~> Int
 day03a = MkSol
-    { sParse = traverse parseLine . lines
+    { sParse = fmap snd . traverse parseLine . lines
     , sShow  = show
     , sSolve = Just
-             . length               -- > how many?
-             . filter (>= 2)        -- > only frequencies >= 2
-             . toList               -- > get all frequencies
-             . layTiles . map snd   -- > lay the tiles
+             . length           -- > how many?
+             . filter (>= 2)    -- > only frequencies >= 2
+             . toList           -- > get all frequencies
+             . layTiles         -- > lay the tiles
     }
 
-day03b :: _ :~> Int
+-- | Once we lay our tiles, we find the first claim that has no overlaps.
+day03b :: [(Int, Rect)] :~> Int
 day03b = MkSol
     { sParse = traverse parseLine . lines
     , sShow  = show
