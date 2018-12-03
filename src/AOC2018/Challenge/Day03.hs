@@ -62,7 +62,7 @@ layTiles = freqs . concatMap tiles
 -- 4. Count them
 day03a :: [Rect] :~> Int
 day03a = MkSol
-    { sParse = (fmap . map) snd . traverse parseLine . lines
+    { sParse = traverse (fmap snd . parseLine) . lines
     , sShow  = show
     , sSolve = Just
              . length           -- > how many?

@@ -292,7 +292,7 @@ pushMap
     => Map (a, b) c
     -> Map a (Map b c)
 pushMap = fmap M.fromDistinctAscList
-        . M.fromAscListWith (++)
+        . M.fromAscListWith (flip (++))
         . map (uncurry go)
         . M.toAscList
   where
