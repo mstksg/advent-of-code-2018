@@ -252,7 +252,7 @@ And that's our Part 2:
 
 ```haskell
 day03b :: [(Int, Rect)] -> Maybe Int
-day03b ts = find (noOverlap stakes) ts
+day03b ts = fst <$> find (noOverlap stakes) ts
   where
     stakes = layTiles (map snd ts)
 ```
