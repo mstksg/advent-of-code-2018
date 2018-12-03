@@ -18,24 +18,11 @@ module AOC2018.Solver (
   , SolutionError(..)
   , runSolution
   , runSomeSolution
-  , ChallengeMap
-  , ChallengeSpec(..)
-  , lookupSolution
   ) where
 
 import           AOC2018.Util
 import           Control.DeepSeq
-import           Control.Monad
-import           Data.Finite
-import           Data.Map        (Map)
-import           GHC.Generics
-import qualified Data.Map        as M
-
--- | A specification for a specific challenge.  Should consist of a day and
--- a lowercase character.
-data ChallengeSpec = CS { _csDay  :: Finite 25
-                        , _csPart :: Char
-                        }
+import           GHC.Generics     (Generic)
 
 -- | Abstracting over the type of a challenge solver to help with cleaner
 -- solutions.
@@ -56,9 +43,6 @@ data a :~> b = MkSol
 -- different solutions in a container.
 data SomeSolution where
     MkSomeSol :: a :~> b -> SomeSolution
-
--- | A map of days to parts to solutions.
-type ChallengeMap = Map (Finite 25) (Map Char SomeSolution)
 
 -- | Errors that might happen when running a ':~>' on some input.
 data SolutionError = SEParse
@@ -91,7 +75,3 @@ runSolution MkSol{..} s = do
 -- | Run a 'SomeSolution' on some input.
 runSomeSolution :: SomeSolution -> String -> Either SolutionError String
 runSomeSolution (MkSomeSol c) = runSolution c
-
--- | Lookup up a solution from a 'ChallengeMap'
-lookupSolution :: ChallengeSpec -> ChallengeMap -> Maybe SomeSolution
-lookupSolution CS{..} = M.lookup _csPart <=< M.lookup _csDay

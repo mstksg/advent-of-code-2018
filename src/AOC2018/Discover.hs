@@ -16,12 +16,15 @@
 module AOC2018.Discover (
     mkChallengeMap
   , solutionList
+  , ChallengeMap
+  , ChallengeSpec(..)
   ) where
 
 import           AOC2018.Solver
 import           Data.Bifunctor
 import           Data.Data
 import           Data.Finite
+import           Data.Map                   (Map)
 import           Data.Maybe
 import           Data.Traversable
 import           Data.Void
@@ -38,6 +41,15 @@ import qualified Data.Map                   as M
 import qualified Hpack.Config               as H
 import qualified Text.Megaparsec            as P
 import qualified Text.Megaparsec.Char       as P
+
+-- | A specification for a specific challenge.  Should consist of a day and
+-- a lowercase character.
+data ChallengeSpec = CS { _csDay  :: Finite 25
+                        , _csPart :: Char
+                        }
+
+-- | A map of days to parts to solutions.
+type ChallengeMap = Map (Finite 25) (Map Char SomeSolution)
 
 type Parser = P.Parsec Void String
 

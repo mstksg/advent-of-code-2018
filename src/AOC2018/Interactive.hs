@@ -17,10 +17,14 @@ module AOC2018.Interactive (
   , viewPrompt
   ) where
 
-import           AOC2018
+import           AOC2018.Challenge
+import           AOC2018.Config
+import           AOC2018.Load
+import           AOC2018.Solver
+import           AOC2018.Util
 import           Control.Monad
 import           Text.Printf
-import qualified Data.Map      as M
+import qualified Data.Map          as M
 
 -- | Run the solution indicated by the challenge spec on the official
 -- puzzle input.

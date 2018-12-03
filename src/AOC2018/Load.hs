@@ -18,12 +18,11 @@ module AOC2018.Load (
   ) where
 
 import           AOC2018.API
-import           AOC2018.Solver
+import           AOC2018.Challenge
 import           AOC2018.Util
 import           Control.DeepSeq
 import           Control.Exception
 import           Control.Monad
-import           Control.Monad.IO.Class
 import           Control.Monad.Except
 import           Data.Finite
 import           Data.Foldable
@@ -32,8 +31,8 @@ import           System.Directory
 import           System.FilePath
 import           System.IO.Error
 import           Text.Printf
-import qualified Data.Map                   as M
-import qualified Data.Text                  as T
+import qualified Data.Map             as M
+import qualified Data.Text            as T
 
 -- | A record of paths corresponding to a specific challenge.
 data ChallengePaths = CP { _cpPrompt    :: !FilePath
