@@ -39,7 +39,7 @@ execSolution cs = do
       Right inp -> case runSomeSolution c inp of
         Right res -> putStrLn res
         Left  e   -> print e
-      Left  e   -> print e
+      Left  e   -> mapM_ putStrLn e
 
 -- | Run the solution indicated by the challenge spec on a custom input.
 execSolutionWith
@@ -78,6 +78,6 @@ viewPrompt cs@CS{..} = do
     Cfg{..} <- configFile "aoc-conf.yaml"
     CD{..} <- challengeData _cfgSession cs
     case _cdPrompt of
-      Left  e -> print e
+      Left  e -> mapM_ putStrLn e
       Right p -> putStrLn p >> putStrLn ""
 

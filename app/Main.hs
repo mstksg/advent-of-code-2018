@@ -39,13 +39,15 @@ data Mode = MRun    { _mTestSpec :: TestSpec
                     , _mBench    :: Bool
                     , _mLock     :: Bool
                     }
-          | MView   { _mSpec     :: ChallengeSpec
+          | MView   { _mSpec     :: ChallengeSpec   -- TODO: allow view all
                     }
           | MSubmit { _mSpec     :: ChallengeSpec
                     , _mNoTest   :: Bool
                     , _mForce    :: Bool
                     , _mNoLock   :: Bool
                     }
+
+-- TODO: countdowner
 
 data Opts = O { _oMode   :: Mode
               , _oConfig :: Maybe FilePath
