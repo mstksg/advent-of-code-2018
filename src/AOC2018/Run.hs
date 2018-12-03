@@ -17,10 +17,16 @@
 --
 
 module AOC2018.Run (
+  -- * Options
     TestSpec(..)
+  -- * Runners
+  -- ** Run solutions, tests, benchmarks
   , MainRunOpts(..), HasMainRunOpts(..), mainRun, defaultMRO
+  -- ** View prompts
   , MainViewOpts(..), HasMainViewOpts(..), mainView
+  -- ** Submit answers
   , MainSubmitOpts(..), HasMainSubmitOpts(..), mainSubmit, defaultMSO
+  -- * Util
   , withColor
   ) where
 
@@ -49,35 +55,40 @@ import qualified Data.Text.IO             as T
 import qualified System.Console.ANSI      as ANSI
 import qualified System.Console.Haskeline as H
 
+-- | Specification of parts to test and run
 data TestSpec = TSAll
               | TSDayAll  { _tsDay  :: Finite 25     }
               | TSDayPart { _tsSpec :: ChallengeSpec }
   deriving Show
 
+-- | Options for 'mainRun'.
 data MainRunOpts = MRO { _mroSpec  :: !TestSpec
-                       , _mroTest  :: !Bool
-                       , _mroBench :: !Bool
-                       , _mroLock  :: !Bool
+                       , _mroTest  :: !Bool     -- ^ Run tests?  (Default: False)
+                       , _mroBench :: !Bool     -- ^ Benchmark?  (Default: False)
+                       , _mroLock  :: !Bool     -- ^ Lock in answer as correct?  (Default: False)
                        }
   deriving Show
 
 makeClassy ''MainRunOpts
 
+-- | Options for 'mainView'.
 newtype MainViewOpts = MVO { _mvoSpec :: ChallengeSpec
                            }
   deriving Show
 
 makeClassy ''MainViewOpts
 
+-- | Options for 'mainSubmit'
 data MainSubmitOpts = MSO { _msoSpec  :: !ChallengeSpec
-                          , _msoTest  :: !Bool
-                          , _msoForce :: !Bool
-                          , _msoLock  :: !Bool
+                          , _msoTest  :: !Bool    -- ^ Run tests before submitting?  (Default: True)
+                          , _msoForce :: !Bool    -- ^ Force submission even if bad?  (Default: False)
+                          , _msoLock  :: !Bool    -- ^ Lock answer if submission succeeded?  (Default: True)
                           }
   deriving Show
 
 makeClassy ''MainSubmitOpts
 
+-- | Default options for 'mainRun'.
 defaultMRO :: TestSpec -> MainRunOpts
 defaultMRO ts = MRO { _mroSpec  = ts
                     , _mroTest  = False
@@ -85,6 +96,7 @@ defaultMRO ts = MRO { _mroSpec  = ts
                     , _mroLock  = False
                     }
 
+-- | Default options for 'mainSubmit'.
 defaultMSO :: ChallengeSpec -> MainSubmitOpts
 defaultMSO cs = MSO { _msoSpec  = cs
                     , _msoTest  = True
@@ -92,6 +104,7 @@ defaultMSO cs = MSO { _msoSpec  = cs
                     , _msoLock  = True
                     }
 
+-- | Run, test, bench.
 mainRun
     :: (MonadIO m, MonadError [String] m)
     => Config
@@ -108,7 +121,7 @@ mainRun Cfg{..} MRO{..} =  do
         c  <- maybeToEither [printf "Part not found: %c" p] $
                 M.lookup p ps
         pure $ M.singleton d (M.singleton p c)
-    
+
     void . liftIO . flip (runAll _cfgSession _mroLock) toRun $ \c CD{..} -> do
       when _mroTest $ do
         testRes <- mapMaybe fst <$> mapM (uncurry (testCase True c)) _cdTests
@@ -130,6 +143,7 @@ mainRun Cfg{..} MRO{..} =  do
           | _mroTest  -> pure ()
           | otherwise -> putStrLn "[INPUT ERROR]" *> mapM_ putStrLn e
 
+-- | View prompt
 mainView
     :: (MonadIO m, MonadError [String] m)
     => Config
@@ -142,6 +156,7 @@ mainView Cfg{..} MVO{..} = do
       putStrLn pmpt
       putStrLn ""
 
+-- | Submit and analyze result
 mainSubmit
     :: (MonadIO m, MonadError [String] m)
     => Config
@@ -262,6 +277,7 @@ testCase emph c inp ans = do
       Just False -> ANSI.Red
       Nothing    -> ANSI.Blue
 
+-- | Do the action with a given ANSI foreground color and intensity.
 withColor
     :: ANSI.ColorIntensity
     -> ANSI.Color
