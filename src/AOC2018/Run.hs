@@ -48,12 +48,12 @@ import           Data.Char
 import           Data.Finite
 import           Data.Map                 (Map)
 import           Data.Maybe
+import           Data.Text                (Text)
 import           Data.Time
 import           Text.Printf
 import qualified Data.Map                 as M
 import qualified Data.Map.Merge.Lazy      as M
 import qualified Data.Text                as T
-import qualified Data.Text.IO             as T
 import qualified System.Console.ANSI      as ANSI
 import qualified System.Console.Haskeline as H
 
@@ -167,7 +167,7 @@ mainSubmit
     :: (MonadIO m, MonadError [String] m)
     => Config
     -> MainSubmitOpts
-    -> m ()
+    -> m (Text, SubmitRes)
 mainSubmit Cfg{..} MSO{..} = do
     CD{..} <- liftIO $ challengeData _cfgSession _msoSpec
     dMap   <- maybeToEither [printf "Day not yet available: %d" d'] $
@@ -203,7 +203,7 @@ mainSubmit Cfg{..} MSO{..} = do
     res       <- liftEither . first (("[SOLUTION ERROR]":) . (:[]) . show) $ resEither
     liftIO $ printf "Submitting solution: %s\n" res
 
-    (resp, status) <- liftEither =<< liftIO (runAPI sess (ASubmit _csDay _csPart res))
+    output@(resp, status) <- liftEither =<< liftIO (runAPI sess (ASubmit _csDay _csPart res))
     let resp' = formatResp resp
         (color, lock, out) = case status of
           SubCorrect -> (ANSI.Green  , True , "Answer was correct!"          )
@@ -221,16 +221,17 @@ mainSubmit Cfg{..} MSO{..} = do
           else putStrLn "Not locking correct answer (--no-lock)"
       zt <- getZonedTime
       appendFile _cpLog $ printf logFmt (show zt) res (showSubmitRes status) resp'
+    pure output
   where
     CS{..} = _msoSpec
     CP{..} = challengePaths _msoSpec
     d' = getFinite _csDay + 1
     formatResp = T.unpack . T.intercalate "\n" . map ("> " <>) . T.lines
     logFmt = unlines [ "[%s]"
-                        , "Submission: %s"
-                        , "Status: %s"
-                        , "%s"
-                        ]
+                     , "Submission: %s"
+                     , "Status: %s"
+                     , "%s"
+                     ]
 
 runAll
     :: Maybe String       -- ^ session key

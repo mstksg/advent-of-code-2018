@@ -37,7 +37,7 @@ main = do
     out <- runExceptT $ case _oMode of
       MRun    mro -> mainRun  cfg mro
       MView   mvo -> mainView cfg mvo
-      MSubmit mso -> mainSubmit cfg mso
+      MSubmit mso -> void $ mainSubmit cfg mso
     forOf_ _Left out $ \e -> do
       withColor ANSI.Vivid ANSI.Red $
         putStrLn "[ERROR]"
