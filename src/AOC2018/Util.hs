@@ -94,8 +94,7 @@ freqs = M.fromListWith (+) . map (,1)
 --         , [ 0,10,101]
 --         ]
 perturbations
-    :: Ord a
-    => (a -> [a])
+    :: (a -> [a])
     -> [a]
     -> [[a]]
 perturbations f xs = do

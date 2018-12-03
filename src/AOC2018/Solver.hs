@@ -1,5 +1,5 @@
 -- |
--- Module      : AOC2018.Types
+-- Module      : AOC2018.Solver
 -- Copyright   : (c) Justin Le 2018
 -- License     : BSD3
 --
@@ -11,7 +11,7 @@
 -- solutions.
 --
 
-module AOC2018.Challenge (
+module AOC2018.Solver (
     (:~>)(..)
   , withSolver, withSolver'
   , SomeSolution(..)

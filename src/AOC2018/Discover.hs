@@ -18,7 +18,7 @@ module AOC2018.Discover (
   , solutionList
   ) where
 
-import           AOC2018.Challenge
+import           AOC2018.Solver
 import           Data.Bifunctor
 import           Data.Data
 import           Data.Finite

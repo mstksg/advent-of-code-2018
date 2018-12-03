@@ -7,13 +7,13 @@
 -- Stability   : experimental
 -- Portability : non-portable
 --
--- Day 1!  See "AOC2018.Challenge" for the types used in this module!
+-- Day 1!  See "AOC2018.Solver" for the types used in this module!
 
 module AOC2018.Challenge.Day01 (day01a, day01b) where
 
-import           AOC2018.Challenge ((:~>)(..))
-import           AOC2018.Util      (firstRepeated)
-import           Text.Read         (readMaybe)
+import           AOC2018.Solver ((:~>)(..))
+import           AOC2018.Util   (firstRepeated)
+import           Text.Read      (readMaybe)
 
 -- | We need this because 'read' can't handle positive signs in front of
 -- numbers.

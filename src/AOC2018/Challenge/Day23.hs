@@ -10,7 +10,7 @@
 -- Stability   : experimental
 -- Portability : non-portable
 --
--- Day 23.  See "AOC2018.Challenge" for the types used in this module!
+-- Day 23.  See "AOC2018.Solver" for the types used in this module!
 --
 -- After completing the challenge, it is recommended to:
 --

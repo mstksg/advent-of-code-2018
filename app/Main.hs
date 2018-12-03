@@ -1,5 +1,6 @@
 {-# LANGUAGE TemplateHaskell                #-}
 {-# OPTIONS_GHC -Werror=incomplete-patterns #-}
+{-# OPTIONS_GHC -Wno-unused-top-binds       #-}
 
 import           AOC2018
 import           Control.Applicative

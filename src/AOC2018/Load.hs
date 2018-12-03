@@ -18,7 +18,7 @@ module AOC2018.Load (
   ) where
 
 import           AOC2018.API
-import           AOC2018.Challenge
+import           AOC2018.Solver
 import           AOC2018.Util
 import           Control.DeepSeq
 import           Control.Exception
