@@ -15,14 +15,17 @@ module AOC2018.Interactive (
   , execSolutionWith
   , testSolution
   , viewPrompt
+  , mkSpec
   ) where
 
+-- import           Data.Bifunctor
 import           AOC2018.Challenge
 import           AOC2018.Config
 import           AOC2018.Load
 import           AOC2018.Solver
 import           AOC2018.Util
 import           Control.Monad
+import           Data.Finite
 import           Text.Printf
 import qualified Data.Map          as M
 
@@ -80,4 +83,78 @@ viewPrompt cs@CS{..} = do
     case _cdPrompt of
       Left  e -> mapM_ putStrLn e
       Right p -> putStrLn p >> putStrLn ""
+
+-- submitSolution :: ChallengeSpec -> IO ()
+-- submitSolution cs = do
+--     Cfg{..} <- configFile "aoc-conf.yaml"
+--     c       <- case lookupSolution cs challengeMap of
+--       Nothing -> fail "Solution not yet implemented."
+--       Just c  -> pure c
+--     CD{..} <- challengeData _cfgSession cs
+--     res <- either (fail . unlines) pure
+--          $ first ((:[]) . show) . runSomeSolution c =<< _cdInput
+--     _
+
+-- mainSubmit :: Config -> ChallengeSpec -> Bool -> Bool -> Bool -> IO (Either [String] ())
+-- mainSubmit Cfg{..} spec@CS{..} test force' noLock = runExceptT $ do
+--     CD{..} <- liftIO $ challengeData _cfgSession spec
+--     dMap   <- maybeToEither [printf "Day not yet available: %d" d'] $
+--                 M.lookup _csDay challengeMap
+--     c      <- maybeToEither [printf "Part not found: %c" _csPart] $
+--                 M.lookup _csPart dMap
+--     inp    <- liftEither . first ("[PROMPT ERROR]":) $ _cdInput
+--     sess   <- HasKey <$> maybeToEither ["ERROR: Session Key Required to Submit"] _cfgSession
+
+--     when test $ do
+--       testRes <- liftIO $
+--           mapMaybe fst <$> mapM (uncurry (testCase True c)) _cdTests
+--       unless (null testRes) $ do
+--         let (mark, color)
+--                 | and testRes = ('✓', ANSI.Green)
+--                 | otherwise   = ('✗', ANSI.Red  )
+--         liftIO $ do
+--           withColor ANSI.Vivid color $
+--             printf "[%c] Passed %d out of %d test(s)\n"
+--                 mark
+--                 (length (filter id testRes))
+--                 (length testRes)
+--         unless (and testRes) $ do
+--           if force'
+--             then liftIO $ putStrLn "Proceeding with submission despite test failures (--force)"
+--             else do
+--               conf <- liftIO . H.runInputT H.defaultSettings $
+--                 H.getInputChar "Some tests failed. Are you sure you wish to proceed? y/(n)"
+--               case toLower <$> conf of
+--                 Just 'y' -> pure ()
+--                 _        -> throwError ["Submission aborted."]
+
+--     resEither <- liftIO . evaluate . force . runSomeSolution c $ inp
+--     res       <- liftEither . first (("[SOLUTION ERROR]":) . (:[]) . show) $ resEither
+--     liftIO $ printf "Submitting solution: %s\n" res
+
+--     (resp, status) <- ExceptT $ runAPI sess (ASubmit _csDay _csPart res)
+--     let (color, lock, out) = case status of
+--           SubCorrect -> (ANSI.Green  , True , "Answer was correct!"          )
+--           SubWrong   -> (ANSI.Red    , False, "Answer was incorrect!"        )
+--           SubWait    -> (ANSI.Yellow , False, "Answer re-submitted too soon.")
+--           SubInvalid -> (ANSI.Blue   , False, "Submission was rejected.  Maybe not unlocked yet, or already answered?")
+--           SubUnknown -> (ANSI.Magenta, False, "Response from server was not recognized.")
+--     liftIO $ do
+--       withColor ANSI.Vivid color $
+--         putStrLn out
+--       T.putStrLn resp
+--       when lock $
+--         if noLock
+--           then putStrLn "Not locking correct answer (--no-lock)"
+--           else putStrLn "Locking correct answer." >> writeFile _cpAnswer res
+--       zt <- getZonedTime
+--       appendFile _cpLog $ printf logFmt (show zt) res (showSubmitRes status) (formatResp resp)
+
+-- | Unsafely create a 'ChallengeSpec' from a day number and part.
+--
+-- Is undefined if given a day number out of range (1-25).
+mkSpec :: Integer -> Char -> ChallengeSpec
+mkSpec i c = maybe e (`CS` c) . packFinite $ i - 1
+  where
+    e = errorWithoutStackTrace $ printf "Day out of range: %d" i
 

@@ -35,6 +35,8 @@ default-extensions:
 - DeriveGeneric
 - DeriveTraversable
 - EmptyCase
+- FlexibleContexts
+- FlexibleInstances
 - GADTs
 - KindSignatures
 - LambdaCase
@@ -59,20 +61,22 @@ default-extensions:
 dependencies:
 - base >= 4.7 && < 5
 - containers
-- deepseq
 - finite-typelits
 - lens
 - mtl
-- text
 
 library:
   source-dirs: src
   dependencies:
   - aeson
+  - ansi-terminal
   - bytestring
+  - criterion
   - curl
+  - deepseq
   - directory
   - filepath
+  - haskeline
   - haskell-names
   - haskell-src-exts
   - hpack
@@ -89,6 +93,8 @@ library:
   - taggy
   - taggy-lens
   - template-haskell
+  - text
+  - time
   - transformers
   - yaml
 
@@ -103,10 +109,7 @@ executables:
     dependencies:
     - ansi-terminal
     - aoc2018
-    - criterion
     - optparse-applicative
-    - time
-    - haskeline
 
 # tests:
 #   aoc2018-test:

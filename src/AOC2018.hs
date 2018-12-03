@@ -20,6 +20,7 @@ import           AOC2018.Challenge   as AOC
 import           AOC2018.Config      as AOC
 import           AOC2018.Interactive as AOC
 import           AOC2018.Load        as AOC
+import           AOC2018.Run         as AOC
 import           AOC2018.Solver      as AOC
 import           AOC2018.Util        as AOC
 
