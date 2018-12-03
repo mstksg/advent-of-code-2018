@@ -15,21 +15,24 @@ Check out reflections and commentary at the [package haddocks][haddock]!
 Challenges and Reflections
 --------------------------
 
-Links go to haddock source renders for code, with reflections in the
-documentation.  Haddock source renders have hyperlinked identifiers,
-so you can follow any unrecognized identifiers to see where I have defined them
-in the library.  Benchmark times for each part are listed after each link.
+*   **[Day 1 Reflections][d01r]** *[code][d01g]* / *[rendered][d01h]* / *[benchmarks][d01b]*
+*   **[Day 2 Reflections][d02r]** *[code][d02g]* / *[rendered][d02h]* / *[benchmarks][d02b]*
+*   **[Day 3 Reflections][d03r]** *[code][d03g]* / *[rendered][d03h]* / *[benchmarks][d03b]*
 
-*   **Day 1**: [Rendered][day01r] / [Github][day01g] *( 2.9 ms / 140 ms )*
-*   **Day 2**: [Rendered][day02r] / [Github][day02g] *( 1.2 ms / 68 ms )*
-*   **Day 3**: [Rendered][day03r] / [Github][day03g] *( 530 ms / 450 ms )*
+[d01g]: https://github.com/mstksg/advent-of-code-2018/blob/master/src/AOC2018/Challenge/Day01.hs
+[d01h]: https://mstksg.github.io/advent-of-code-2018/src/AOC2018.Challenge.Day01.html
+[d01r]: https://github.com/mstksg/advent-of-code-2018/blob/master/reflections.md#day-1
+[d01b]: https://github.com/mstksg/advent-of-code-2018/blob/master/reflections.md#day-1-benchmarks
 
-[day01r]: https://mstksg.github.io/advent-of-code-2018/src/AOC2018.Challenge.Day01.html
-[day01g]: https://github.com/mstksg/advent-of-code-2018/blob/master/src/AOC2018/Challenge/Day01.hs
-[day02r]: https://mstksg.github.io/advent-of-code-2018/src/AOC2018.Challenge.Day02.html
-[day02g]: https://github.com/mstksg/advent-of-code-2018/blob/master/src/AOC2018/Challenge/Day02.hs
-[day03r]: https://mstksg.github.io/advent-of-code-2018/src/AOC2018.Challenge.Day03.html
-[day03g]: https://github.com/mstksg/advent-of-code-2018/blob/master/src/AOC2018/Challenge/Day03.hs
+[d02g]: https://github.com/mstksg/advent-of-code-2018/blob/master/src/AOC2018/Challenge/Day02.hs
+[d02h]: https://mstksg.github.io/advent-of-code-2018/src/AOC2018.Challenge.Day02.html
+[d02r]: https://github.com/mstksg/advent-of-code-2018/blob/master/reflections.md#day-2
+[d02b]: https://github.com/mstksg/advent-of-code-2018/blob/master/reflections.md#day-2-benchmarks
+
+[d03g]: https://github.com/mstksg/advent-of-code-2018/blob/master/src/AOC2018/Challenge/Day03.hs
+[d03h]: https://mstksg.github.io/advent-of-code-2018/src/AOC2018.Challenge.Day03.html
+[d03r]: https://github.com/mstksg/advent-of-code-2018/blob/master/reflections.md#day-3
+[d03b]: https://github.com/mstksg/advent-of-code-2018/blob/master/reflections.md#day-3-benchmarks
 
 ### `:~>` type
 

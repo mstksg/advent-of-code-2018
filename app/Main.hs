@@ -17,7 +17,7 @@ import qualified Data.Map                    as M
 import qualified System.Console.ANSI         as ANSI
 
 data Mode = MRun    MainRunOpts
-          | MView   MainViewOpts          -- TODO: allow view all
+          | MView   MainViewOpts
           | MSubmit MainSubmitOpts
 
 -- TODO: countdowner

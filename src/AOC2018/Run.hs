@@ -225,7 +225,7 @@ mainSubmit Cfg{..} MSO{..} = do
     output@(resp, status) <- liftEither =<< liftIO (runAPI sess (ASubmit _csDay _csPart res))
     let resp' = formatResp resp
         (color, lock, out) = case status of
-          SubCorrect r -> (ANSI.Green  , True , correctMsg r                   ) 
+          SubCorrect r -> (ANSI.Green  , True , correctMsg r                   )
           SubIncorrect -> (ANSI.Red    , False, "Answer was incorrect!"        )
           SubWait      -> (ANSI.Yellow , False, "Answer re-submitted too soon.")
           SubInvalid   -> (ANSI.Blue   , False, "Submission was rejected.  Maybe not unlocked yet, or already answered?")
