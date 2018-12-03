@@ -23,6 +23,7 @@ module AOC2018.Util (
   , freqs
   , perturbations
   , findMaybe
+  , clearOut
   ) where
 
 import           Control.Applicative
@@ -111,3 +112,8 @@ findMaybe
     -> t a
     -> Maybe b
 findMaybe p = asum . map p . toList
+
+-- | Clear out characters not matching a predicate
+clearOut :: (Char -> Bool) -> String -> String
+clearOut p = map $ \c -> if p c then ' '
+                                else c

@@ -15,7 +15,7 @@ module AOC2018.Challenge.Day03 (
   ) where
 
 import           AOC2018.Solver ((:~>)(..))
-import           AOC2018.Util   (freqs, findMaybe)
+import           AOC2018.Util   (freqs, findMaybe, clearOut)
 import           Control.Monad  (guard)
 import           Data.Char      (isDigit)
 import           Data.Ix        (range)
@@ -28,6 +28,11 @@ import qualified Data.Map       as M
 -- | x and y
 type Coord = V2 Int
 
+-- | Claim ID and rectangle
+data Claim = C { _cId   :: Int
+               , _cRect :: Rect
+               }
+
 -- | Start <x,y>, and size <w,h>
 data Rect = R { _rStart :: Coord
               , _rSize  :: Coord
@@ -35,17 +40,14 @@ data Rect = R { _rStart :: Coord
 
 -- | Attempt to parse a line into @(Int, Rect)@ (a claim ID #, and the
 -- rectangle claimed)
-parseLine :: String -> Maybe (Int, Rect)
+parseLine :: String -> Maybe Claim
 parseLine = mkLine
           . mapMaybe readMaybe
           . words
-          . map onlyDigits
+          . clearOut (not . isDigit)
   where
-    mkLine [i,x0,y0,w,h] = Just (i, R (V2 x0 y0) (V2 w h))
+    mkLine [i,x0,y0,w,h] = Just $ C i (R (V2 x0 y0) (V2 w h))
     mkLine _             = Nothing
-    onlyDigits c
-      | isDigit c = c
-      | otherwise = ' '
 
 -- | Get a list of all coordinates within a given rectangle specification
 tiles :: Rect -> [Coord]
@@ -63,7 +65,7 @@ layTiles = freqs . concatMap tiles
 -- 4. Count them
 day03a :: [Rect] :~> Int
 day03a = MkSol
-    { sParse = traverse (fmap snd . parseLine) . lines
+    { sParse = traverse (fmap _cRect . parseLine) . lines
     , sShow  = show
     , sSolve = Just
              . length           -- > how many?
@@ -73,12 +75,12 @@ day03a = MkSol
     }
 
 -- | Once we lay our tiles, we find the first claim that has no overlaps.
-day03b :: [(Int, Rect)] :~> Int
+day03b :: [Claim] :~> Int
 day03b = MkSol
     { sParse = traverse parseLine . lines
     , sShow  = show
     , sSolve = \ts ->
-        let tilesClaimed = layTiles (snd <$> ts)    -- > get all tiles claimed frequency map
+        let tilesClaimed = layTiles (_cRect <$> ts) -- > get all tiles claimed frequency map
         in  findMaybe (noOverlap tilesClaimed) ts   -- > find the ID that is not overlapping
     }
 
@@ -89,8 +91,8 @@ day03b = MkSol
 -- If yes, return the ID of the claim.
 noOverlap
     :: Map Coord Int
-    -> (Int, Rect)
+    -> Claim
     -> Maybe Int
-noOverlap tilesClaimed (i, r) = i <$ guard (all isAlone (tiles r))
+noOverlap tilesClaimed C{..} = _cId <$ guard (all isAlone (tiles _cRect))
   where
     isAlone c = M.lookup c tilesClaimed == Just 1

@@ -115,7 +115,7 @@ freqs :: [a] -> Map a Int
 freqs = M.fromListWith (+) . map (,1)
 ```
 
-Day 1 part 1 is then to just:
+Day 2 part 1 is then to just:
 
 1.  Build a frequency map for chars for each line
 2.  Aggregate all of the seen frequencies in each line
@@ -244,7 +244,7 @@ layTiles :: [Rect] -> Map Coord Int
 layTiles = freqs . concatMap tiles
 ```
 
-(Reusing `freqs` from Day 1)
+(Reusing `freqs` from Day 2)
 
 From there, we need to just count how many frequencies we observe are greater
 than 1.  We can do that by filtering and counting how many are left.
