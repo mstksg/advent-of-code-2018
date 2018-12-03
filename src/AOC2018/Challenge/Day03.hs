@@ -21,7 +21,9 @@ import           Data.Char      (isDigit)
 import           Data.Foldable  (toList)
 import           Data.Ix        (range)
 import           Data.Map       (Map)
+import           Data.Maybe     (mapMaybe)
 import           Linear         (V2(..))
+import           Text.Read      (readMaybe)
 import qualified Data.Map       as M
 
 -- | x and y
@@ -36,7 +38,7 @@ data Rect = R { _rStart :: Coord
 -- rectangle claimed)
 parseLine :: String -> Maybe (Int, Rect)
 parseLine = mkLine
-          . map read
+          . mapMaybe readMaybe
           . words
           . map onlyDigits
   where
