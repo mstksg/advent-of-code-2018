@@ -73,6 +73,7 @@ library:
   - bytestring
   - criterion
   - curl
+  - data-default
   - deepseq
   - directory
   - filepath

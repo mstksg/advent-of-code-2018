@@ -88,7 +88,7 @@ parseTestSpec = do
                                    )
     pure $ case d of
       Just d' -> case p of
-        Just p' -> TSDayPart d' p'
+        Just p' -> TSDayPart (CS d' p')
         Nothing -> TSDayAll  d'
       Nothing -> TSAll
   where
@@ -141,7 +141,7 @@ parseOpts = do
         n <- switch $ long "no-lock"
                    <> short 'n'
                    <> help "Do not lock in answer, even if correct submission was received"
-        pure $ MSO s (not t) f n
+        pure $ MSO s (not t) f (not n)
     parseTest  :: Parser MainRunOpts
     parseTest  = parseRun & mapped . mroTest  .~ True
     parseBench :: Parser MainRunOpts

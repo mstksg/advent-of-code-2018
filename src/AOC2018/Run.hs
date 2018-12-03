@@ -18,9 +18,9 @@
 
 module AOC2018.Run (
     TestSpec(..)
-  , MainRunOpts(..), HasMainRunOpts(..), mainRun
+  , MainRunOpts(..), HasMainRunOpts(..), mainRun, defaultMRO
   , MainViewOpts(..), HasMainViewOpts(..), mainView
-  , MainSubmitOpts(..), HasMainSubmitOpts(..), mainSubmit
+  , MainSubmitOpts(..), HasMainSubmitOpts(..), mainSubmit, defaultMSO
   , withColor
   ) where
 
@@ -50,32 +50,47 @@ import qualified System.Console.ANSI      as ANSI
 import qualified System.Console.Haskeline as H
 
 data TestSpec = TSAll
-              | TSDayAll  { _tsDay  :: Finite 25 }
-              | TSDayPart { _tsDay  :: Finite 25
-                          , _tsPart :: Char
-                          }
+              | TSDayAll  { _tsDay  :: Finite 25     }
+              | TSDayPart { _tsSpec :: ChallengeSpec }
   deriving Show
 
-data MainRunOpts = MRO { _mroSpec  :: TestSpec
-                       , _mroTest  :: Bool
-                       , _mroBench :: Bool
-                       , _mroLock  :: Bool
+data MainRunOpts = MRO { _mroSpec  :: !TestSpec
+                       , _mroTest  :: !Bool
+                       , _mroBench :: !Bool
+                       , _mroLock  :: !Bool
                        }
+  deriving Show
 
 makeClassy ''MainRunOpts
 
 newtype MainViewOpts = MVO { _mvoSpec :: ChallengeSpec
                            }
+  deriving Show
 
 makeClassy ''MainViewOpts
 
-data MainSubmitOpts = MSO { _msoSpec  :: ChallengeSpec
-                          , _msoTest  :: Bool
-                          , _msoForce :: Bool
-                          , _msoLock  :: Bool
+data MainSubmitOpts = MSO { _msoSpec  :: !ChallengeSpec
+                          , _msoTest  :: !Bool
+                          , _msoForce :: !Bool
+                          , _msoLock  :: !Bool
                           }
+  deriving Show
 
 makeClassy ''MainSubmitOpts
+
+defaultMRO :: TestSpec -> MainRunOpts
+defaultMRO ts = MRO { _mroSpec  = ts
+                    , _mroTest  = False
+                    , _mroBench = False
+                    , _mroLock  = False
+                    }
+
+defaultMSO :: ChallengeSpec -> MainSubmitOpts
+defaultMSO cs = MSO { _msoSpec  = cs
+                    , _msoTest  = True
+                    , _msoForce = False
+                    , _msoLock  = True
+                    }
 
 mainRun
     :: (MonadIO m, MonadError [String] m)
@@ -84,10 +99,10 @@ mainRun
     -> m ()
 mainRun Cfg{..} MRO{..} =  do
     toRun <- case _mroSpec of
-      TSAll         -> pure challengeMap
-      TSDayAll d    -> maybeToEither [printf "Day not yet avaiable: %s" (showDay d)] $
-                          M.singleton d <$> M.lookup d challengeMap
-      TSDayPart d p -> do
+      TSAll      -> pure challengeMap
+      TSDayAll d -> maybeToEither [printf "Day not yet avaiable: %s" (showDay d)] $
+                       M.singleton d <$> M.lookup d challengeMap
+      TSDayPart (CS d p) -> do
         ps <- maybeToEither [printf "Day not yet available: %s" (showDay d)] $
                 M.lookup d challengeMap
         c  <- maybeToEither [printf "Part not found: %c" p] $
