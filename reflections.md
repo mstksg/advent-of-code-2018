@@ -33,7 +33,7 @@ firstRepeated :: [Int] -> Maybe Int
 firstRepeated = go S.empty
   where
     go seen (x:xs)
-      | x `S.member` seen = Just x                      -- this is it
+      | x `S.member` seen = Just x                      -- this is it, chief
       | otherwise         = go (x `S.insert` seen) xs   -- we have to look furhter
 ```
 
@@ -54,6 +54,27 @@ parseItem = readMaybe . filter (/= '+')
 parseList :: String -> Maybe [Int]
 parseList = traverse parseItem . lines
 ```
+
+One small extra bonus note --- as a Haskeller, we are always taught to be
+afraid of explicit recursion.  So, the implementation of `firstRepeated` is a
+little unsettling.  We can write it using a catamorphism instead, from the
+*recursion-schemes* library:
+
+```haskell
+firstRepeated :: [Int] -> Maybe Int
+firstRepeated xs = cata go xs S.empty
+  where
+    go  :: ListF Int (Set Int -> Maybe Int)
+        -> Set Int
+        -> Maybe Int
+    go Nil _              = Nothing
+    go (Cons x searchRest) seen
+      | x `S.member` seen = Just x                          -- this is it, chief
+      | otherwise         = searchRest (x `S.insert` seen)  -- we have to look further
+```
+
+`cata` wraps up a very common sort of recursion, so we can safely write our
+`firstRepeated` as a non-recursive function.
 
 ### Day 1 Benchmarks
 
