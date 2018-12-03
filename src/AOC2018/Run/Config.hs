@@ -1,5 +1,5 @@
 -- |
--- Module      : AOC2018.Config
+-- Module      : AOC2018.Run.Config
 -- Copyright   : (c) Justin Le 2018
 -- License     : BSD3
 --
@@ -11,7 +11,7 @@
 --
 
 
-module AOC2018.Config (
+module AOC2018.Run.Config (
     Config(..), configFile, defConfPath
   , session
   ) where

@@ -26,8 +26,8 @@ module AOC2018.Run (
 
 import           AOC2018.API
 import           AOC2018.Challenge
-import           AOC2018.Config
-import           AOC2018.Load
+import           AOC2018.Run.Config
+import           AOC2018.Run.Load
 import           AOC2018.Solver
 import           AOC2018.Util
 import           Control.DeepSeq

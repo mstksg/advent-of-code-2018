@@ -1,5 +1,5 @@
 -- |
--- Module      : AOC2018.Interactive
+-- Module      : AOC2018.Run.Interactive
 -- Copyright   : (c) Justin Le 2018
 -- License     : BSD3
 --
@@ -10,7 +10,7 @@
 -- Versions of loaders and runners meant to be used in GHCI.
 --
 
-module AOC2018.Interactive (
+module AOC2018.Run.Interactive (
     execSolution
   , execSolutionWith
   , testSolution
@@ -20,8 +20,8 @@ module AOC2018.Interactive (
   ) where
 
 import           AOC2018.Challenge
-import           AOC2018.Config
 import           AOC2018.Run
+import           AOC2018.Run.Config
 import           AOC2018.Solver
 import           Control.Lens
 import           Control.Monad.Except

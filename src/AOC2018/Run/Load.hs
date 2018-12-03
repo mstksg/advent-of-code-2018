@@ -1,7 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 -- |
--- Module      : AOC2018.Load
+-- Module      : AOC2018.Run.Load
 -- Copyright   : (c) Justin Le 2018
 -- License     : BSD3
 --
@@ -12,7 +12,7 @@
 -- Loading challenge data and prompts.
 --
 
-module AOC2018.Load (
+module AOC2018.Run.Load (
     ChallengePaths(..), challengePaths
   , ChallengeData(..), challengeData
   ) where

@@ -15,12 +15,12 @@ module AOC2018 (
     module AOC
   ) where
 
-import           AOC2018.API         as AOC
-import           AOC2018.Challenge   as AOC
-import           AOC2018.Config      as AOC
-import           AOC2018.Interactive as AOC
-import           AOC2018.Load        as AOC
-import           AOC2018.Run         as AOC
-import           AOC2018.Solver      as AOC
-import           AOC2018.Util        as AOC
+import           AOC2018.API             as AOC
+import           AOC2018.Challenge       as AOC
+import           AOC2018.Run             as AOC
+import           AOC2018.Run.Config      as AOC
+import           AOC2018.Run.Interactive as AOC
+import           AOC2018.Run.Load        as AOC
+import           AOC2018.Solver          as AOC
+import           AOC2018.Util            as AOC
 
