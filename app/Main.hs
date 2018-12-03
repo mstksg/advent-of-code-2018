@@ -1,12 +1,13 @@
+{-# LANGUAGE OverloadedStrings              #-}
 {-# LANGUAGE TemplateHaskell                #-}
 {-# OPTIONS_GHC -Werror=incomplete-patterns #-}
 {-# OPTIONS_GHC -Wno-unused-top-binds       #-}
 
 import           AOC2018
 import           Control.Applicative
-import           Control.Lens hiding (argument)
 import           Control.DeepSeq
 import           Control.Exception
+import           Control.Lens hiding      (argument)
 import           Control.Monad
 import           Control.Monad.Except
 import           Criterion
@@ -16,10 +17,12 @@ import           Data.Finite
 import           Data.Foldable
 import           Data.List
 import           Data.Maybe
+import           Data.Time
 import           Options.Applicative
 import           Text.Printf
 import           Text.Read
 import qualified Data.Map                 as M
+import qualified Data.Text                as T
 import qualified Data.Text.IO             as T
 import qualified System.Console.ANSI      as ANSI
 import qualified System.Console.Haskeline as H
@@ -172,9 +175,17 @@ mainSubmit Cfg{..} spec@CS{..} test force' noLock = runExceptT $ do
         if noLock
           then putStrLn "Not locking correct answer (--no-lock)"
           else putStrLn "Locking correct answer." >> writeFile _cpAnswer res
+      zt <- getZonedTime
+      appendFile _cpLog $ printf logFmt (show zt) res (showSubmitRes status) (formatResp resp)
   where
     CP{..} = challengePaths spec
     d' = getFinite _csDay + 1
+    formatResp = T.unpack . T.intercalate "\n" . map ("> " <>) . T.lines
+    logFmt = unlines [ "[%s]"
+                        , "Submission: %s"
+                        , "Status: %s"
+                        , "%s"
+                        ]
 
 runAll
     :: Maybe String       -- ^ session key

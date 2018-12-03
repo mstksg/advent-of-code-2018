@@ -14,7 +14,7 @@
 
 module AOC2018.API (
   -- * API
-    API(..), SubmitRes(..)
+    API(..), SubmitRes(..), showSubmitRes
   , runAPI
   -- * Session Keys
   , SessionKey(..)
@@ -189,3 +189,7 @@ parseSubmitRes t
     | "an answer too recently;"  `T.isInfixOf` t = SubWait
     | "solving the right level." `T.isInfixOf` t = SubInvalid
     | otherwise                                  = SubUnknown
+
+-- | Pretty-print a 'SubmitRes'
+showSubmitRes :: SubmitRes -> String
+showSubmitRes = map toLower . drop 3 . show 

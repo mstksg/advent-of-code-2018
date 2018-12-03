@@ -39,6 +39,7 @@ data ChallengePaths = CP { _cpPrompt    :: !FilePath
                          , _cpInput     :: !FilePath
                          , _cpAnswer    :: !FilePath
                          , _cpTests     :: !FilePath
+                         , _cpLog       :: !FilePath
                          }
   deriving Show
 
@@ -53,10 +54,11 @@ data ChallengeData = CD { _cdPrompt :: !(Either [String] String)
 -- | Generate a 'ChallengePaths' from a specification of a challenge.
 challengePaths :: ChallengeSpec -> ChallengePaths
 challengePaths (CS d p) = CP
-    { _cpPrompt    = "prompt"    </> printf "%02d%c" d' p <.> "txt"
-    , _cpInput     = "data"      </> printf "%02d" d'     <.> "txt"
-    , _cpAnswer    = "data/ans"  </> printf "%02d%c" d' p <.> "txt"
-    , _cpTests     = "test-data" </> printf "%02d%c" d' p <.> "txt"
+    { _cpPrompt    = "prompt"          </> printf "%02d%c" d' p <.> "txt"
+    , _cpInput     = "data"            </> printf "%02d" d'     <.> "txt"
+    , _cpAnswer    = "data/ans"        </> printf "%02d%c" d' p <.> "txt"
+    , _cpTests     = "test-data"       </> printf "%02d%c" d' p <.> "txt"
+    , _cpLog       = "logs/submission" </> printf "%02d%c" d' p <.> "txt"
     }
   where
     d' = getFinite d + 1
@@ -64,7 +66,7 @@ challengePaths (CS d p) = CP
 makeChallengeDirs :: ChallengePaths -> IO ()
 makeChallengeDirs CP{..} =
     mapM_ (createDirectoryIfMissing True . takeDirectory)
-          [_cpPrompt, _cpInput, _cpAnswer, _cpTests]
+          [_cpPrompt, _cpInput, _cpAnswer, _cpTests, _cpLog]
 
 -- | Load data associated with a challenge from a given specification.
 -- Will fetch answers online and cache if required (and if giten a session
