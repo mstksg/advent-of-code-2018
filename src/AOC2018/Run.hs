@@ -225,11 +225,11 @@ mainSubmit Cfg{..} MSO{..} = do
     output@(resp, status) <- liftEither =<< liftIO (runAPI sess (ASubmit _csDay _csPart res))
     let resp' = formatResp resp
         (color, lock, out) = case status of
-          SubCorrect -> (ANSI.Green  , True , "Answer was correct!"          )
-          SubWrong   -> (ANSI.Red    , False, "Answer was incorrect!"        )
-          SubWait    -> (ANSI.Yellow , False, "Answer re-submitted too soon.")
-          SubInvalid -> (ANSI.Blue   , False, "Submission was rejected.  Maybe not unlocked yet, or already answered?")
-          SubUnknown -> (ANSI.Magenta, False, "Response from server was not recognized.")
+          SubCorrect r -> (ANSI.Green  , True , correctMsg r                   ) 
+          SubIncorrect -> (ANSI.Red    , False, "Answer was incorrect!"        )
+          SubWait      -> (ANSI.Yellow , False, "Answer re-submitted too soon.")
+          SubInvalid   -> (ANSI.Blue   , False, "Submission was rejected.  Maybe not unlocked yet, or already answered?")
+          SubUnknown   -> (ANSI.Magenta, False, "Response from server was not recognized.")
     liftIO $ do
       withColor ANSI.Vivid color $
         putStrLn out
@@ -242,6 +242,8 @@ mainSubmit Cfg{..} MSO{..} = do
       appendFile _cpLog $ printf logFmt (show zt) res (showSubmitRes status) resp'
     pure output
   where
+    correctMsg Nothing  = "Answer was correct!"
+    correctMsg (Just r) = printf "Answer was correct, and you made the global leaderboard at rank %d !!" r
     CS{..} = _msoSpec
     CP{..} = challengePaths _msoSpec
     d' = getFinite _csDay + 1

@@ -20,6 +20,8 @@ module AOC2018.API (
   , SessionKey(..)
   , sessionKey
   , sessionKey_
+  -- * Util
+  , parseSubmitRes
   ) where
 
 import           AOC2018.Util
@@ -31,21 +33,22 @@ import           Data.Bifunctor
 import           Data.Char
 import           Data.Finite
 import           Data.Kind
-import           Data.Map                  (Map)
+import           Data.Map                 (Map)
 import           Data.Maybe
-import           Data.Text                 (Text)
+import           Data.Text                (Text)
 import           Data.Text.Lens
 import           Network.Curl
 import           Text.Printf
-import qualified Data.Map                  as M
-import qualified Data.Text                 as T
-import qualified Text.Pandoc               as P
-import qualified Text.Taggy                as H
-import qualified Text.Taggy.Lens           as H
+import           Text.Read (readMaybe)
+import qualified Data.Map                 as M
+import qualified Data.Text                as T
+import qualified Text.Pandoc              as P
+import qualified Text.Taggy               as H
+import qualified Text.Taggy.Lens          as H
 
 -- | The result of a submission.
-data SubmitRes = SubCorrect
-               | SubWrong
+data SubmitRes = SubCorrect (Maybe Int)     -- ^ global rank
+               | SubIncorrect
                | SubWait
                | SubInvalid
                | SubUnknown
@@ -182,14 +185,32 @@ processHTML pretty html = runExceptT $ do
          . P.disableExtension P.Ext_smart
          $ P.pandocExtensions
 
+-- | Parse a (markdown or plain text) submission response into
+-- a 'SubmitRes'.
 parseSubmitRes :: T.Text -> SubmitRes
 parseSubmitRes t
-    | "the right answer!"        `T.isInfixOf` t = SubCorrect
-    | "not the right answer."    `T.isInfixOf` t = SubWrong
+    | "the right answer!"        `T.isInfixOf` t = SubCorrect $ findRank t
+    | "not the right answer."    `T.isInfixOf` t = SubIncorrect
     | "an answer too recently;"  `T.isInfixOf` t = SubWait
     | "solving the right level." `T.isInfixOf` t = SubInvalid
     | otherwise                                  = SubUnknown
 
+findRank :: Text -> Maybe Int
+findRank = go . T.words . T.map onlyAlphaNum . T.toLower
+  where
+    go ("rank":n:_) = readMaybe $ T.unpack n
+    go (_     :ws ) = go ws
+    go []           = Nothing
+    onlyAlphaNum c
+      | isAlphaNum c = c
+      | otherwise    = ' '
+
 -- | Pretty-print a 'SubmitRes'
 showSubmitRes :: SubmitRes -> String
-showSubmitRes = map toLower . drop 3 . show 
+showSubmitRes = \case
+    SubCorrect Nothing  -> "Correct"
+    SubCorrect (Just r) -> printf "Correct (Rank %d)" r
+    SubIncorrect        -> "Incorrect"
+    SubWait             -> "Wait"
+    SubInvalid          -> "Invalid"
+    SubUnknown          -> "Unknown"

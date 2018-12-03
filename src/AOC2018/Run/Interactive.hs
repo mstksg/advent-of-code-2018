@@ -11,13 +11,23 @@
 --
 
 module AOC2018.Run.Interactive (
+  -- * Fetch and Run
+  -- ** Return Answers
     execSolution
   , execSolutionWith
   , testSolution
   , viewPrompt
   , submitSolution
+  -- ** No Answers
+  , execSolution_
+  , execSolutionWith_
+  , testSolution_
+  , viewPrompt_
+  , submitSolution_
+  -- * Load Inputs
   , loadInput
   , loadTests
+  -- * Util
   , mkSpec
   ) where
 
@@ -27,7 +37,6 @@ import           AOC2018.Run
 import           AOC2018.Run.Config
 import           AOC2018.Run.Load
 import           AOC2018.Util
-import           Control.Lens
 import           Control.Monad.Except
 import           Data.Finite
 import           Data.Text            (Text)
@@ -88,6 +97,29 @@ submitSolution :: ChallengeSpec -> IO (Text, SubmitRes)
 submitSolution cs = eitherIO $ do
     cfg <- liftIO $ configFile "aoc-conf.yaml"
     mainSubmit cfg . defaultMSO $ cs
+
+-- | Result-suppressing version of 'execSolution'.
+execSolution_ :: ChallengeSpec -> IO ()
+execSolution_ = void . execSolution
+
+-- | Result-suppressing version of 'execSolutionWith'.
+execSolutionWith_
+    :: ChallengeSpec
+    -> String               -- ^ custom puzzle input
+    -> IO ()
+execSolutionWith_ cs = void . execSolutionWith cs
+
+-- | Result-suppressing version of 'testSolution'.
+testSolution_ :: ChallengeSpec -> IO ()
+testSolution_ = void . testSolution
+
+-- | Result-suppressing version of 'viewPrompt'.
+viewPrompt_ :: ChallengeSpec -> IO ()
+viewPrompt_ = void . viewPrompt
+
+-- | Result-suppressing version of 'submitSolution'.
+submitSolution_ :: ChallengeSpec -> IO ()
+submitSolution_ = void . submitSolution
 
 -- | Load input for a given challenge
 loadInput :: ChallengeSpec -> IO String
