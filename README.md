@@ -12,7 +12,7 @@ Check out reflections and commentary at the [package haddocks][haddock]!
 [aoc2018]: https://adventofcode.com/2018
 [haddock]: https://mstksg.github.io/advent-of-code-2018/
 
-Challenges and Reflections
+Reflections and Benchmarks
 --------------------------
 
 *   **[Day 1 Reflections][d01r]** *[code][d01g]* / *[rendered][d01h]* / *[benchmarks][d01b]*

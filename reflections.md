@@ -1,6 +1,10 @@
 Reflections
 ===========
 
+[Table of Contents][]
+
+[Table of Contents]: https://github.com/mstksg/advent-of-code-2018#reflections-and-benchmarks
+
 Day 1
 -----
 
