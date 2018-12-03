@@ -76,6 +76,7 @@ library:
   - haskell-names
   - haskell-src-exts
   - hpack
+  - linear
   - megaparsec
   - mtl
   - pandoc

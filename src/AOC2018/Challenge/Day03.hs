@@ -15,54 +15,74 @@ module AOC2018.Challenge.Day03 (
   ) where
 
 import           AOC2018.Solver ((:~>)(..))
-import           AOC2018.Util   (freqs)
+import           AOC2018.Util   (freqs, findMaybe)
 import           Control.Monad  (guard)
 import           Data.Char      (isDigit)
+import           Data.Foldable  (toList)
 import           Data.Ix        (range)
 import           Data.Map       (Map)
-import           Data.Maybe     (mapMaybe, listToMaybe)
+import           Linear         (V2(..))
 import qualified Data.Map       as M
 
-type Coord = (Int, Int)
+-- | x and y
+type Coord = V2 Int
 
+-- | Start <x,y>, and size <w,h>
 data Rect = R { _rStart :: Coord
               , _rSize  :: Coord
               }
 
+-- | Attempt to parse a line into @(Int, Rect)@ (a claim ID #, and the
+-- rectangle claimed)
 parseLine :: String -> Maybe (Int, Rect)
 parseLine = mkLine
           . map read
           . words
           . map onlyDigits
   where
-    mkLine [i,x0,y0,w,h] = Just (i, (R (x0,y0) (w, h)))
+    mkLine [i,x0,y0,w,h] = Just (i, R (V2 x0 y0) (V2 w h))
     mkLine _             = Nothing
     onlyDigits c
       | isDigit c = c
       | otherwise = ' '
 
+-- | Get a list of all coordinates within a given rectangle specification
 tiles :: Rect -> [Coord]
-tiles (R (x0, y0) (w, h)) = range ((x0, y0), (x0 + w - 1, y0 + h - 1))
+tiles (R start size) = range (start, start + size - 1)
 
-mkMap :: [Rect] -> Map Coord Int
-mkMap = freqs . concatMap tiles
+-- | Generate a frequency map of tiles to number of claims at that tile
+layTiles :: [Rect] -> Map Coord Int
+layTiles = freqs . concatMap tiles
 
 day03a :: [(Int, Rect)] :~> Int
 day03a = MkSol
     { sParse = traverse parseLine . lines
     , sShow  = show
-    , sSolve = Just . length . filter (>= 2) . M.elems . mkMap . map snd
+    , sSolve = Just
+             . length               -- > how many?
+             . filter (>= 2)        -- > only frequencies >= 2
+             . toList               -- > get all frequencies
+             . layTiles . map snd   -- > lay the tiles
     }
 
 day03b :: _ :~> Int
 day03b = MkSol
     { sParse = traverse parseLine . lines
     , sShow  = show
-    , sSolve = \ts -> let mp = mkMap (snd <$> ts)
-                      in  listToMaybe . mapMaybe (noOverlap mp) $ ts
+    , sSolve = \ts ->
+        let tilesClaimed = layTiles (snd <$> ts)    -- > get all tiles claimed frequency map
+        in  findMaybe (noOverlap tilesClaimed) ts   -- > find the ID that is not overlapping
     }
 
-noOverlap :: Map Coord Int -> (Int, Rect) -> Maybe Int
-noOverlap mp (i, r) = i <$ guard (all isAlone (tiles r))
+-- | Given a map of tiles claimed (and how many are claiming that spot) and
+-- a claim ID and rectangle, check if all of the claim's rectangles are
+-- alone in the map (are claimed by only one claim).
+--
+-- If yes, return the ID of the claim.
+noOverlap
+    :: Map Coord Int
+    -> (Int, Rect)
+    -> Maybe Int
+noOverlap tilesClaimed (i, r) = i <$ guard (all isAlone (tiles r))
   where
-    isAlone c = M.lookup c mp == Just 1
+    isAlone c = M.lookup c tilesClaimed == Just 1

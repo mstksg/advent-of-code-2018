@@ -22,11 +22,13 @@ module AOC2018.Util (
   , firstRepeated
   , freqs
   , perturbations
+  , findMaybe
   ) where
 
 import           Control.Applicative
 import           Control.Lens
 import           Control.Monad.Except
+import           Data.Foldable
 import           Data.List
 import           Data.Map             (Map)
 import qualified Data.Map             as M
@@ -100,3 +102,12 @@ perturbations
 perturbations f xs = do
     i <- [0 .. length xs - 1]
     xs & ix i %%~ f
+
+-- | Like 'find', but instead of taking an @a -> Bool@, takes an @a ->
+-- Maybe b@ and returns the first success.
+findMaybe
+    :: Foldable t
+    => (a -> Maybe b)
+    -> t a
+    -> Maybe b
+findMaybe p = asum . map p . toList
