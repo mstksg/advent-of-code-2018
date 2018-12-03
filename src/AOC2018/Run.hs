@@ -131,18 +131,18 @@ mainRun
 mainRun Cfg{..} MRO{..} =  do
     toRun <- liftEither . first (:[]) . filterChallengeMap $ _mroSpec
     liftIO . runAll _cfgSession _mroLock _mroInput toRun $ \c inp0 cd@CD{..} -> do
-      testResMaybe <- forM (guard _mroTest) $ \_ ->
+      testRes <- fmap join . forM (guard _mroTest) $ \_ ->
         runTestSuite c cd
 
       let inp1 = maybe _cdInput  Right           inp0
           ans1 = maybe _cdAnswer (const Nothing) inp0
-      (join testResMaybe,) <$> case inp1 of
+      case inp1 of
         Right inp
-          | _mroBench -> Left ["Benchmark Successful"] <$ benchmark (nf (runSomeSolution c) inp)
-          | otherwise -> first ((:[]) . show) . snd <$> testCase False c inp ans1
+          | _mroBench -> (testRes, Left ["Ran benchmark, so no result"]) <$ benchmark (nf (runSomeSolution c) inp)
+          | otherwise -> (second . first) ((:[]) . show) <$> testCase False c inp ans1
         Left e
-          | _mroTest  -> pure $ Left ["Test succesful"]
-          | otherwise -> Left e <$ putStrLn "[INPUT ERROR]" <* mapM_ putStrLn e
+          | _mroTest  -> pure (testRes, Left ["Ran tests, so no result"])
+          | otherwise -> (testRes, Left e) <$ putStrLn "[INPUT ERROR]" <* mapM_ putStrLn e
 
 -- | View prompt
 mainView
@@ -273,6 +273,7 @@ runTestSuite c CD{..} = do
     pure $ and testRes <$ guard (not (null testRes))
 
 
+-- | Run a single test case
 testCase
     :: Bool             -- ^ is just an example
     -> SomeSolution

@@ -301,17 +301,17 @@ parseLine = mkLine
 ```
 >> Day 03a
 benchmarking...
-time                 489.7 ms   (423.5 ms .. 552.5 ms)
-                     0.998 R²   (0.991 R² .. 1.000 R²)
-mean                 500.4 ms   (490.2 ms .. 510.6 ms)
-std dev              11.81 ms   (10.13 ms .. 12.69 ms)
-variance introduced by outliers: 19% (moderately inflated)
+time                 450.0 ms   (NaN s .. 504.8 ms)
+                     0.994 R²   (0.982 R² .. 1.000 R²)
+mean                 519.3 ms   (484.5 ms .. 586.5 ms)
+std dev              66.50 ms   (855.7 μs .. 79.42 ms)
+variance introduced by outliers: 24% (moderately inflated)
 
 >> Day 03b
 benchmarking...
-time                 474.4 ms   (442.9 ms .. 516.5 ms)
-                     0.999 R²   (0.997 R² .. 1.000 R²)
-mean                 474.9 ms   (468.3 ms .. 478.3 ms)
-std dev              6.355 ms   (517.1 μs .. 7.878 ms)
-variance introduced by outliers: 19% (moderately inflated)
+time                 464.0 ms   (260.4 ms .. 586.1 ms)
+                     0.974 R²   (NaN R² .. 1.000 R²)
+mean                 493.5 ms   (460.4 ms .. 525.2 ms)
+std dev              36.73 ms   (31.40 ms .. 38.23 ms)
+variance introduced by outliers: 21% (moderately inflated)
 ```

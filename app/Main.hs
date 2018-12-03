@@ -3,7 +3,7 @@
 
 import           AOC2018
 import           Control.Applicative
-import           Control.Lens hiding         (argument)
+import           Control.Lens hiding  (argument)
 import           Control.Monad
 import           Control.Monad.Except
 import           Data.Char
@@ -12,9 +12,10 @@ import           Data.Foldable
 import           Data.List
 import           Data.Maybe
 import           Options.Applicative
+import           Text.Printf
 import           Text.Read
-import qualified Data.Map                    as M
-import qualified System.Console.ANSI         as ANSI
+import qualified Data.Map             as M
+import qualified System.Console.ANSI  as ANSI
 
 data Mode = MRun    MainRunOpts
           | MView   MainViewOpts
@@ -33,7 +34,7 @@ main = do
                <> header "aoc2018 - Advent of Code 2018 challenge runner"
                <> progDesc ("Run challenges from Advent of Code 2018. Available days: " ++ availableDays)
                 )
-    cfg@Cfg{..} <- configFile $ fromMaybe "aoc-conf.yaml" _oConfig
+    cfg@Cfg{..} <- configFile $ fromMaybe defConfPath _oConfig
     out <- runExceptT $ case _oMode of
       MRun    mro -> void $ mainRun  cfg mro
       MView   mvo -> void $ mainView cfg mvo
@@ -103,7 +104,7 @@ parseOpts = do
       [ long "config"
       , short 'c'
       , metavar "PATH"
-      , help "Path to configuration file (default: aoc-conf.yaml)"
+      , help $ printf "Path to configuration file (default: %s)" defConfPath
       ]
     _oMode <- subparser . mconcat $
       [ command "run"    (info (MRun    <$> parseRun   ) (progDesc "Run, test, and benchmark challenges"   ))

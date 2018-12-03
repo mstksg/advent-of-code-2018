@@ -47,7 +47,7 @@ import qualified Data.Map             as M
 -- puzzle input.  Get answer as result.
 execSolution :: ChallengeSpec -> IO String
 execSolution cs = eitherIO $ do
-    cfg <- liftIO $ configFile "aoc-conf.yaml"
+    cfg <- liftIO $ configFile defConfPath
     out <- mainRun cfg . defaultMRO $ TSDayPart cs
     res <- maybeToEither ["Result not found in result map (Internal Error)"] $
       lookupSolution cs out
@@ -60,7 +60,7 @@ execSolutionWith
     -> String               -- ^ custom puzzle input
     -> IO String
 execSolutionWith cs inp = eitherIO $ do
-    cfg <- liftIO $ configFile "aoc-conf.yaml"
+    cfg <- liftIO $ configFile defConfPath
     out <- mainRun cfg $ (defaultMRO (TSDayPart cs))
       { _mroInput = M.singleton (_csDay cs) . M.singleton (_csPart cs) $ inp
       }
@@ -74,7 +74,7 @@ execSolutionWith cs inp = eitherIO $ do
 -- or not all tests passed.
 testSolution :: ChallengeSpec -> IO (Maybe Bool)
 testSolution cs = eitherIO $ do
-    cfg <- liftIO $ configFile "aoc-conf.yaml"
+    cfg <- liftIO $ configFile defConfPath
     out <- mainRun cfg $ (defaultMRO (TSDayPart cs))
       { _mroTest  = True
       }
@@ -85,7 +85,7 @@ testSolution cs = eitherIO $ do
 -- | View the prompt for a given challenge spec.
 viewPrompt :: ChallengeSpec -> IO Text
 viewPrompt cs@CS{..} = eitherIO $ do
-    cfg <- liftIO $ configFile "aoc-conf.yaml"
+    cfg <- liftIO $ configFile defConfPath
     out <- mainView cfg MVO
       { _mvoSpec = TSDayPart cs
       }
@@ -95,7 +95,7 @@ viewPrompt cs@CS{..} = eitherIO $ do
 -- | Submit solution for a given challenge spec, and lock if correct.
 submitSolution :: ChallengeSpec -> IO (Text, SubmitRes)
 submitSolution cs = eitherIO $ do
-    cfg <- liftIO $ configFile "aoc-conf.yaml"
+    cfg <- liftIO $ configFile defConfPath
     mainSubmit cfg . defaultMSO $ cs
 
 -- | Result-suppressing version of 'execSolution'.
@@ -125,14 +125,14 @@ submitSolution_ = void . submitSolution
 loadInput :: ChallengeSpec -> IO String
 loadInput cs = eitherIO $ do
     CD{..}  <- liftIO $ do
-      Cfg{..} <- configFile "aoc-conf.yaml"
+      Cfg{..} <- configFile defConfPath
       challengeData _cfgSession cs
     liftEither _cdInput
 
 -- | Load test cases for a given challenge
 loadTests :: ChallengeSpec -> IO [(String, Maybe String)]
 loadTests cs = do
-    Cfg{..} <- configFile "aoc-conf.yaml"
+    Cfg{..} <- configFile defConfPath
     _cdTests <$> challengeData _cfgSession cs
 
 -- | Unsafely create a 'ChallengeSpec' from a day number and part.

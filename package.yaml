@@ -64,12 +64,12 @@ dependencies:
 - finite-typelits
 - lens
 - mtl
+- ansi-terminal
 
 library:
   source-dirs: src
   dependencies:
   - aeson
-  - ansi-terminal
   - bytestring
   - criterion
   - curl
@@ -108,17 +108,28 @@ executables:
     - -rtsopts
     - -with-rtsopts=-N
     dependencies:
-    - ansi-terminal
     - aoc2018
     - optparse-applicative
 
-# tests:
-#   aoc2018-test:
-#     main:                Spec.hs
-#     source-dirs:         test
-#     ghc-options:
-#     - -threaded
-#     - -rtsopts
-#     - -with-rtsopts=-N
-#     dependencies:
-#     - aoc2018
+tests:
+  aoc2018-test:
+    main:                Spec.hs
+    source-dirs:         test
+    ghc-options:
+    - -threaded
+    - -rtsopts
+    - -with-rtsopts=-N
+    dependencies:
+    - aoc2018
+
+benchmarks:
+  aoc2018-bench:
+    main: Bench.hs
+    source-dirs: bench
+    ghc-options:
+    - -threaded
+    - -rtsopts
+    - -with-rtsopts=-N
+    - -O2
+    dependencies:
+    - aoc2018
