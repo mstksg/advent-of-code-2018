@@ -53,7 +53,9 @@ import           Data.Time
 import           Text.Printf
 import qualified Data.Map                 as M
 import qualified Data.Map.Merge.Lazy      as M
+import qualified Data.Set                 as S
 import qualified Data.Text                as T
+import qualified Data.Text.IO             as T
 import qualified System.Console.ANSI      as ANSI
 import qualified System.Console.Haskeline as H
 
@@ -75,7 +77,7 @@ data MainRunOpts = MRO { _mroSpec  :: !TestSpec
 makeClassy ''MainRunOpts
 
 -- | Options for 'mainView'.
-newtype MainViewOpts = MVO { _mvoSpec :: ChallengeSpec
+newtype MainViewOpts = MVO { _mvoSpec :: TestSpec
                            }
   deriving Show
 
@@ -108,26 +110,28 @@ defaultMSO cs = MSO { _msoSpec  = cs
                     , _msoLock  = True
                     }
 
+filterChallengeMap :: TestSpec -> Either String ChallengeMap
+filterChallengeMap = \case
+    TSAll      -> pure challengeMap
+    TSDayAll d -> maybeToEither (printf "Day not yet avaiable: %s" (showDay d)) $
+                     M.singleton d <$> M.lookup d challengeMap
+    TSDayPart (CS d p) -> do
+      ps <- maybeToEither (printf "Day not yet available: %s" (showDay d)) $
+              M.lookup d challengeMap
+      c  <- maybeToEither (printf "Part not found: %c" p) $
+              M.lookup p ps
+      pure $ M.singleton d (M.singleton p c)
+
 -- | Run, test, bench.
 mainRun
     :: (MonadIO m, MonadError [String] m)
     => Config
     -> MainRunOpts
-    -> m ()
+    -> m (Map (Finite 25) (Map Char (Maybe Bool, Either [String] String)))  -- whether or not passed tests, and result
 mainRun Cfg{..} MRO{..} =  do
-    toRun <- case _mroSpec of
-      TSAll      -> pure challengeMap
-      TSDayAll d -> maybeToEither [printf "Day not yet avaiable: %s" (showDay d)] $
-                       M.singleton d <$> M.lookup d challengeMap
-      TSDayPart (CS d p) -> do
-        ps <- maybeToEither [printf "Day not yet available: %s" (showDay d)] $
-                M.lookup d challengeMap
-        c  <- maybeToEither [printf "Part not found: %c" p] $
-                M.lookup p ps
-        pure $ M.singleton d (M.singleton p c)
-
-    void . liftIO . runAll _cfgSession _mroLock _mroInput toRun $ \c inp0 CD{..} -> do
-      when _mroTest $ do
+    toRun <- liftEither . first (:[]) . filterChallengeMap $ _mroSpec
+    liftIO . runAll _cfgSession _mroLock _mroInput toRun $ \c inp0 CD{..} -> do
+      testResMaybe <- forM (guard _mroTest) $ \_ -> do
         testRes <- mapMaybe fst <$> mapM (uncurry (testCase True c)) _cdTests
         unless (null testRes) $ do
           let (mark, color)
@@ -138,29 +142,44 @@ mainRun Cfg{..} MRO{..} =  do
                 mark
                 (length (filter id testRes))
                 (length testRes)
+        pure $ and testRes <$ guard (not (null testRes))
 
       let inp1 = maybe _cdInput  Right           inp0
           ans1 = maybe _cdAnswer (const Nothing) inp0
-      case inp1 of
+      (join testResMaybe,) <$> case inp1 of
         Right inp
-          | _mroBench -> benchmark (nf (runSomeSolution c) inp)
-          | otherwise -> void . testCase False c inp $ ans1
+          | _mroBench -> Left ["Benchmark Successful"] <$ benchmark (nf (runSomeSolution c) inp)
+          | otherwise -> first ((:[]) . show) . snd <$> testCase False c inp ans1
         Left e
-          | _mroTest  -> pure ()
-          | otherwise -> putStrLn "[INPUT ERROR]" *> mapM_ putStrLn e
+          | _mroTest  -> pure $ Left ["Test succesful"]
+          | otherwise -> Left e <$ putStrLn "[INPUT ERROR]" <* mapM_ putStrLn e
 
 -- | View prompt
 mainView
     :: (MonadIO m, MonadError [String] m)
     => Config
     -> MainViewOpts
-    -> m ()
+    -> m (Map (Finite 25) (Map Char Text))
 mainView Cfg{..} MVO{..} = do
-    CD{..} <- liftIO $ challengeData _cfgSession _mvoSpec
-    pmpt   <- liftEither . first ("[PROMPT ERROR]":) $ _cdPrompt
-    liftIO $ do
-      putStrLn pmpt
-      putStrLn ""
+    let toRun = maybe S.empty (M.keysSet . pullMap)
+              . eitherToMaybe
+              . filterChallengeMap
+              $ _mvoSpec
+        allRun = foldMap S.singleton singleTest <> toRun
+    fmap pushMap . sequenceA . flip M.fromSet allRun $ \(d,p) -> do
+      CD{..} <- liftIO $ challengeData _cfgSession (CS d p)
+      pmpt   <- liftEither . first ("[PROMPT ERROR]":) $ _cdPrompt
+      liftIO $ do
+        withColor ANSI.Dull ANSI.Blue $
+          printf ">> Day %02d%c\n" (getFinite d + 1) p
+        T.putStrLn pmpt
+        putStrLn ""
+      pure pmpt
+  where
+    singleTest = case _mvoSpec of
+      TSAll        -> Nothing
+      TSDayAll _   -> Nothing
+      TSDayPart cs -> Just (_csDay cs, _csPart cs)
 
 -- | Submit and analyze result
 mainSubmit
@@ -234,8 +253,8 @@ mainSubmit Cfg{..} MSO{..} = do
                      ]
 
 runAll
-    :: Maybe String       -- ^ session key
-    -> Bool               -- ^ run and lock answer
+    :: Maybe String                             -- ^ session key
+    -> Bool                                     -- ^ run and lock answer
     -> Map (Finite 25) (Map Char String)        -- ^ replacements
     -> ChallengeMap
     -> (SomeSolution -> Maybe String -> ChallengeData -> IO a)  -- ^ callback. given solution, "replacement" input, and data

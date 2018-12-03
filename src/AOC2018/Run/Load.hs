@@ -27,12 +27,14 @@ import           Control.Monad.Except
 import           Data.Finite
 import           Data.Foldable
 import           Data.List
+import           Data.Text            (Text)
 import           System.Directory
 import           System.FilePath
 import           System.IO.Error
 import           Text.Printf
 import qualified Data.Map             as M
 import qualified Data.Text            as T
+import qualified Data.Text.IO         as T
 
 -- | A record of paths corresponding to a specific challenge.
 data ChallengePaths = CP { _cpPrompt    :: !FilePath
@@ -45,7 +47,7 @@ data ChallengePaths = CP { _cpPrompt    :: !FilePath
 
 -- | A record of data (test inputs, answers) corresponding to a specific
 -- challenge.
-data ChallengeData = CD { _cdPrompt :: !(Either [String] String)
+data ChallengeData = CD { _cdPrompt :: !(Either [String] Text  )
                         , _cdInput  :: !(Either [String] String)
                         , _cdAnswer :: !(Maybe String)
                         , _cdTests  :: ![(String, Maybe String)]
@@ -84,7 +86,7 @@ challengeData sess spec = do
       ]
     prompt <- runExceptT . asum $
       [ maybeToEither [printf "Prompt file not found at %s" _cpPrompt]
-          =<< liftIO (readFileMaybe _cpPrompt)
+          =<< liftIO (fmap T.pack <$> readFileMaybe _cpPrompt)
       , fetchPrompt
       ]
     ans    <- readFileMaybe _cpAnswer
@@ -111,14 +113,13 @@ challengeData sess spec = do
         pure inp
       where
         a = AInput $ _csDay spec
-    fetchPrompt :: ExceptT [String] IO String
+    fetchPrompt :: ExceptT [String] IO Text
     fetchPrompt = do
         prompts <- ExceptT $ runAPI (sessionKey_ sess) a
-        prompt  <- fmap T.unpack
-          . maybeToEither [e]
-          . M.lookup (_csPart spec)
-          $ prompts
-        liftIO $ writeFile _cpPrompt prompt
+        prompt  <- maybeToEither [e]
+                 . M.lookup (_csPart spec)
+                 $ prompts
+        liftIO $ T.writeFile _cpPrompt prompt
         pure prompt
       where
         a = APrompt $ _csDay spec

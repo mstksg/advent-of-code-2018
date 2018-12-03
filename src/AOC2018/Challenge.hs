@@ -52,6 +52,7 @@ import           AOC2018.Discover
 import           AOC2018.Solver
 import           Control.Monad
 import           Data.Finite
+import           Data.Map         (Map)
 import qualified Data.Map         as M
 
 -- | A map of all challenges.
@@ -59,7 +60,7 @@ challengeMap :: ChallengeMap
 challengeMap = mkChallengeMap $$(solutionList "src/AOC2018/Challenge")
 
 -- | Lookup up a solution from a 'ChallengeMap'
-lookupSolution :: ChallengeSpec -> ChallengeMap -> Maybe SomeSolution
+lookupSolution :: ChallengeSpec -> Map (Finite 25) (Map Char a) -> Maybe a
 lookupSolution CS{..} = M.lookup _csPart <=< M.lookup _csDay
 
 showDay :: Finite n -> String

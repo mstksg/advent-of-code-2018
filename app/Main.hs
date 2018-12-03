@@ -35,8 +35,8 @@ main = do
                 )
     cfg@Cfg{..} <- configFile $ fromMaybe "aoc-conf.yaml" _oConfig
     out <- runExceptT $ case _oMode of
-      MRun    mro -> mainRun  cfg mro
-      MView   mvo -> mainView cfg mvo
+      MRun    mro -> void $ mainRun  cfg mro
+      MView   mvo -> void $ mainView cfg mvo
       MSubmit mso -> void $ mainSubmit cfg mso
     forOf_ _Left out $ \e -> do
       withColor ANSI.Vivid ANSI.Red $
@@ -135,7 +135,7 @@ parseOpts = do
         pure $ let _mroInput = M.empty
                in  MRO{..}
     parseView   :: Parser MainViewOpts
-    parseView = MVO <$> parseChallengeSpec
+    parseView = MVO <$> parseTestSpec
     parseSubmit :: Parser MainSubmitOpts
     parseSubmit = do
         _msoSpec <- parseChallengeSpec

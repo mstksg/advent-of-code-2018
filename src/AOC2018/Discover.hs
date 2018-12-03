@@ -47,7 +47,7 @@ import qualified Text.Megaparsec.Char       as P
 data ChallengeSpec = CS { _csDay  :: Finite 25
                         , _csPart :: Char
                         }
-  deriving (Show)
+  deriving (Show, Eq, Ord)
 
 -- | A map of days to parts to solutions.
 type ChallengeMap = Map (Finite 25) (Map Char SomeSolution)

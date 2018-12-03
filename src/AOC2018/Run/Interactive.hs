@@ -26,6 +26,7 @@ import           AOC2018.Challenge
 import           AOC2018.Run
 import           AOC2018.Run.Config
 import           AOC2018.Run.Load
+import           AOC2018.Util
 import           Control.Lens
 import           Control.Monad.Except
 import           Data.Finite
@@ -34,54 +35,67 @@ import           Text.Printf
 import qualified Data.Map             as M
 
 -- | Run the solution indicated by the challenge spec on the official
--- puzzle input.
-execSolution :: ChallengeSpec -> IO ()
-execSolution cs = do
-    cfg <- configFile "aoc-conf.yaml"
-    out <- runExceptT . mainRun cfg . defaultMRO $ TSDayPart cs
-    traverseOf_ (_Left . folded) putStrLn out
+-- puzzle input.  Get answer as result.
+execSolution :: ChallengeSpec -> IO String
+execSolution cs = eitherIO $ do
+    cfg <- liftIO $ configFile "aoc-conf.yaml"
+    out <- mainRun cfg . defaultMRO $ TSDayPart cs
+    res <- maybeToEither ["Result not found in result map (Internal Error)"] $
+      lookupSolution cs out
+    liftEither $ snd res
 
 -- | Run the solution indicated by the challenge spec on a custom input.
+-- Get answer as result.
 execSolutionWith
     :: ChallengeSpec
     -> String               -- ^ custom puzzle input
-    -> IO ()
-execSolutionWith cs inp = do
-    cfg <- configFile "aoc-conf.yaml"
-    out <- runExceptT . mainRun cfg $ (defaultMRO (TSDayPart cs))
+    -> IO String
+execSolutionWith cs inp = eitherIO $ do
+    cfg <- liftIO $ configFile "aoc-conf.yaml"
+    out <- mainRun cfg $ (defaultMRO (TSDayPart cs))
       { _mroInput = M.singleton (_csDay cs) . M.singleton (_csPart cs) $ inp
       }
-    traverseOf_ (_Left . folded) putStrLn out
+    res <- maybeToEither ["Result not found in result map (Internal Error)"] $
+      lookupSolution cs out
+    liftEither $ snd res
 
 -- | Run test suite for a given challenge spec.
-testSolution :: ChallengeSpec -> IO ()
-testSolution cs = do
-    cfg <- configFile "aoc-conf.yaml"
-    out <- runExceptT . mainRun cfg $ (defaultMRO (TSDayPart cs))
+--
+-- Returns 'Just' if any tests were run, with a 'Bool' specifying whether
+-- or not all tests passed.
+testSolution :: ChallengeSpec -> IO (Maybe Bool)
+testSolution cs = eitherIO $ do
+    cfg <- liftIO $ configFile "aoc-conf.yaml"
+    out <- mainRun cfg $ (defaultMRO (TSDayPart cs))
       { _mroTest  = True
       }
-    traverseOf_ (_Left . folded) putStrLn out
+    res <- maybeToEither ["Result not found in result map (Internal Error)"] $
+      lookupSolution cs out
+    pure $ fst res
 
 -- | View the prompt for a given challenge spec.
-viewPrompt :: ChallengeSpec -> IO ()
-viewPrompt cs@CS{..} = do
-    cfg <- configFile "aoc-conf.yaml"
-    out <- runExceptT $ mainView cfg MVO
-      { _mvoSpec = cs
+viewPrompt :: ChallengeSpec -> IO Text
+viewPrompt cs@CS{..} = eitherIO $ do
+    cfg <- liftIO $ configFile "aoc-conf.yaml"
+    out <- mainView cfg MVO
+      { _mvoSpec = TSDayPart cs
       }
-    traverseOf_ (_Left . folded) putStrLn out
+    maybeToEither ["Prompt not found in result map (Internal Error)"] $
+      lookupSolution cs out
 
 -- | Submit solution for a given challenge spec, and lock if correct.
-submitSolution :: ChallengeSpec -> IO (Either [String] (Text, SubmitRes))
-submitSolution cs = do
-    cfg <- configFile "aoc-conf.yaml"
-    runExceptT . mainSubmit cfg . defaultMSO $ cs
+submitSolution :: ChallengeSpec -> IO (Text, SubmitRes)
+submitSolution cs = eitherIO $ do
+    cfg <- liftIO $ configFile "aoc-conf.yaml"
+    mainSubmit cfg . defaultMSO $ cs
 
 -- | Load input for a given challenge
-loadInput :: ChallengeSpec -> IO (Either [String] String)
-loadInput cs = do
-    Cfg{..} <- configFile "aoc-conf.yaml"
-    _cdInput <$> challengeData _cfgSession cs
+loadInput :: ChallengeSpec -> IO String
+loadInput cs = eitherIO $ do
+    CD{..}  <- liftIO $ do
+      Cfg{..} <- configFile "aoc-conf.yaml"
+      challengeData _cfgSession cs
+    liftEither _cdInput
 
 -- | Load test cases for a given challenge
 loadTests :: ChallengeSpec -> IO [(String, Maybe String)]
@@ -96,4 +110,9 @@ mkSpec :: Integer -> Char -> ChallengeSpec
 mkSpec i c = maybe e (`CS` c) . packFinite $ i - 1
   where
     e = errorWithoutStackTrace $ printf "Day out of range: %d" i
+
+eitherIO :: ExceptT [String] IO a -> IO a
+eitherIO act = runExceptT act >>= \case
+    Right x  -> pure x
+    Left  es -> fail $ unlines es
 
