@@ -242,8 +242,8 @@ We can check if a claim is non-overlapping or not by checking our map of staked
 tiles and making sure that every square in the claim has exactly frequency `1`.
 
 ```haskell
-noOverlap :: Map Coord Int -> (Int, Rect) -> Bool
-noOverlap tilesClaimed (i, r) = all isAlone (tiles r)
+noOverlap :: Map Coord Int -> Rect -> Bool
+noOverlap tilesClaimed r = all isAlone (tiles r)
   where
     isAlone c = M.lookup c tilesClaimed == Just 1
 ```
@@ -252,7 +252,7 @@ And that's our Part 2:
 
 ```haskell
 day03b :: [(Int, Rect)] -> Maybe Int
-day03b ts = fst <$> find (noOverlap stakes) ts
+day03b ts = fst <$> find (noOverlap stakes . snd) ts
   where
     stakes = layTiles (map snd ts)
 ```
