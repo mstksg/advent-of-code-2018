@@ -29,8 +29,8 @@ module AOC2018.Util (
   ) where
 
 import           Control.Applicative
-import           Control.Lens
 import           Control.Monad.Except
+import           Control.Monad.State
 import           Data.Foldable
 import           Data.Function
 import           Data.List
@@ -101,12 +101,19 @@ freqs = M.fromListWith (+) . map (,1)
 --         , [ 0,10,101]
 --         ]
 perturbations
-    :: (a -> [a])
+    :: forall a. ()
+    => (a -> [a])
     -> [a]
     -> [[a]]
-perturbations f xs = do
-    i <- [0 .. length xs - 1]
-    xs & ix i %%~ f
+perturbations f = flip evalStateT False . traverse go
+  where
+    go :: a -> StateT Bool [] a
+    go x = perturb <|> pure x
+      where
+        perturb = do
+          guard . not =<< get
+          put True
+          lift $ f x
 
 -- | Like 'find', but instead of taking an @a -> Bool@, takes an @a ->
 -- Maybe b@ and returns the first success.
