@@ -398,7 +398,8 @@ nap :: Parser [Minute]
 nap = do
     (T _ _ _ _ m0, ASleep) <- P.anyToken
     (T _ _ _ _ m1, AWake ) <- P.anyToken
-    pure [m0 .. m1 - 1]
+    pure [m0 .. m1 - 1]     -- we can do this because m0 < m1 always in the
+                            --   input data.
 
 -- | Read a guard's shift from a log stream, with all the minutes they slept.
 -- A guard's shift comes from an `AShift g` action, followed by "many" naps.
