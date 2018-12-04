@@ -47,8 +47,6 @@ import           Criterion
 import           Data.Bifunctor
 import           Data.Char
 import           Data.Finite
-import           Data.Foldable
-import           Data.List
 import           Data.Map                 (Map)
 import           Data.Maybe
 import           Data.Text                (Text)
@@ -154,7 +152,7 @@ mainRun Cfg{..} MRO{..} =  do
 
 -- | View prompt
 mainView
-    :: (MonadIO m, MonadError [String] m, Alternative m)
+    :: (MonadIO m, MonadError [String] m)
     => Config
     -> MainViewOpts
     -> m (Map (Finite 25) (Map Char Text))
@@ -176,10 +174,7 @@ mainView Cfg{..} MVO{..} = do
       pure pmpt
   where
     waitFunc d
-      | _mvoWait  = countdownConsole d
-                  . asum
-                  . intersperse (liftIO (threadDelay 500000) *> throwError ["(Delay between requests)"])
-                  . replicate 6
+      | _mvoWait  = countdownConsole d . (liftIO (threadDelay 500000) *>)
       | otherwise = id
     singleTest = case _mvoSpec of
       TSAll        -> Nothing
