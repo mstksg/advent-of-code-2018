@@ -396,8 +396,8 @@ Turning our stream into a `Map Guard TimeCard` is now your standard
 run-of-the-mill parser combinator program.
 
 ```haskell
--- | Read a nap from a log stream, and return all the minutes that the nap
--- included.  A nap comes from an `ASleep` action followed by an `AWake` action.
+-- | We define a nap as an `ASleep` action followed by an `AWake` action.  The
+-- result is a list of minutes slept.
 nap :: Parser [Minute]
 nap = do
     (T _ _ _ _ m0, ASleep) <- P.anyToken
@@ -405,19 +405,22 @@ nap = do
     pure [m0 .. m1 - 1]     -- we can do this because m0 < m1 always in the
                             --   input data.
 
--- | Read a guard's shift from a log stream, with all the minutes they slept.
--- A guard's shift comes from an `AShift g` action, followed by "many" naps.
+-- | We define a a guard's shift as a `AShift g` action, followed by
+-- "many" naps.  The result is a list of minutes slept along with the ID of the
+-- guard that slept them.
 guardShift :: Parser (Guard, [Minute])
 guardShift = do
     (_, AShift g) <- P.anyToken
     napMinutes    <- concat <$> many (P.try nap)
     pure (g, napMinutes)
 
--- | Read time cards from a log stream.  To do this, we read "many" guard
--- shifts, accumulate them into a massive (Map Guard [Minute]), and then build
--- a frequency map from each [Minute].
+-- | A log stream is many guard shifts. The result is the accumulation of all
+-- of those shifts into a massive `Map Guard [Minute]` map, but turning all of
+-- thos [Minutes] into a frequency map instead by using `map freqs`.
 buildTimeCards :: Parser (Map Guard TimeCard)
-buildTimeCards = fmap freqs . M.fromListWith (++) <$> many guardShift
+buildTimeCards = do
+    shifts <- M.fromListWith (++) <$> many guardShift
+    pure (fmap freqs shifts)
 ```
 
 We re-use the handy `freqs :: Ord a => [a] -> Map a Int` function, to build a
