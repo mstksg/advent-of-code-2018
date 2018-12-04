@@ -23,7 +23,7 @@ module AOC2018.Run (
   -- ** Run solutions, tests, benchmarks
   , MainRunOpts(..), HasMainRunOpts(..), mainRun, defaultMRO
   -- ** View prompts
-  , MainViewOpts(..), HasMainViewOpts(..), mainView
+  , MainViewOpts(..), HasMainViewOpts(..), mainView, defaultMVO
   -- ** Submit answers
   , MainSubmitOpts(..), HasMainSubmitOpts(..), mainSubmit, defaultMSO
   -- * Util
@@ -37,6 +37,7 @@ import           AOC2018.Run.Load
 import           AOC2018.Solver
 import           AOC2018.Util
 import           Control.Applicative
+import           Control.Concurrent
 import           Control.DeepSeq
 import           Control.Exception
 import           Control.Lens
@@ -46,6 +47,8 @@ import           Criterion
 import           Data.Bifunctor
 import           Data.Char
 import           Data.Finite
+import           Data.Foldable
+import           Data.List
 import           Data.Map                 (Map)
 import           Data.Maybe
 import           Data.Text                (Text)
@@ -77,8 +80,9 @@ data MainRunOpts = MRO { _mroSpec  :: !TestSpec
 makeClassy ''MainRunOpts
 
 -- | Options for 'mainView'.
-newtype MainViewOpts = MVO { _mvoSpec :: TestSpec
-                           }
+data MainViewOpts = MVO { _mvoSpec :: !TestSpec
+                        , _mvoWait :: !Bool
+                        }
   deriving Show
 
 makeClassy ''MainViewOpts
@@ -100,6 +104,12 @@ defaultMRO ts = MRO { _mroSpec  = ts
                     , _mroBench = False
                     , _mroLock  = False
                     , _mroInput = M.empty
+                    }
+
+-- | Default options for 'mainView'.
+defaultMVO :: TestSpec -> MainViewOpts
+defaultMVO ts = MVO { _mvoSpec = ts
+                    , _mvoWait = False
                     }
 
 -- | Default options for 'mainSubmit'.
@@ -146,7 +156,7 @@ mainRun Cfg{..} MRO{..} =  do
 
 -- | View prompt
 mainView
-    :: (MonadIO m, MonadError [String] m)
+    :: (MonadIO m, MonadError [String] m, Alternative m)
     => Config
     -> MainViewOpts
     -> m (Map (Finite 25) (Map Char Text))
@@ -157,8 +167,9 @@ mainView Cfg{..} MVO{..} = do
               $ _mvoSpec
         allRun = foldMap S.singleton singleTest <> toRun
     fmap pushMap . sequenceA . flip M.fromSet allRun $ \(d,p) -> do
-      CD{..} <- liftIO $ challengeData _cfgSession (CS d p)
-      pmpt   <- liftEither . first ("[PROMPT ERROR]":) $ _cdPrompt
+      pmpt   <- waitFunc d $ do
+        CD{..} <- liftIO $ challengeData _cfgSession (CS d p)
+        liftEither . first ("[PROMPT ERROR]":) $ _cdPrompt
       liftIO $ do
         withColor ANSI.Dull ANSI.Blue $
           printf ">> Day %02d%c\n" (dayToInt d) p
@@ -166,9 +177,15 @@ mainView Cfg{..} MVO{..} = do
         putStrLn ""
       pure pmpt
   where
+    waitFunc d
+      | _mvoWait  = countdownConsole d
+                  . asum
+                  . intersperse (liftIO (threadDelay 500000) *> throwError ["(Delay between requests)"])
+                  . replicate 4
+      | otherwise = id
     singleTest = case _mvoSpec of
       TSAll        -> Nothing
-      TSDayAll _   -> Nothing
+      TSDayAll d   -> Just (d, 'a')
       TSDayPart cs -> Just (_csDay cs, _csPart cs)
 
 -- | Submit and analyze result

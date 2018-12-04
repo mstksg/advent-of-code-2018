@@ -17,12 +17,14 @@ module AOC2018.Run.Interactive (
   , execSolutionWith
   , testSolution
   , viewPrompt
+  , waitForPrompt
   , submitSolution
   -- ** No Answers
   , execSolution_
   , execSolutionWith_
   , testSolution_
   , viewPrompt_
+  , waitForPrompt_
   , submitSolution_
   -- * Load Inputs
   , loadInput
@@ -86,8 +88,17 @@ testSolution cs = eitherIO $ do
 viewPrompt :: ChallengeSpec -> IO Text
 viewPrompt cs@CS{..} = eitherIO $ do
     cfg <- liftIO $ configFile defConfPath
-    out <- mainView cfg MVO
-      { _mvoSpec = TSDayPart cs
+    out <- mainView cfg . defaultMVO $ TSDayPart cs
+    maybeToEither ["Prompt not found in result map (Internal Error)"] $
+      lookupSolution cs out
+
+-- | Countdown to get the prompt for a given challenge spec, if not yet
+-- available.
+waitForPrompt :: ChallengeSpec -> IO Text
+waitForPrompt cs@CS{..} = eitherIO $ do
+    cfg <- liftIO $ configFile defConfPath
+    out <- mainView cfg $ (defaultMVO (TSDayPart cs))
+      { _mvoWait = True
       }
     maybeToEither ["Prompt not found in result map (Internal Error)"] $
       lookupSolution cs out
@@ -116,6 +127,10 @@ testSolution_ = void . testSolution
 -- | Result-suppressing version of 'viewPrompt'.
 viewPrompt_ :: ChallengeSpec -> IO ()
 viewPrompt_ = void . viewPrompt
+
+-- | Result-suppressing version of 'waitForPrompt'.
+waitForPrompt_ :: ChallengeSpec -> IO ()
+waitForPrompt_ = void . waitForPrompt
 
 -- | Result-suppressing version of 'submitSolution'.
 submitSolution_ :: ChallengeSpec -> IO ()

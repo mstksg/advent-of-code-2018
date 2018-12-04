@@ -102,16 +102,16 @@ parseOpts :: Parser Opts
 parseOpts = do
     _oConfig <- optional . strOption . mconcat $
       [ long "config"
-      , short 'c'
       , metavar "PATH"
       , help $ printf "Path to configuration file (default: %s)" defConfPath
       ]
     _oMode <- subparser . mconcat $
-      [ command "run"    (info (MRun    <$> parseRun   ) (progDesc "Run, test, and benchmark challenges"   ))
-      , command "view"   (info (MView   <$> parseView  ) (progDesc "View a prompt for a given challenge"   ))
-      , command "submit" (info (MSubmit <$> parseSubmit) (progDesc "Test and submit answers for challenges"))
-      , command "test"   (info (MRun    <$> parseTest  ) (progDesc "Alias for run --test"                  ))
-      , command "bench"  (info (MRun    <$> parseBench ) (progDesc "Alias for run --bench"                 ))
+      [ command "run"       (info (MRun    <$> parseRun      ) (progDesc "Run, test, and benchmark challenges"   ))
+      , command "view"      (info (MView   <$> parseView     ) (progDesc "View a prompt for a given challenge"   ))
+      , command "submit"    (info (MSubmit <$> parseSubmit   ) (progDesc "Test and submit answers for challenges"))
+      , command "test"      (info (MRun    <$> parseTest     ) (progDesc "Alias for run --test"                  ))
+      , command "bench"     (info (MRun    <$> parseBench    ) (progDesc "Alias for run --bench"                 ))
+      , command "countdown" (info (MView   <$> parseCountdown) (progDesc "Alias for view --countdown"            ))
       ]
     pure O{..}
   where
@@ -136,7 +136,14 @@ parseOpts = do
         pure $ let _mroInput = M.empty
                in  MRO{..}
     parseView   :: Parser MainViewOpts
-    parseView = MVO <$> parseTestSpec
+    parseView = do
+        _mvoSpec <- parseTestSpec
+        _mvoWait <- switch . mconcat $
+          [ long "countdown"
+          , short 'c'
+          , help "Countdown until release if not yet available"
+          ]
+        pure MVO{..}
     parseSubmit :: Parser MainSubmitOpts
     parseSubmit = do
         _msoSpec <- parseChallengeSpec
@@ -160,4 +167,6 @@ parseOpts = do
     parseTest  = parseRun & mapped . mroTest  .~ True
     parseBench :: Parser MainRunOpts
     parseBench = parseRun & mapped . mroBench .~ True
+    parseCountdown :: Parser MainViewOpts
+    parseCountdown = parseView & mapped . mvoWait .~ True
 

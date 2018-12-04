@@ -15,20 +15,28 @@
 module AOC2018.Run.Load (
     ChallengePaths(..), challengePaths
   , ChallengeData(..), challengeData
+  , countdownConsole
+  , timeToRelease
+  , showNominalDiffTime
   ) where
 
 import           AOC2018.API
 import           AOC2018.Challenge
 import           AOC2018.Util
+import           Control.Concurrent
 import           Control.DeepSeq
 import           Control.Exception
 import           Control.Monad
 import           Control.Monad.Except
+import           Data.Finite
 import           Data.Foldable
 import           Data.List
 import           Data.Text            (Text)
+import           Data.Time
+import           System.Console.ANSI  as ANSI
 import           System.Directory
 import           System.FilePath
+import           System.IO
 import           System.IO.Error
 import           Text.Printf
 import qualified Data.Map             as M
@@ -135,4 +143,53 @@ challengeData sess spec = do
         | otherwise ->
             let ans' = ans <$ guard (not (null ans))
             in  (unlines inp, ans') : parseTests rest
+
+-- | Get time until next release
+timeToRelease :: Finite 25 -> IO NominalDiffTime
+timeToRelease d = (challengeReleaseTime d `diffUTCTime`) <$> getCurrentTime
+
+-- | Challenge release time
+challengeReleaseTime :: Finite 25 -> UTCTime
+challengeReleaseTime d = UTCTime (fromGregorian 2018 12 (dayToInt d))
+                                 (5 * 60 * 60)
+
+-- | Pretty-print a 'NominalDiffTime'
+showNominalDiffTime :: NominalDiffTime -> String
+showNominalDiffTime (round @Double @Int . realToFrac -> rawSecs) =
+    printf "%02dd %02d:%02d:%02d" days hours mins secs
+  where
+    (rawMins , secs ) = rawSecs  `divMod` 60
+    (rawHours, mins ) = rawMins  `divMod` 60
+    (days    , hours) = rawHours `divMod` 24
+
+-- | Run a countdown on the console.
+countdownConsole
+    :: MonadIO m
+    => Finite 25        -- ^ day to count down to
+    -> m a              -- ^ callback on release
+    -> m a
+countdownConsole d = countdownWith d 250000 $ \ttr -> liftIO $ do
+    ANSI.clearLine
+    printf "> Day %d release in: %s" (dayToInt d) (showNominalDiffTime ttr)
+    ANSI.setCursorColumn 0
+    hFlush stdout
+
+-- | Run a countdown with a given callback on each tick.
+countdownWith
+    :: MonadIO m
+    => Finite 25                    -- ^ day to count down to
+    -> Int                          -- ^ interval (milliseconds)
+    -> (NominalDiffTime -> m ())    -- ^ callback on each tick
+    -> m a                          -- ^ callback on release
+    -> m a
+countdownWith d delay callback release = go
+  where
+    go = do
+      ttr <- liftIO $ timeToRelease d
+      if ttr <= 0
+        then release
+        else do
+          callback ttr
+          liftIO $ threadDelay delay
+          go
 
