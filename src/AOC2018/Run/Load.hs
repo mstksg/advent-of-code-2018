@@ -169,7 +169,7 @@ countdownConsole
     -> m a              -- ^ callback on release
     -> m a
 countdownConsole d = countdownWith d 250000 $ \ttr -> liftIO $ do
-    ANSI.clearLine
+    ANSI.clearFromCursorToScreenEnd
     printf "> Day %d release in: %s" (dayToInt d) (showNominalDiffTime ttr)
     ANSI.setCursorColumn 0
     hFlush stdout
