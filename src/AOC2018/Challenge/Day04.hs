@@ -27,6 +27,10 @@ import qualified Text.Parsec         as P
 
 type Minute = Finite 60
 
+-- | Map of minutes to times slept at that minute
+type TimeCard = Map Minute Int
+
+-- | Rudimentary time tuple
 data Time = T { _tYear   :: Integer
               , _tMonth  :: Integer
               , _tDay    :: Integer
@@ -35,15 +39,16 @@ data Time = T { _tYear   :: Integer
               }
   deriving (Show, Eq, Ord)
 
+-- | A guard ID.  It's a newtype to prevent us from accidentally mixing up
+-- all of the integer types involved.
 newtype Guard = G { _gId :: Int }
-  deriving (Show, Eq, Ord, Num)
+  deriving (Show, Eq, Ord)
 
+-- | A logged action
 data Action = AShift Guard
             | ASleep
             | AWake
   deriving (Show, Eq, Ord)
-
-type TimeCard = Map Minute Int
 
 -- | Parse a stream of @('Time', 'Action')@ events
 type Parser = P.Parsec [(Time, Action)] ()
@@ -71,7 +76,7 @@ day04a = MkSol
     { sParse = fmap M.fromList . traverse parseLine . lines
     , sShow  = show
     , sSolve = \logs -> do
-        timeCards <- eitherToMaybe $ P.parse buildTimeCards "" (M.toList logs)
+        timeCards               <- eitherToMaybe $ P.parse buildTimeCards "" (M.toList logs)
         (worstGuard , timeCard) <- maximumValBy (comparing sum) timeCards
         (worstMinute, _       ) <- maximumVal timeCard
         pure $ _gId worstGuard * fromIntegral worstMinute
@@ -82,11 +87,13 @@ day04b = MkSol
     { sParse = fmap M.fromList . traverse parseLine . lines
     , sShow  = show
     , sSolve = \logs -> do
-        timeCards    <- eitherToMaybe $ P.parse buildTimeCards "" (M.toList logs)
-        let worstMinutes = M.mapMaybe maximumVal timeCards
+        timeCards                      <- eitherToMaybe $ P.parse buildTimeCards "" (M.toList logs)
+        let worstMinutes :: Map Guard (Minute, Int)
+            worstMinutes = M.mapMaybe maximumVal timeCards
         (worstGuard, (worstMinute, _)) <- maximumValBy (comparing snd) worstMinutes
         pure $ _gId worstGuard * fromIntegral worstMinute
     }
+
 
 parseLine :: String -> Maybe (Time, Action)
 parseLine str = do
@@ -99,4 +106,7 @@ parseLine str = do
       _                  -> Nothing
     pure (t, a)
   where
-    (timeStamp, rest) = splitAt 5 . words . clearOut (not . isAlphaNum) $ str
+    (timeStamp, rest) = splitAt 5
+                      . words
+                      . clearOut (not . isAlphaNum)
+                      $ str
