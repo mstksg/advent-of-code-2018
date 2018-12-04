@@ -88,6 +88,7 @@ If you edit your solution programs, they are automatically updated when you hit
 ghci> execSolution_   $ mkCS 2 'a'  -- get answer for challenge based on solution
 ghci> testSolution_   $ mkCS 2 'a'  -- run solution against test suite
 ghci> viewPrompt_     $ mkCS 2 'a'  -- view the prompt for a part
+ghci> waitForPrompt_  $ mkCS 2 'a'  -- count down to the prompt for a part
 ghci> submitSolution_ $ mkCS 2 'a'  -- submit a solution
 ```
 
@@ -128,10 +129,26 @@ Available commands:
   submit                   Test and submit answers for challenges
   test                     Alias for run --test
   bench                    Alias for run --bench
+  countdown                Alias for view --countdown
 
-$ aoc2018 3 b
+$ aoc2018 run 3 b
 >> Day 03b
 >> [✓] 243
+```
+
+You can supply input via stdin with `--stdin`:
+
+```
+$ aoc2018 run 1 --stdin
+>> Day 01a
++1
++2
++1
+-3
+<Ctrl+D>
+[?] 1
+>> Day 01b
+[?] 1
 ```
 
 Benchmarking is implemented using *criterion*
@@ -200,7 +217,8 @@ These are stored in `data/ans/XXpart.txt`.  That is, the target output for Day 7
 (Part 2, `b`) will be expected at `data/ans/07b.txt`.  You can also manually
 edit these files.
 
-You can view prompts:
+You can view prompts: (use `--countdown` to count down until a prompt is
+released, and display immediately)
 
 ```
 $ aoc2018 view 3 b

@@ -11,6 +11,7 @@ import           Control.Monad.Except
 import           Data.Char
 import           Data.Finite
 import           Data.Foldable
+import           Data.IORef
 import           Data.List
 import           Data.Maybe
 import           Options.Applicative
@@ -30,7 +31,8 @@ data Opts = O { _oMode   :: !Mode
 
 main :: IO ()
 main = do
-    O{..} <- execParser $ info (parseOpts <**> helper)
+    inputCache <- newIORef Nothing
+    O{..} <- execParser $ info (parseOpts inputCache <**> helper)
                 ( fullDesc
                <> header "aoc2018 - Advent of Code 2018 challenge runner"
                <> progDesc ("Run challenges from Advent of Code 2018. Available days: " ++ availableDays)
@@ -99,8 +101,10 @@ parseTestSpec = do
                 ]
     pPart = readPart
 
-parseOpts :: Parser Opts
-parseOpts = do
+parseOpts
+    :: IORef (Maybe (Maybe (Finite 25, String)))
+    -> Parser Opts
+parseOpts inputCache = do
     _oConfig <- optional . strOption . mconcat $
       [ long "config"
       , metavar "PATH"
@@ -142,10 +146,10 @@ parseOpts = do
           ]
         takeStdin <- switch . mconcat $
           [ long "stdin"
-          , help "Take all input from stdin (in order, separated by EOF) instead of input directory"
+          , help "Take first input from stdin instead of input directory"
           ]
         pure $ let _mroInput
-                      | takeStdin = \_ _ -> getContentsMaybe
+                      | takeStdin = \d _ -> pullStdin inputCache d
                       | otherwise = \_ _ -> pure Nothing
                in  MRO{..}
     parseView   :: Parser MainViewOpts
@@ -183,6 +187,14 @@ parseOpts = do
     parseCountdown :: Parser MainViewOpts
     parseCountdown = parseView & mapped . mvoWait .~ True
 
-getContentsMaybe :: IO (Maybe String)
-getContentsMaybe = fmap eitherToMaybe . tryJust (guard . isEOFError) $ do
-    evaluate . force =<< getContents
+pullStdin
+    :: IORef (Maybe (Maybe (Finite 25, String)))  -- ^ Nothing: first time; Just Nothing: failed forever.
+    -> Finite 25
+    -> IO (Maybe String)
+pullStdin inputCache d = readIORef inputCache >>= \case
+    Nothing -> do
+      out <- fmap eitherToMaybe . tryJust (guard . isEOFError) $
+                  evaluate . force =<< getContents
+      writeIORef inputCache . Just $ (d,) <$> out
+      pure out
+    Just old -> pure . findMaybe (\(d',o) -> o <$ guard (d == d')) $ old
