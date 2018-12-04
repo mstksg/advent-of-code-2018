@@ -179,7 +179,7 @@ mainView Cfg{..} MVO{..} = do
       | _mvoWait  = countdownConsole d
                   . asum
                   . intersperse (liftIO (threadDelay 500000) *> throwError ["(Delay between requests)"])
-                  . replicate 4
+                  . replicate 6
       | otherwise = id
     singleTest = case _mvoSpec of
       TSAll        -> Nothing
