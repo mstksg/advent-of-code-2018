@@ -416,7 +416,7 @@ guardShift = do
 
 -- | A log stream is many guard shifts. The result is the accumulation of all
 -- of those shifts into a massive `Map Guard [Minute]` map, but turning all of
--- thos [Minutes] into a frequency map instead by using `map freqs`.
+-- those [Minutes] into a frequency map instead by using `fmap freqs`.
 buildTimeCards :: Parser (Map Guard TimeCard)
 buildTimeCards = do
     shifts <- M.fromListWith (++) <$> many guardShift

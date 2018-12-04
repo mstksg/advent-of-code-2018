@@ -55,16 +55,21 @@ type Parser = P.Parsec [(Time, Action)] ()
 
 -- | From a stream of @('Time', 'Action')@ events, accumulate a map of
 -- guards to time cards.
-buildTimeCards :: Parser (Map Guard TimeCard)
-buildTimeCards = fmap freqs . M.fromListWith (++) <$> many guardShift
+buildTimeCards :: Map Time Action -> Maybe (Map Guard TimeCard)
+buildTimeCards = eitherToMaybe . P.parse fullLog "" . M.toList
   where
-    -- | Read a shift from a stream, with the minutes slept
+    -- | A log is many guard shifts.  The result is a frequency map of all
+    -- of the guards' accumulated minutes.
+    fullLog :: Parser (Map Guard TimeCard)
+    fullLog = fmap freqs . M.fromListWith (++) <$> many guardShift
+    -- | A shift is a guard chagen with many naps.  Returns the minues
+    -- slept, with the guard ID.
     guardShift :: Parser (Guard, [Minute])
     guardShift = do
       (_, AShift g) <- P.anyToken
       napMinutes    <- concat <$> many (P.try nap)
       pure (g, napMinutes)
-    -- | Read a nap from a stream, with the minutes slept.
+    -- | A nap is a sleep then a wake.  Return the minutes slept.
     nap :: Parser [Minute]
     nap = do
       (T _ _ _ _ m0, ASleep) <- P.anyToken
