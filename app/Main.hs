@@ -21,7 +21,7 @@ data Mode = MRun    MainRunOpts
           | MView   MainViewOpts
           | MSubmit MainSubmitOpts
 
--- TODO: countdowner
+-- TODO: take input from stdin
 
 data Opts = O { _oMode   :: !Mode
               , _oConfig :: !(Maybe FilePath)
