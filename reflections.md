@@ -105,8 +105,8 @@ Day 2
 [d02g]: https://github.com/mstksg/advent-of-code-2018/blob/master/src/AOC2018/Challenge/Day02.hs
 [d02h]: https://mstksg.github.io/advent-of-code-2018/src/AOC2018.Challenge.Day02.html
 
-Day 2 part 1 works out nicely in a functional paradigm because it's just a
-couple of frequency tables.
+Day 2 part 1 works out nicely in a functional paradigm because it can be seen
+as just building a couple of frequency tables.
 
 I often use this function to generate a frequency table of values in a list:
 
@@ -117,7 +117,7 @@ freqs :: [a] -> Map a Int
 freqs = M.fromListWith (+) . map (,1)
 ```
 
-Day 2 part 1 is then to just:
+Day 2 part 1 is then to:
 
 1.  Build a frequency map for chars for each line
 2.  Aggregate all of the seen frequencies in each line
@@ -253,7 +253,7 @@ layTiles = freqs . concatMap tiles
 
 (Reusing `freqs` from Day 2)
 
-From there, we need to just count how many frequencies we observe are greater
+From there, we need to count how many frequencies we observe are greater
 than 1.  We can do that by filtering and counting how many are left.
 
 ```haskell
@@ -263,7 +263,7 @@ day03a :: [Rect] -> Int
 day03a = length . filter (>= 2) . M.elems . layTiles
 ```
 
-For `day03`, we can just use `find` to search our list of claims by id's,
+For `day03`, we can use `find` to search our list of claims by id's,
 `[(Int, Rect)]` and find any claim that is completely non-overlapping.
 
 We can check if a claim is non-overlapping or not by checking our map of staked
@@ -333,12 +333,12 @@ Day 4
 [d04h]: https://mstksg.github.io/advent-of-code-2018/src/AOC2018.Challenge.Day04.html
 
 Day 4 was fun because it's something that, on the surface, sounds like it
-requires a state machine to run through a stateful log and accumulate a series
+requires a state machine to run through a stateful log and accumulate a bunch
 of time sheets.
 
-However, if we think of the log as just a stream of tokens, we can just look at
-at it simply as *parsing* this stream of tokens into a series of time sheets --
-no state or mutation required.
+However, if we think of the log as just a stream of tokens, we can look at at
+it as *parsing* this stream of tokens into time sheets -- no state or mutation
+required.
 
 First, the types at play:
 
@@ -392,8 +392,8 @@ type Parser = P.Parsec [(Time, Action)] ()
 A `Parser Blah` will be a parser that, given a stream of `(Time, Action)`
 pairs, will aggregate them into a value of type `Blah`.
 
-Turning our stream into a `Map Guard TimeCard` is now just basic parser
-combinator stuff.
+Turning our stream into a `Map Guard TimeCard` is now your standard
+run-of-the-mill parser combinator program.
 
 ```haskell
 -- | Read a nap from a log stream, and return all the minutes that the nap
