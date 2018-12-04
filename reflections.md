@@ -463,7 +463,7 @@ day04a logs = do
     -- build time cards
     timeCards               <- eitherToMaybe $ P.parse buildTimeCards "" (M.toList logs)
     -- get the worst guard/time card pair, by finding the pair with the
-    --   highest sum of minute frequencies
+    --   highest total minutes slept
     (worstGuard , timeCard) <- maximumValBy (comparing sum) timeCards
     -- get the minute in the time card with the highest frequency
     (worstMinute, _       ) <- maximumVal timeCard
