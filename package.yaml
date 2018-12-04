@@ -51,12 +51,12 @@ default-extensions:
 - RankNTypes
 - RecordWildCards
 - ScopedTypeVariables
+- TemplateHaskell
 - TupleSections
 - TypeApplications
 - TypeInType
 - TypeOperators
 - ViewPatterns
-
 
 dependencies:
 - base >= 4.7 && < 5

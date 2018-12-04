@@ -20,6 +20,7 @@ module AOC2018.Challenge (
   , challengeMap
   , lookupSolution
   , dayToInt
+  , solSpec
   ) where
 
 import           AOC2018.Challenge.Day01 as AOC

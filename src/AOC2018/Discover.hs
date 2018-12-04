@@ -19,9 +19,11 @@ module AOC2018.Discover (
   , ChallengeMap
   , ChallengeSpec(..)
   , dayToInt
+  , solSpec
   ) where
 
 import           AOC2018.Solver
+import           AOC2018.Util
 import           Data.Bifunctor
 import           Data.Data
 import           Data.Finite
@@ -42,6 +44,21 @@ import qualified Data.Map                   as M
 import qualified Hpack.Config               as H
 import qualified Text.Megaparsec            as P
 import qualified Text.Megaparsec.Char       as P
+
+-- | Get a 'ChallengeSpec' from a given reified solution (name).
+--
+-- @
+-- solSpec \'day02a == CS { _csDay = 1, _csPart = 'a' }
+-- @
+--
+solSpec :: TH.Name -> ChallengeSpec
+solSpec n = either error id $ do
+    (d0, p) <- case nameBase n of
+      'd':'a':'y':d1:d2:p:_ -> pure ([d1,d2], p)
+      _                     -> Left "Function name doesn't fit naming convention."
+    d1 <- subtract 1 <$> maybeToEither "Could not parse day" (readMaybe d0)
+    d2 <- maybeToEither "Day out of range" (packFinite d1)
+    pure $ CS d2 p
 
 -- | A specification for a specific challenge.  Should consist of a day and
 -- a lowercase character.
