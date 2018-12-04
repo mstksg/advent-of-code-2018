@@ -491,7 +491,7 @@ Like I said, these are just some complicated queries, but they are a direct
 translation of the problem prompt.  The real interesting part is the building
 of the time cards, I think!  And not necessarily the querying part.
 
-Parsing is, again, can be done by stripping the lines of spaces and using
+Parsing, again, can be done by stripping the lines of spaces and using
 `words` and `readMaybe`s.  We can use `packFinite :: Integer -> Maybe (Finite
 n)` to get our hours and minutes into the `Finite` type that `T` expects.
 
