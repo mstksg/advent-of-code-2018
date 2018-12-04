@@ -30,6 +30,7 @@ default-extensions:
 - ApplicativeDo
 - BangPatterns
 - BlockArguments
+- DataKinds
 - DeriveFoldable
 - DeriveFunctor
 - DeriveGeneric
@@ -38,6 +39,7 @@ default-extensions:
 - FlexibleContexts
 - FlexibleInstances
 - GADTs
+- GeneralizedNewtypeDeriving
 - KindSignatures
 - LambdaCase
 - MonadComprehensions

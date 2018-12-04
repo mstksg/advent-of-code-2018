@@ -24,14 +24,18 @@ module AOC2018.Util (
   , perturbations
   , findMaybe
   , clearOut
+  , maximumVal
+  , maximumByVal
   ) where
 
 import           Control.Applicative
 import           Control.Lens
 import           Control.Monad.Except
 import           Data.Foldable
+import           Data.Function
 import           Data.List
 import           Data.Map             (Map)
+import qualified Data.List.NonEmpty   as NE
 import qualified Data.Map             as M
 import qualified Data.Set             as S
 import qualified Data.Text            as T
@@ -117,3 +121,17 @@ findMaybe p = asum . map p . toList
 clearOut :: (Char -> Bool) -> String -> String
 clearOut p = map $ \c -> if p c then ' '
                                 else c
+
+-- | Get the key-value pair corresponding to the maximum value in the map
+maximumVal :: Ord b => Map a b -> Maybe (a, b)
+maximumVal = maximumByVal compare
+
+-- | Get the key-value pair corresponding to the maximum value in the map,
+-- with a custom comparing function.
+--
+-- > 'maximumVal' == 'maximumByVal' 'compare'
+maximumByVal :: (b -> b -> Ordering) -> Map a b -> Maybe (a, b)
+maximumByVal c = fmap (maximumBy (c `on` snd))
+               . NE.nonEmpty
+               . M.toList
+

@@ -33,7 +33,9 @@ import           Data.Function             as P
 import           Data.Kind                 as P
 import           Data.List                 as P
 import           Data.Maybe                as P
+import           Data.Ord                  as P
 import           Data.Semigroup            as P
+import           Data.Time                 as P
 import           Data.Traversable          as P
 import           Data.Tuple                as P
 import           Data.Void                 as P
