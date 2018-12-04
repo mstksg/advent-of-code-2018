@@ -55,7 +55,6 @@ import           Data.Text                (Text)
 import           Data.Time
 import           Text.Printf
 import qualified Data.Map                 as M
-import qualified Data.Map.Merge.Lazy      as M
 import qualified Data.Set                 as S
 import qualified Data.Text                as T
 import qualified Data.Text.IO             as T
@@ -73,9 +72,8 @@ data MainRunOpts = MRO { _mroSpec  :: !TestSpec
                        , _mroTest  :: !Bool     -- ^ Run tests?  (Default: False)
                        , _mroBench :: !Bool     -- ^ Benchmark?  (Default: False)
                        , _mroLock  :: !Bool     -- ^ Lock in answer as correct?  (Default: False)
-                       , _mroInput :: !(Map (Finite 25) (Map Char String))  -- ^ Manually supply input.  (Default: 'M.empty')
+                       , _mroInput :: !(Finite 25 -> Char -> IO (Maybe String))   -- ^ Manually supply input (Default: always return Nothing)
                        }
-  deriving Show
 
 makeClassy ''MainRunOpts
 
@@ -103,7 +101,7 @@ defaultMRO ts = MRO { _mroSpec  = ts
                     , _mroTest  = False
                     , _mroBench = False
                     , _mroLock  = False
-                    , _mroInput = M.empty
+                    , _mroInput = \_ _ -> pure Nothing
                     }
 
 -- | Default options for 'mainView'.
@@ -254,13 +252,14 @@ mainSubmit Cfg{..} MSO{..} = do
 runAll
     :: Maybe String                             -- ^ session key
     -> Bool                                     -- ^ run and lock answer
-    -> Map (Finite 25) (Map Char String)        -- ^ replacements
+    -> (Finite 25 -> Char -> IO (Maybe String))   -- ^ replacements
     -> ChallengeMap
     -> (SomeSolution -> Maybe String -> ChallengeData -> IO a)  -- ^ callback. given solution, "replacement" input, and data
     -> IO (Map (Finite 25) (Map Char a))
-runAll sess lock rep cm f = flip M.traverseWithKey cm' $ \d ->
-                            M.traverseWithKey $ \p (inp0, c) -> do
+runAll sess lock rep cm f = flip M.traverseWithKey cm $ \d ->
+                            M.traverseWithKey $ \p c -> do
     let CP{..} = challengePaths (CS d p)
+    inp0 <- rep d p
     withColor ANSI.Dull ANSI.Blue $
       printf ">> Day %02d%c\n" (dayToInt d) p
     when lock $ do
@@ -268,12 +267,6 @@ runAll sess lock rep cm f = flip M.traverseWithKey cm' $ \d ->
       forM_ (inp0 <|> eitherToMaybe _cdInput) $ \inp ->
         mapM_ (writeFile _cpAnswer) =<< evaluate (force (runSomeSolution c inp))
     f c inp0 =<< challengeData sess (CS d p)
-  where
-    cm' = pushMap $ M.merge M.dropMissing
-                            (M.mapMissing     $ \_   c -> (Nothing, c))
-                            (M.zipWithMatched $ \_ r c -> (Just r , c))
-                            (pullMap rep)
-                            (pullMap cm)
 
 runTestSuite :: SomeSolution -> ChallengeData -> IO (Maybe Bool)
 runTestSuite c CD{..} = do

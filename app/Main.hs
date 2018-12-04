@@ -3,6 +3,8 @@
 
 import           AOC2018
 import           Control.Applicative
+import           Control.DeepSeq
+import           Control.Exception
 import           Control.Lens hiding  (argument)
 import           Control.Monad
 import           Control.Monad.Except
@@ -12,6 +14,7 @@ import           Data.Foldable
 import           Data.List
 import           Data.Maybe
 import           Options.Applicative
+import           System.IO.Error
 import           Text.Printf
 import           Text.Read
 import qualified Data.Map             as M
@@ -20,8 +23,6 @@ import qualified System.Console.ANSI  as ANSI
 data Mode = MRun    MainRunOpts
           | MView   MainViewOpts
           | MSubmit MainSubmitOpts
-
--- TODO: take input from stdin
 
 data Opts = O { _oMode   :: !Mode
               , _oConfig :: !(Maybe FilePath)
@@ -106,12 +107,18 @@ parseOpts = do
       , help $ printf "Path to configuration file (default: %s)" defConfPath
       ]
     _oMode <- subparser . mconcat $
-      [ command "run"       (info (MRun    <$> parseRun      ) (progDesc "Run, test, and benchmark challenges"   ))
-      , command "view"      (info (MView   <$> parseView     ) (progDesc "View a prompt for a given challenge"   ))
-      , command "submit"    (info (MSubmit <$> parseSubmit   ) (progDesc "Test and submit answers for challenges"))
-      , command "test"      (info (MRun    <$> parseTest     ) (progDesc "Alias for run --test"                  ))
-      , command "bench"     (info (MRun    <$> parseBench    ) (progDesc "Alias for run --bench"                 ))
-      , command "countdown" (info (MView   <$> parseCountdown) (progDesc "Alias for view --countdown"            ))
+      [ command "run"       $
+          info (MRun    <$> parseRun       <**> helper) (progDesc "Run, test, and benchmark challenges"   )
+      , command "view"      $
+          info (MView   <$> parseView      <**> helper) (progDesc "View a prompt for a given challenge"   )
+      , command "submit"    $
+          info (MSubmit <$> parseSubmit    <**> helper) (progDesc "Test and submit answers for challenges")
+      , command "test"      $
+          info (MRun    <$> parseTest      <**> helper) (progDesc "Alias for run --test"                  )
+      , command "bench"     $
+          info (MRun    <$> parseBench     <**> helper) (progDesc "Alias for run --bench"                 )
+      , command "countdown" $
+          info (MView   <$> parseCountdown <**> helper) (progDesc "Alias for view --countdown"            )
       ]
     pure O{..}
   where
@@ -133,7 +140,13 @@ parseOpts = do
           , short 'l'
           , help "Lock in results as \"correct\" answers"
           ]
-        pure $ let _mroInput = M.empty
+        takeStdin <- switch . mconcat $
+          [ long "stdin"
+          , help "Take all input from stdin (in order, separated by EOF) instead of input directory"
+          ]
+        pure $ let _mroInput
+                      | takeStdin = \_ _ -> getContentsMaybe
+                      | otherwise = \_ _ -> pure Nothing
                in  MRO{..}
     parseView   :: Parser MainViewOpts
     parseView = do
@@ -170,3 +183,6 @@ parseOpts = do
     parseCountdown :: Parser MainViewOpts
     parseCountdown = parseView & mapped . mvoWait .~ True
 
+getContentsMaybe :: IO (Maybe String)
+getContentsMaybe = fmap eitherToMaybe . tryJust (guard . isEOFError) $ do
+    evaluate . force =<< getContents

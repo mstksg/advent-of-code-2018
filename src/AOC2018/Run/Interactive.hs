@@ -43,7 +43,6 @@ import           Control.Monad.Except
 import           Data.Finite
 import           Data.Text            (Text)
 import           Text.Printf
-import qualified Data.Map             as M
 
 -- | Run the solution indicated by the challenge spec on the official
 -- puzzle input.  Get answer as result.
@@ -64,7 +63,7 @@ execSolutionWith
 execSolutionWith cs inp = eitherIO $ do
     cfg <- liftIO $ configFile defConfPath
     out <- mainRun cfg $ (defaultMRO (TSDayPart cs))
-      { _mroInput = M.singleton (_csDay cs) . M.singleton (_csPart cs) $ inp
+      { _mroInput = \_ _ -> pure $ Just inp
       }
     res <- maybeToEither ["Result not found in result map (Internal Error)"] $
       lookupSolution cs out

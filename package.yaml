@@ -60,11 +60,7 @@ default-extensions:
 
 dependencies:
 - base >= 4.7 && < 5
-- containers
-- finite-typelits
-- lens
 - mtl
-- ansi-terminal
 
 library:
   source-dirs: src
@@ -74,7 +70,6 @@ library:
   - criterion
   - curl
   - data-default
-  - deepseq
   - directory
   - filepath
   - haskeline
@@ -98,6 +93,11 @@ library:
   - time
   - transformers
   - yaml
+  - containers
+  - deepseq
+  - lens
+  - finite-typelits
+  - ansi-terminal
 
 executables:
   aoc2018:
@@ -110,6 +110,11 @@ executables:
     dependencies:
     - aoc2018
     - optparse-applicative
+    - containers
+    - deepseq
+    - lens
+    - finite-typelits
+    - ansi-terminal
 
 tests:
   aoc2018-test:
@@ -121,6 +126,7 @@ tests:
     - -with-rtsopts=-N
     dependencies:
     - aoc2018
+    - ansi-terminal
 
 benchmarks:
   aoc2018-bench:
