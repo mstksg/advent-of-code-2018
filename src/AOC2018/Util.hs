@@ -25,7 +25,7 @@ module AOC2018.Util (
   , findMaybe
   , clearOut
   , maximumVal
-  , maximumByVal
+  , maximumValBy
   ) where
 
 import           Control.Applicative
@@ -124,14 +124,14 @@ clearOut p = map $ \c -> if p c then ' '
 
 -- | Get the key-value pair corresponding to the maximum value in the map
 maximumVal :: Ord b => Map a b -> Maybe (a, b)
-maximumVal = maximumByVal compare
+maximumVal = maximumValBy compare
 
 -- | Get the key-value pair corresponding to the maximum value in the map,
 -- with a custom comparing function.
 --
--- > 'maximumVal' == 'maximumByVal' 'compare'
-maximumByVal :: (b -> b -> Ordering) -> Map a b -> Maybe (a, b)
-maximumByVal c = fmap (maximumBy (c `on` snd))
+-- > 'maximumVal' == 'maximumValBy' 'compare'
+maximumValBy :: (b -> b -> Ordering) -> Map a b -> Maybe (a, b)
+maximumValBy c = fmap (maximumBy (c `on` snd))
                . NE.nonEmpty
                . M.toList
 

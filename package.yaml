@@ -68,20 +68,26 @@ library:
   source-dirs: src
   dependencies:
   - aeson
+  - ansi-terminal
   - bytestring
+  - containers
   - criterion
   - curl
   - data-default
+  - deepseq
   - directory
   - filepath
+  - finite-typelits
   - haskeline
   - haskell-names
   - haskell-src-exts
   - hpack
+  - lens
   - linear
   - megaparsec
   - mtl
   - pandoc
+  - parsec
   - pointedlist
   - profunctors
   - recursion-schemes
@@ -95,11 +101,7 @@ library:
   - time
   - transformers
   - yaml
-  - containers
-  - deepseq
-  - lens
-  - finite-typelits
-  - ansi-terminal
+  - yoctoparsec
 
 executables:
   aoc2018:
