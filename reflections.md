@@ -8,8 +8,9 @@ Reflections
 Day 1
 -----
 
-*[Code][d01g]* / *[Rendered][d01h]*
+*[Prompt][d01p]* / *[Code][d01g]* / *[Rendered][d01h]*
 
+[d01p]: https://adventofcode.com/2018/day/1
 [d01g]: https://github.com/mstksg/advent-of-code-2018/blob/master/src/AOC2018/Challenge/Day01.hs
 [d01h]: https://mstksg.github.io/advent-of-code-2018/src/AOC2018.Challenge.Day01.html
 
@@ -98,8 +99,9 @@ variance introduced by outliers: 12% (moderately inflated)
 Day 2
 -----
 
-*[Code][d02g]* / *[Rendered][d02h]*
+*[Prompt][d02p]* / *[Code][d02g]* / *[Rendered][d02h]*
 
+[d02p]: https://adventofcode.com/2018/day/2
 [d02g]: https://github.com/mstksg/advent-of-code-2018/blob/master/src/AOC2018/Challenge/Day02.hs
 [d02h]: https://mstksg.github.io/advent-of-code-2018/src/AOC2018.Challenge.Day02.html
 
@@ -201,8 +203,9 @@ std dev              1.327 ms   (840.8 μs .. 1.835 ms)
 Day 3
 -----
 
-*[Code][d03g]* / *[Rendered][d03h]*
+*[Prompt][d03p]* / *[Code][d03g]* / *[Rendered][d03h]*
 
+[d03p]: https://adventofcode.com/2018/day/3
 [d03g]: https://github.com/mstksg/advent-of-code-2018/blob/master/src/AOC2018/Challenge/Day03.hs
 [d03h]: https://mstksg.github.io/advent-of-code-2018/src/AOC2018.Challenge.Day03.html
 
@@ -323,8 +326,9 @@ variance introduced by outliers: 21% (moderately inflated)
 Day 4
 -----
 
-*[Code][d04g]* / *[Rendered][d04h]*
+*[Prompt][d04p]* / *[Code][d04g]* / *[Rendered][d04h]*
 
+[d04p]: https://adventofcode.com/2018/day/4
 [d04g]: https://github.com/mstksg/advent-of-code-2018/blob/master/src/AOC2018/Challenge/Day04.hs
 [d04h]: https://mstksg.github.io/advent-of-code-2018/src/AOC2018.Challenge.Day04.html
 
