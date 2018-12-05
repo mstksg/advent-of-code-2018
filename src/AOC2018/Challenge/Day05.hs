@@ -1,6 +1,3 @@
-{-# OPTIONS_GHC -Wno-unused-imports   #-}
-{-# OPTIONS_GHC -Wno-unused-top-binds #-}
-
 -- |
 -- Module      : AOC2018.Challenge.Day05
 -- Copyright   : (c) Justin Le 2018
@@ -11,26 +8,17 @@
 -- Portability : non-portable
 --
 -- Day 5.  See "AOC2018.Solver" for the types used in this module!
---
--- After completing the challenge, it is recommended to:
---
--- *   Replace "AOC2018.Prelude" imports to specific modules (with explicit
---     imports) for readability.
--- *   Remove the @-Wno-unused-imports@ and @-Wno-unused-top-binds@
---     pragmas.
--- *   Replace the partial type signatures underscores in the solution
---     types @_ :~> _@ with the actual types of inputs and outputs of the
---     solution.  You can delete the type signatures completely and GHC
---     will recommend what should go in place of the underscores.
 
 module AOC2018.Challenge.Day05 (
     day05a
   , day05b
   ) where
 
-import           AOC2018.Prelude
-import qualified Data.Map        as M
-import qualified Data.Set        as S
+import           AOC2018.Solver ((:~>)(..))
+import           AOC2018.Util   (strip, minimumVal)
+import           Data.Char      (toLower, isUpper)
+import qualified Data.Map       as M
+import qualified Data.Set       as S
 
 anti :: Char -> Char -> Bool
 anti x y = toLower x == toLower y
