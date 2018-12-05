@@ -572,8 +572,7 @@ two "anti-letters" next to each other:
 
 ```haskell
 anti :: Char -> Char -> Bool
-anti x y = toLower x == toLower y
-        && isUpper x /= isUpper y
+anti x y = toLower x == toLower y && x /= y
 
 funkyCons :: Char -> String -> String
 x `funkyCons` (y:xs)
@@ -597,7 +596,7 @@ character.
 
 ```haskell
 day05b :: String -> Int
-day05b xs = minimum [ length $ react (remove c xs)
+day05b xs = minimum [ length $ foldr funkyCons [] (remove c xs)
                     | c <- ['a' .. 'z']
                     ]
   where

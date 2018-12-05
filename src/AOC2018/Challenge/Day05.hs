@@ -19,8 +19,7 @@ import           AOC2018.Util   (strip)
 import           Data.Char      (toLower, isUpper)
 
 anti :: Char -> Char -> Bool
-anti x y = toLower x == toLower y
-        && isUpper x /= isUpper y
+anti x y = toLower x == toLower y && x /= y
 
 cons :: Char -> String -> String
 x `cons` (y:xs)
