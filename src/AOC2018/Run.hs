@@ -30,12 +30,12 @@ module AOC2018.Run (
   , withColor
   ) where
 
-import           AOC2018.API
 import           AOC2018.Challenge
 import           AOC2018.Run.Config
 import           AOC2018.Run.Load
 import           AOC2018.Solver
 import           AOC2018.Util
+import           Advent
 import           Control.Applicative
 import           Control.Concurrent
 import           Control.DeepSeq
@@ -194,7 +194,12 @@ mainSubmit Cfg{..} MSO{..} = do
     c         <- maybeToEither [printf "Part not found: %c" _csPart] $
                    M.lookup _csPart dMap
     inp       <- liftEither . first ("[PROMPT ERROR]":) $ _cdInput
-    sess      <- HasKey <$> maybeToEither ["ERROR: Session Key Required to Submit"] _cfgSession
+    opts      <- defaultAoCOpts 2018 <$>
+                    maybeToEither ["ERROR: Session Key Required to Submit"]
+                      _cfgSession
+    part      <- maybeToEither [printf "Invalid part: %c" _csPart]
+               . charPart
+               $ _csPart
 
     when _msoTest $ do
       testRes <- liftIO $ runTestSuite c cd
@@ -212,7 +217,8 @@ mainSubmit Cfg{..} MSO{..} = do
     res       <- liftEither . first (("[SOLUTION ERROR]":) . (:[]) . show) $ resEither
     liftIO $ printf "Submitting solution: %s\n" res
 
-    output@(resp, status) <- liftEither =<< liftIO (runAPI sess (ASubmit _csDay _csPart res))
+    output@(resp, status) <- liftEither . first showAoCError
+                         =<< liftIO (runAoC opts (AoCSubmit _csDay part res))
     let resp' = formatResp resp
         (color, lock, out) = case status of
           SubCorrect r -> (ANSI.Green  , True , correctMsg r                   )

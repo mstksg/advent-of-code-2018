@@ -592,20 +592,14 @@ day05a :: String -> Int
 day05a = length . foldr funkyCons []
 ```
 
-Part 2 we can make a `Map Char Int`, a map of (lower-case) characters to
-the length of the final reaction if we remove all instances of that character
-from that string.
-
-Then we use the `minimumVal` function that we wrote last part, to get the
-`(Char, Int)` pair with the lowest `Int` (final length).  That `Int` is the
-answer!
+For part 2 we can just find the minimum length after trying out every
+character.
 
 ```haskell
-day05b :: String -> Maybe Int
-day05b xs = fmap snd
-          . minimumVal
-          . M.fromSet (\c -> length (foldr funkyCons [] (remove c xs)))
-          $ S.fromList ['a' .. 'z']
+day05b :: String -> Int
+day05b xs = minimum [ length $ react (remove c xs)
+                    | c <- ['a' .. 'z']
+                    ]
   where
     remove c = filter ((/= c) . toLower)
 ```
@@ -613,7 +607,7 @@ day05b xs = fmap snd
 (Note that in the actual input, there is a trailing newline, so in practice we
 have to strip it from the input.)
 
-### Day 1 Benchmarks
+### Day 5 Benchmarks
 
 ```
 >> Day 05a

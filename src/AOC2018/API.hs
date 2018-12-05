@@ -13,15 +13,15 @@
 --
 
 module AOC2018.API (
-  -- * API
-    API(..), SubmitRes(..), showSubmitRes
-  , runAPI
-  -- * Session Keys
-  , SessionKey(..)
-  , sessionKey
-  , sessionKey_
-  -- * Util
-  , parseSubmitRes
+  -- -- * API
+  --   API(..), SubmitRes(..), showSubmitRes
+  -- , runAPI
+  -- -- * Session Keys
+  -- , SessionKey(..)
+  -- , sessionKey
+  -- , sessionKey_
+  -- -- * Util
+  -- , parseSubmitRes
   ) where
 
 import           AOC2018.Util

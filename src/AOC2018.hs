@@ -15,7 +15,6 @@ module AOC2018 (
     module AOC
   ) where
 
-import           AOC2018.API             as AOC
 import           AOC2018.Challenge       as AOC
 import           AOC2018.Run             as AOC
 import           AOC2018.Run.Config      as AOC

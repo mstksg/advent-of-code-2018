@@ -102,6 +102,7 @@ library:
   - transformers
   - yaml
   - yoctoparsec
+  - advent-of-code-api
 
 executables:
   aoc2018:

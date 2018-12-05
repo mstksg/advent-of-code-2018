@@ -15,10 +15,8 @@ module AOC2018.Challenge.Day05 (
   ) where
 
 import           AOC2018.Solver ((:~>)(..))
-import           AOC2018.Util   (strip, minimumVal)
+import           AOC2018.Util   (strip)
 import           Data.Char      (toLower, isUpper)
-import qualified Data.Map       as M
-import qualified Data.Set       as S
 
 anti :: Char -> Char -> Bool
 anti x y = toLower x == toLower y
@@ -44,11 +42,9 @@ day05b :: String :~> Int
 day05b = MkSol
     { sParse = Just . strip
     , sShow  = show
-    , sSolve = \xs -> fmap snd
-                    . minimumVal
-                    . M.fromSet (length . react . (`remove` xs))
-                    . S.fromDistinctAscList
-                    $ ['a' .. 'z']
+    , sSolve = \xs -> Just $ minimum [ length $ react (remove c xs)
+                                     | c <- ['a' .. 'z']
+                                     ]
     }
   where
     remove c = filter $ (/= c) . toLower

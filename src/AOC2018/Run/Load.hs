@@ -18,16 +18,20 @@ module AOC2018.Run.Load (
   , countdownConsole
   , timeToRelease
   , showNominalDiffTime
+  , charPart
+  , showAoCError
   ) where
 
-import           AOC2018.API
+-- import           AOC2018.API
 import           AOC2018.Challenge
 import           AOC2018.Util
+import           Advent
 import           Control.Concurrent
 import           Control.DeepSeq
 import           Control.Exception
 import           Control.Monad
 import           Control.Monad.Except
+import           Data.Bifunctor
 import           Data.Finite
 import           Data.Foldable
 import           Data.List
@@ -114,22 +118,29 @@ challengeData sess spec = do
     fetchInput :: ExceptT [String] IO String
     fetchInput = do
         s <- maybeToEither ["Session key needed to fetch input"] $
-              sessionKey a sess
-        inp <- fmap T.unpack . ExceptT $ runAPI s a
+              sess
+        let opts = defaultAoCOpts 2018 s
+        inp <- liftEither . bimap showAoCError T.unpack
+           =<< liftIO (runAoC opts a)
         liftIO $ writeFile _cpInput inp
         pure inp
       where
-        a = AInput $ _csDay spec
+        a = AoCInput $ _csDay spec
     fetchPrompt :: ExceptT [String] IO Text
     fetchPrompt = do
-        prompts <- ExceptT $ runAPI (sessionKey_ sess) a
+        prompts <- liftEither . first showAoCError
+               =<< liftIO (runAoC opts a)
+        part    <- maybeToEither [printf "Invalid part: %c" (_csPart spec)]
+                 . charPart
+                 $ _csPart spec
         prompt  <- maybeToEither [e]
-                 . M.lookup (_csPart spec)
+                 . M.lookup part
                  $ prompts
         liftIO $ T.writeFile _cpPrompt prompt
         pure prompt
       where
-        a = APrompt $ _csDay spec
+        opts = defaultAoCOpts 2018 $ fold sess
+        a = AoCPrompt $ _csDay spec
         e = case sess of
           Just _  -> "Part not yet released"
           Nothing -> "Part not yet released, or may require session key"
@@ -144,14 +155,16 @@ challengeData sess spec = do
             let ans' = ans <$ guard (not (null ans))
             in  (unlines inp, ans') : parseTests rest
 
--- | Get time until next release
-timeToRelease :: Finite 25 -> IO NominalDiffTime
-timeToRelease d = (challengeReleaseTime d `diffUTCTime`) <$> getCurrentTime
-
--- | Challenge release time
-challengeReleaseTime :: Finite 25 -> UTCTime
-challengeReleaseTime d = UTCTime (fromGregorian 2018 12 (dayToInt d))
-                                 (5 * 60 * 60)
+showAoCError :: AoCError -> [String]
+showAoCError = \case
+    AoCCurlError _ r -> [ "Error contacting Advent of Code server to fetch input"
+                        , "Possible invalid session key"
+                        , printf "Server response: %s" r
+                        ]
+    AoCReleaseError t -> [ "Challenge not yet released!"
+                         , printf "Please wait %s" (showNominalDiffTime t)
+                         ]
+    AoCThrottleError  -> [ "Too many requests at a time.  Please slow down." ]
 
 -- | Pretty-print a 'NominalDiffTime'
 showNominalDiffTime :: NominalDiffTime -> String
@@ -161,6 +174,11 @@ showNominalDiffTime (round @Double @Int . realToFrac -> rawSecs) =
     (rawMins , secs ) = rawSecs  `divMod` 60
     (rawHours, mins ) = rawMins  `divMod` 60
     (days    , hours) = rawHours `divMod` 24
+
+charPart :: Char -> Maybe Part
+charPart 'a' = Just Part1
+charPart 'b' = Just Part2
+charPart _   = Nothing
 
 -- | Run a countdown on the console.
 countdownConsole
@@ -185,7 +203,7 @@ countdownWith
 countdownWith d delay callback release = go
   where
     go = do
-      ttr <- liftIO $ timeToRelease d
+      ttr <- liftIO $ timeToRelease 2018 d
       if ttr <= 0
         then release
         else do

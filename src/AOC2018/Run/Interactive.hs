@@ -33,12 +33,12 @@ module AOC2018.Run.Interactive (
   , mkSpec
   ) where
 
-import           AOC2018.API
 import           AOC2018.Challenge
 import           AOC2018.Run
 import           AOC2018.Run.Config
 import           AOC2018.Run.Load
 import           AOC2018.Util
+import           Advent
 import           Control.Monad.Except
 import           Data.Finite
 import           Data.Text            (Text)
