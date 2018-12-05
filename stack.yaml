@@ -40,8 +40,9 @@ packages:
 extra-deps:
 - taggy-0.2.1
 - taggy-lens-0.1.2
-- yoctoparsec-0.1.0.0
 - advent-of-code-api-0.1.0.0
+- free-algebras-0.0.6.0
+- natural-numbers-0.1.2.0
 
 allow-newer: true
 

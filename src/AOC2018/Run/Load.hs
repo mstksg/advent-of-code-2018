@@ -20,9 +20,9 @@ module AOC2018.Run.Load (
   , showNominalDiffTime
   , charPart
   , showAoCError
+  , htmlToMarkdown
   ) where
 
--- import           AOC2018.API
 import           AOC2018.Challenge
 import           AOC2018.Util
 import           Advent
@@ -46,6 +46,7 @@ import           Text.Printf
 import qualified Data.Map             as M
 import qualified Data.Text            as T
 import qualified Data.Text.IO         as T
+import qualified Text.Pandoc          as P
 
 -- | A record of paths corresponding to a specific challenge.
 data ChallengePaths = CP { _cpPrompt    :: !FilePath
@@ -133,9 +134,10 @@ challengeData sess spec = do
         part    <- maybeToEither [printf "Invalid part: %c" (_csPart spec)]
                  . charPart
                  $ _csPart spec
-        prompt  <- maybeToEither [e]
+        promptH  <- maybeToEither [e]
                  . M.lookup part
                  $ prompts
+        prompt   <- liftEither $ htmlToMarkdown True promptH
         liftIO $ T.writeFile _cpPrompt prompt
         pure prompt
       where
@@ -210,4 +212,17 @@ countdownWith d delay callback release = go
           callback ttr
           liftIO $ threadDelay delay
           go
+
+htmlToMarkdown :: Bool -> Text -> Either [String] T.Text
+htmlToMarkdown pretty html = first ((:[]) . show) . P.runPure $ do
+    p <- P.readHtml (P.def { P.readerExtensions = exts })
+            html
+    writer (P.def { P.writerExtensions = exts }) p
+  where
+    writer
+      | pretty    = P.writeMarkdown
+      | otherwise = P.writePlain
+    exts = P.disableExtension P.Ext_header_attributes
+         . P.disableExtension P.Ext_smart
+         $ P.pandocExtensions
 

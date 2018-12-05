@@ -219,7 +219,10 @@ mainSubmit Cfg{..} MSO{..} = do
 
     output@(resp, status) <- liftEither . first showAoCError
                          =<< liftIO (runAoC opts (AoCSubmit _csDay part res))
-    let resp' = formatResp resp
+    let resp' = formatResp
+              . either (map T.pack) T.lines
+              . htmlToMarkdown False
+              $ resp
         (color, lock, out) = case status of
           SubCorrect r -> (ANSI.Green  , True , correctMsg r                   )
           SubIncorrect -> (ANSI.Red    , False, "Answer was incorrect!"        )
@@ -243,7 +246,7 @@ mainSubmit Cfg{..} MSO{..} = do
     CS{..} = _msoSpec
     CP{..} = challengePaths _msoSpec
     d' = dayToInt _csDay
-    formatResp = T.unpack . T.intercalate "\n" . map ("> " <>) . T.lines
+    formatResp = T.unpack . T.intercalate "\n" . map ("> " <>)
     logFmt = unlines [ "[%s]"
                      , "Submission: %s"
                      , "Status: %s"

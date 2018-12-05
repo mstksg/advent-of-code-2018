@@ -101,8 +101,8 @@ library:
   - time
   - transformers
   - yaml
-  - yoctoparsec
   - advent-of-code-api
+  - free-algebras
 
 executables:
   aoc2018:
