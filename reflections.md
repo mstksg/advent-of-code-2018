@@ -535,3 +535,100 @@ mean                 20.80 ms   (20.09 ms .. 22.76 ms)
 std dev              2.790 ms   (664.4 μs .. 4.922 ms)
 variance introduced by outliers: 60% (severely inflated)
 ```
+
+Day 5
+-----
+
+*[Prompt][d05p]* / *[Code][d05g]* / *[Rendered][d05h]*
+
+[d05p]: https://adventofcode.com/2018/day/5
+[d05g]: https://github.com/mstksg/advent-of-code-2018/blob/master/src/AOC2018/Challenge/Day05.hs
+[d05h]: https://mstksg.github.io/advent-of-code-2018/src/AOC2018.Challenge.Day05.html
+
+One of the first higher-order functions you learn about in Haskill is `foldr`,
+which is like a "skeleton transformation" of a list.
+
+That's because in Haskell, a (linked) list is one of two constructors: nil
+(`[]`) or cons (`:`).  The list `[1,2,3]` is really `1:(2:(3:[]))`.
+
+`foldr f z` is a function that takes a list replaces all `:`s with `f`, and
+`[]`s with `z`s:
+
+```haskell
+          [1,2,3] = 1  :  (2  :  (3  :  []))
+foldr f z [1,2,3] = 1 `f` (2 `f` (3 `f` z ))
+```
+
+This leads to one of the most famous identities in Haskell: `foldr (:) [] xs =
+xs`.  That's because if we go in and replace all `(:)`s with `(:)`, and replace
+all `[]`s with `[]`... we get back the original list!
+
+But something we can also do is give `foldr` a "custom cons".  A custom cons
+that will go in place of the normal cons.
+
+This problem is well-suited for such a custom cons: instead of normal `(:)`,
+we'll write a custom cons that respects the rules of reaction: we can't have
+two "anti-letters" next to each other:
+
+```haskell
+anti :: Char -> Char -> Bool
+anti x y = toLower x == toLower y
+        && isUpper x /= isUpper y
+
+funkyCons :: Char -> String -> String
+x `funkyCons` (y:xs)
+    | anti x y  = xs
+    | otherwise = x:y:xs
+x `funkyCons` []     = [x]
+```
+
+So, `foldr funkyCons []` will go through a list and replace all `(:)` (cons)
+with `funkyCons`, which will "bubble up" the reaction.
+
+So, that's just the entire part 1!
+
+```haskell
+day05a :: String -> Int
+day05a = length . foldr funkyCons []
+```
+
+Part 2 we can make a `Map Char Int`, a map of (lower-case) characters to
+the length of the final reaction if we remove all instances of that character
+from that string.
+
+Then we use the `minimumVal` function that we wrote last part, to get the
+`(Char, Int)` pair with the lowest `Int` (final length).  That `Int` is the
+answer!
+
+```haskell
+day05b :: String -> Maybe Int
+day05b xs = fmap snd
+          . minimumVal
+          . M.fromSet (\c -> length (foldr funkyCons [] (remove c xs)))
+          $ S.fromList ['a' .. 'z']
+  where
+    remove c = filter ((/= c) . toLower)
+```
+
+(Note that in the actual input, there is a trailing newline, so in practice we
+have to strip it from the input.)
+
+### Day 1 Benchmarks
+
+```
+>> Day 05a
+benchmarking...
+time                 5.609 ms   (5.555 ms .. 5.662 ms)
+                     0.999 R²   (0.997 R² .. 1.000 R²)
+mean                 5.591 ms   (5.541 ms .. 5.655 ms)
+std dev              166.2 μs   (109.9 μs .. 269.5 μs)
+variance introduced by outliers: 12% (moderately inflated)
+
+>> Day 05b
+benchmarking...
+time                 112.6 ms   (111.2 ms .. 115.7 ms)
+                     0.999 R²   (0.998 R² .. 1.000 R²)
+mean                 111.8 ms   (111.3 ms .. 112.9 ms)
+std dev              1.111 ms   (378.1 μs .. 1.713 ms)
+variance introduced by outliers: 11% (moderately inflated)
+```

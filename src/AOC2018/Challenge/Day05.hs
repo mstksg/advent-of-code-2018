@@ -47,7 +47,7 @@ day05b = MkSol
     , sSolve = \xs -> fmap snd
                     . minimumVal
                     . M.fromSet (length . react . (`remove` xs))
-                    . S.fromList
+                    . S.fromDistinctAscList
                     $ ['a' .. 'z']
     }
   where

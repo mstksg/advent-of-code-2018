@@ -19,26 +19,7 @@ Reflections and Benchmarks
 *   **[Day 2 Reflections][d02r]** *[code][d02g]* / *[rendered][d02h]* / *[benchmarks][d02b]*
 *   **[Day 3 Reflections][d03r]** *[code][d03g]* / *[rendered][d03h]* / *[benchmarks][d03b]*
 *   **[Day 4 Reflections][d04r]** *[code][d04g]* / *[rendered][d04h]* / *[benchmarks][d04b]*
-
-[d01g]: https://github.com/mstksg/advent-of-code-2018/blob/master/src/AOC2018/Challenge/Day01.hs
-[d01h]: https://mstksg.github.io/advent-of-code-2018/src/AOC2018.Challenge.Day01.html
-[d01r]: https://github.com/mstksg/advent-of-code-2018/blob/master/reflections.md#day-1
-[d01b]: https://github.com/mstksg/advent-of-code-2018/blob/master/reflections.md#day-1-benchmarks
-
-[d02g]: https://github.com/mstksg/advent-of-code-2018/blob/master/src/AOC2018/Challenge/Day02.hs
-[d02h]: https://mstksg.github.io/advent-of-code-2018/src/AOC2018.Challenge.Day02.html
-[d02r]: https://github.com/mstksg/advent-of-code-2018/blob/master/reflections.md#day-2
-[d02b]: https://github.com/mstksg/advent-of-code-2018/blob/master/reflections.md#day-2-benchmarks
-
-[d03g]: https://github.com/mstksg/advent-of-code-2018/blob/master/src/AOC2018/Challenge/Day03.hs
-[d03h]: https://mstksg.github.io/advent-of-code-2018/src/AOC2018.Challenge.Day03.html
-[d03r]: https://github.com/mstksg/advent-of-code-2018/blob/master/reflections.md#day-3
-[d03b]: https://github.com/mstksg/advent-of-code-2018/blob/master/reflections.md#day-3-benchmarks
-
-[d04g]: https://github.com/mstksg/advent-of-code-2018/blob/master/src/AOC2018/Challenge/Day04.hs
-[d04h]: https://mstksg.github.io/advent-of-code-2018/src/AOC2018.Challenge.Day04.html
-[d04r]: https://github.com/mstksg/advent-of-code-2018/blob/master/reflections.md#day-4
-[d04b]: https://github.com/mstksg/advent-of-code-2018/blob/master/reflections.md#day-4-benchmarks
+*   **[Day 5 Reflections][d05r]** *[code][d05g]* / *[rendered][d05h]* / *[benchmarks][d05b]*
 
 "Rendered" links go to haddock source renders for code, with reflections in the
 documentation.  Haddock source renders have hyperlinked identifiers,
@@ -255,3 +236,28 @@ the result of your submission: The message from the AoC website, and whether or
 not your answer was correct (or invalid or ignored).  Answers that are
 confirmed correct will be locked in and saved for future testing against, in
 case you change your solution.
+
+[d01g]: https://github.com/mstksg/advent-of-code-2018/blob/master/src/AOC2018/Challenge/Day01.hs
+[d01h]: https://mstksg.github.io/advent-of-code-2018/src/AOC2018.Challenge.Day01.html
+[d01r]: https://github.com/mstksg/advent-of-code-2018/blob/master/reflections.md#day-1
+[d01b]: https://github.com/mstksg/advent-of-code-2018/blob/master/reflections.md#day-1-benchmarks
+
+[d02g]: https://github.com/mstksg/advent-of-code-2018/blob/master/src/AOC2018/Challenge/Day02.hs
+[d02h]: https://mstksg.github.io/advent-of-code-2018/src/AOC2018.Challenge.Day02.html
+[d02r]: https://github.com/mstksg/advent-of-code-2018/blob/master/reflections.md#day-2
+[d02b]: https://github.com/mstksg/advent-of-code-2018/blob/master/reflections.md#day-2-benchmarks
+
+[d03g]: https://github.com/mstksg/advent-of-code-2018/blob/master/src/AOC2018/Challenge/Day03.hs
+[d03h]: https://mstksg.github.io/advent-of-code-2018/src/AOC2018.Challenge.Day03.html
+[d03r]: https://github.com/mstksg/advent-of-code-2018/blob/master/reflections.md#day-3
+[d03b]: https://github.com/mstksg/advent-of-code-2018/blob/master/reflections.md#day-3-benchmarks
+
+[d04g]: https://github.com/mstksg/advent-of-code-2018/blob/master/src/AOC2018/Challenge/Day04.hs
+[d04h]: https://mstksg.github.io/advent-of-code-2018/src/AOC2018.Challenge.Day04.html
+[d04r]: https://github.com/mstksg/advent-of-code-2018/blob/master/reflections.md#day-4
+[d04b]: https://github.com/mstksg/advent-of-code-2018/blob/master/reflections.md#day-4-benchmarks
+
+[d05g]: https://github.com/mstksg/advent-of-code-2018/blob/master/src/AOC2018/Challenge/Day05.hs
+[d05h]: https://mstksg.github.io/advent-of-code-2018/src/AOC2018.Challenge.Day05.html
+[d05r]: https://github.com/mstksg/advent-of-code-2018/blob/master/reflections.md#day-5
+[d05b]: https://github.com/mstksg/advent-of-code-2018/blob/master/reflections.md#day-5-benchmarks
