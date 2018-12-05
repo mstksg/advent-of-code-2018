@@ -26,6 +26,8 @@ module AOC2018.Util (
   , clearOut
   , maximumVal
   , maximumValBy
+  , minimumVal
+  , minimumValBy
   ) where
 
 import           Control.Applicative
@@ -134,4 +136,17 @@ maximumValBy :: (b -> b -> Ordering) -> Map a b -> Maybe (a, b)
 maximumValBy c = fmap (maximumBy (c `on` snd))
                . NE.nonEmpty
                . M.toList
+
+-- | Get the key-value pair corresponding to the minimum value in the map,
+-- with a custom comparing function.
+--
+-- > 'minimumVal' == 'minimumValBy' 'compare'
+minimumValBy :: (b -> b -> Ordering) -> Map a b -> Maybe (a, b)
+minimumValBy c = fmap (minimumBy (c `on` snd))
+               . NE.nonEmpty
+               . M.toList
+
+-- | Get the key-value pair corresponding to the minimum value in the map
+minimumVal :: Ord b => Map a b -> Maybe (a, b)
+minimumVal = minimumValBy compare
 

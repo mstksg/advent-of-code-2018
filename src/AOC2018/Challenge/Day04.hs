@@ -81,7 +81,7 @@ day04a = MkSol
     { sParse = fmap M.fromList . traverse parseLine . lines
     , sShow  = show
     , sSolve = \logs -> do
-        timeCards               <- eitherToMaybe $ P.parse buildTimeCards "" (M.toList logs)
+        timeCards               <- buildTimeCards logs
         (worstGuard , timeCard) <- maximumValBy (comparing sum) timeCards
         (worstMinute, _       ) <- maximumVal timeCard
         pure $ _gId worstGuard * fromIntegral worstMinute
@@ -92,7 +92,7 @@ day04b = MkSol
     { sParse = fmap M.fromList . traverse parseLine . lines
     , sShow  = show
     , sSolve = \logs -> do
-        timeCards                      <- eitherToMaybe $ P.parse buildTimeCards "" (M.toList logs)
+        timeCards                      <- buildTimeCards logs
         let worstMinutes :: Map Guard (Minute, Int)
             worstMinutes = M.mapMaybe maximumVal timeCards
         (worstGuard, (worstMinute, _)) <- maximumValBy (comparing snd) worstMinutes

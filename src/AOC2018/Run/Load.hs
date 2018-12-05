@@ -108,7 +108,7 @@ challengeData sess spec = do
     ps@CP{..} = challengePaths spec
     readFileMaybe :: FilePath -> IO (Maybe String)
     readFileMaybe =
-        (traverse (evaluate . force) . either (const Nothing) Just =<<)
+        (traverse (evaluate . force) . eitherToMaybe =<<)
        . tryJust (guard . isDoesNotExistError)
        . readFile
     fetchInput :: ExceptT [String] IO String

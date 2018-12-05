@@ -63,7 +63,6 @@ data API :: Bool -> Type -> Type where
         :: Finite 25                    -- ^ Day.
         -> API 'False (Map Char Text)   -- ^ Map of prompts (as markdown). Part 1 is under \'a\',
                                         --   Part 2 is under \'b\', etc.
-
     -- | Fetch input
     AInput
         :: Finite 25                -- ^ Day.
