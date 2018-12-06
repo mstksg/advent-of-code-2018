@@ -30,6 +30,7 @@ import           Data.Containers.ListUtils as P
 import           Data.Either               as P
 import           Data.Foldable             as P
 import           Data.Function             as P
+import           Data.Functor              as P
 import           Data.Kind                 as P
 import           Data.List                 as P
 import           Data.Maybe                as P
@@ -42,11 +43,12 @@ import           Data.Void                 as P
 import           Debug.Trace               as P
 import           Text.Printf               as P
 
+import           Data.Finite           as P (Finite, packFinite, getFinite, finites)
 import           Data.IntMap           as P (IntMap)
 import           Data.IntSet           as P (IntSet)
 import           Data.List.PointedList as P (PointedList)
 import           Data.Map              as P (Map)
+import           Data.Profunctor       as P (Profunctor(..))
 import           Data.Set              as P (Set)
 import           GHC.Generics          as P (Generic)
 import           Text.Read             as P (readMaybe)
-import           Data.Profunctor       as P (Profunctor(..))

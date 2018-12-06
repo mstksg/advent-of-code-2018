@@ -41,8 +41,9 @@ extra-deps:
 - taggy-0.2.1
 - taggy-lens-0.1.2
 - advent-of-code-api-0.1.0.0
-- free-algebras-0.0.6.0
 - natural-numbers-0.1.2.0
+- github: mstksg/free-algebras
+  commit: 547a7e80b0845ac1cff6052ad24d10a9665cffde
 
 allow-newer: true
 

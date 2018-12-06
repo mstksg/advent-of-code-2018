@@ -28,15 +28,18 @@ module AOC2018.Util (
   , maximumValBy
   , minimumVal
   , minimumValBy
+  , deleteFinite
   ) where
 
 import           Control.Applicative
 import           Control.Lens
 import           Control.Monad.Except
+import           Data.Finite
 import           Data.Foldable
 import           Data.Function
 import           Data.List
 import           Data.Map             (Map)
+import           GHC.TypeNats
 import qualified Data.List.NonEmpty   as NE
 import qualified Data.Map             as M
 import qualified Data.Set             as S
@@ -150,3 +153,12 @@ minimumValBy c = fmap (minimumBy (c `on` snd))
 minimumVal :: Ord b => Map a b -> Maybe (a, b)
 minimumVal = minimumValBy compare
 
+deleteFinite
+    :: KnownNat n
+    => Finite (n + 1)
+    -> Finite (n + 1)
+    -> Maybe (Finite n)
+deleteFinite n m = case n `cmp` m of
+    LT -> unshift m
+    EQ -> Nothing
+    GT -> strengthen m
