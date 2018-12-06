@@ -21,6 +21,7 @@ import           AOC2018.Solver            as P
 import           AOC2018.Util              as P
 import           Control.Applicative       as P
 import           Control.DeepSeq           as P
+import           Control.Lens              as P (over, view, set)
 import           Control.Monad             as P
 import           Control.Monad.Except      as P
 import           Control.Monad.State       as P

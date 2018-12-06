@@ -68,14 +68,15 @@ data ChallengeData = CD { _cdPrompt :: !(Either [String] Text  )
 -- | Generate a 'ChallengePaths' from a specification of a challenge.
 challengePaths :: ChallengeSpec -> ChallengePaths
 challengePaths (CS d p) = CP
-    { _cpPrompt    = "prompt"          </> printf "%02d%c" d' p <.> "md"
-    , _cpInput     = "data"            </> printf "%02d" d'     <.> "txt"
-    , _cpAnswer    = "data/ans"        </> printf "%02d%c" d' p <.> "txt"
-    , _cpTests     = "test-data"       </> printf "%02d%c" d' p <.> "txt"
-    , _cpLog       = "logs/submission" </> printf "%02d%c" d' p <.> "txt"
+    { _cpPrompt    = "prompt"          </> printf "%02d%c" d' p' <.> "md"
+    , _cpInput     = "data"            </> printf "%02d" d'      <.> "txt"
+    , _cpAnswer    = "data/ans"        </> printf "%02d%c" d' p' <.> "txt"
+    , _cpTests     = "test-data"       </> printf "%02d%c" d' p' <.> "txt"
+    , _cpLog       = "logs/submission" </> printf "%02d%c" d' p' <.> "txt"
     }
   where
     d' = dayToInt d
+    p' = partChar p
 
 makeChallengeDirs :: ChallengePaths -> IO ()
 makeChallengeDirs CP{..} =
@@ -131,11 +132,8 @@ challengeData sess spec = do
     fetchPrompt = do
         prompts <- liftEither . first showAoCError
                =<< liftIO (runAoC opts a)
-        part    <- maybeToEither [printf "Invalid part: %c" (_csPart spec)]
-                 . charPart
-                 $ _csPart spec
         promptH  <- maybeToEither [e]
-                 . M.lookup part
+                 . M.lookup (_csPart spec)
                  $ prompts
         prompt   <- liftEither $ htmlToMarkdown True promptH
         liftIO $ T.writeFile _cpPrompt prompt
@@ -176,11 +174,6 @@ showNominalDiffTime (round @Double @Int . realToFrac -> rawSecs) =
     (rawMins , secs ) = rawSecs  `divMod` 60
     (rawHours, mins ) = rawMins  `divMod` 60
     (days    , hours) = rawHours `divMod` 24
-
-charPart :: Char -> Maybe Part
-charPart 'a' = Just Part1
-charPart 'b' = Just Part2
-charPart _   = Nothing
 
 -- | Run a countdown on the console.
 countdownConsole

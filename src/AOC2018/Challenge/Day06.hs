@@ -1,6 +1,3 @@
-{-# OPTIONS_GHC -Wno-unused-imports   #-}
-{-# OPTIONS_GHC -Wno-unused-top-binds #-}
-
 -- |
 -- Module      : AOC2018.Challenge.Day06
 -- Copyright   : (c) Justin Le 2018
@@ -20,26 +17,25 @@ module AOC2018.Challenge.Day06 (
 import           AOC2018.Solver    ((:~>)(..))
 import           AOC2018.Util      (freqs, clearOut, minimumValNE)
 import           Control.Lens      (view)
-import           Control.Monad     (guard)
+import           Control.Monad     (guard, (<=<))
 import           Data.Char         (isDigit)
 import           Data.Foldable     (toList)
+import           Data.Ix           (range)
 import           Data.Map          (Map)
 import           Data.Set.NonEmpty (NESet)
 import           Data.Witherable   (mapMaybe, catMaybes)
 import           Linear            (V2(..), _x, _y)
 import           Text.Read         (readMaybe)
-import qualified Data.Ix           as Ix
 import qualified Data.Map          as M
 import qualified Data.Map.NonEmpty as NEM
 import qualified Data.Set          as S
 import qualified Data.Set.NonEmpty as NES
-import qualified Linear            as L
 
 type Point = V2 Int
 type Box   = V2 Point
 
-manhattan :: Point -> Point -> Int
-manhattan x = sum . abs . subtract x
+distance :: Point -> Point -> Int
+distance x = sum . abs . subtract x
 
 boundingBox :: NESet Point -> Box
 boundingBox ps = V2 xMin yMin `V2` V2 xMax yMax
@@ -52,7 +48,7 @@ boundingBox ps = V2 xMin yMin `V2` V2 xMax yMax
     yMax       = NES.findMax ys
 
 bbPoints :: Box -> [Point]
-bbPoints (V2 mins maxs) = Ix.range (mins, maxs)
+bbPoints (V2 mins maxs) = range (mins, maxs)
 
 voronoi :: NESet Point -> Box -> Map Point Int
 voronoi ps = catMaybes
@@ -62,13 +58,13 @@ voronoi ps = catMaybes
   where
     voronoiPoint p = guard (not minIsRepeated) *> NES.lookupIndex minVal ps
       where
-        dists             = NEM.fromSet (manhattan p) ps
+        dists             = NEM.fromSet (distance p) ps
         (minVal, minDist) = minimumValNE dists
         minIsRepeated     = (> 1) . length . filter (== minDist) . toList $ dists
 
 day06a :: NESet Point :~> Int
 day06a = MkSol
-    { sParse = (NES.nonEmptySet . S.fromList =<<) . traverse parseLine . lines
+    { sParse = (NES.nonEmptySet . S.fromList <=< traverse parseLine) . lines
     , sShow  = show
     , sSolve = \ps -> Just $
         let bb    = boundingBox ps
@@ -87,7 +83,7 @@ day06a = MkSol
 
 day06b :: NESet Point :~> Int
 day06b = MkSol
-    { sParse = (NES.nonEmptySet . S.fromList =<<) . traverse parseLine . lines
+    { sParse = (NES.nonEmptySet . S.fromList <=< traverse parseLine) . lines
     , sShow  = show
     , sSolve = \ps -> Just
                     . length
@@ -97,7 +93,7 @@ day06b = MkSol
                     $ ps
     }
   where
-    totalDist p = sum . fmap (manhattan p)
+    totalDist p = sum . fmap (distance p)
 
 
 parseLine :: String -> Maybe Point

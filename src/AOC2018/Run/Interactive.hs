@@ -152,7 +152,7 @@ loadTests cs = do
 -- | Unsafely create a 'ChallengeSpec' from a day number and part.
 --
 -- Is undefined if given a day number out of range (1-25).
-mkSpec :: Integer -> Char -> ChallengeSpec
+mkSpec :: Integer -> Part -> ChallengeSpec
 mkSpec i c = maybe e (`CS` c) . packFinite $ i - 1
   where
     e = errorWithoutStackTrace $ printf "Day out of range: %d" i

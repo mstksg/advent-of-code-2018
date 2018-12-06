@@ -62,12 +62,12 @@ readFinite = eitherReader $ \s -> do
     n <- maybe (Left "Invalid day") Right $ readMaybe s
     maybe (Left "Day out of range") Right $ packFinite (n - 1)
 
-readPart :: ReadM Char
+readPart :: ReadM Part
 readPart = eitherReader $ \case
-    []  -> Left "No part"
-    [p] | isAlpha p -> Right (toLower p)
-        | otherwise -> Left "Invalid part (not an alphabet letter)"
-    _   -> Left "Invalid part (not a single alphabet letter)"
+    ""  -> Left "No part"
+    "a" -> Right Part1
+    "b" -> Right Part2
+    _   -> Left "Invalid part (not 'a' or 'b')"
 
 parseChallengeSpec :: Parser ChallengeSpec
 parseChallengeSpec = do

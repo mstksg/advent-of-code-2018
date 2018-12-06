@@ -654,3 +654,32 @@ time                 86.48 ms   (84.09 ms .. 88.22 ms)
 mean                 87.50 ms   (86.39 ms .. 90.59 ms)
 std dev              3.148 ms   (573.0 μs .. 5.100 ms)
 ```
+
+Day 6
+-----
+
+*[Prompt][d06p]* / *[Code][d06g]* / *[Rendered][d06h]*
+
+[d06p]: https://adventofcode.com/2018/day/6
+[d06g]: https://github.com/mstksg/advent-of-code-2018/blob/master/src/AOC2018/Challenge/Day06.hs
+[d06h]: https://mstksg.github.io/advent-of-code-2018/src/AOC2018.Challenge.Day06.html
+
+
+### Day 5 Benchmarks
+
+```
+>> Day 06a
+benchmarking...
+time                 580.9 ms   (505.9 ms .. 664.7 ms)
+                     0.997 R²   (0.991 R² .. 1.000 R²)
+mean                 562.6 ms   (548.9 ms .. 572.7 ms)
+std dev              15.52 ms   (14.07 ms .. 17.69 ms)
+variance introduced by outliers: 19% (moderately inflated)
+
+>> Day 06b
+benchmarking...
+time                 100.2 ms   (99.16 ms .. 102.3 ms)
+                     1.000 R²   (0.999 R² .. 1.000 R²)
+mean                 103.6 ms   (101.9 ms .. 108.9 ms)
+std dev              4.418 ms   (1.537 ms .. 7.029 ms)
+```

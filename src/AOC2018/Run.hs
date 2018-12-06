@@ -70,7 +70,7 @@ data MainRunOpts = MRO { _mroSpec  :: !TestSpec
                        , _mroTest  :: !Bool     -- ^ Run tests?  (Default: False)
                        , _mroBench :: !Bool     -- ^ Benchmark?  (Default: False)
                        , _mroLock  :: !Bool     -- ^ Lock in answer as correct?  (Default: False)
-                       , _mroInput :: !(Finite 25 -> Char -> IO (Maybe String))   -- ^ Manually supply input (Default: always return Nothing)
+                       , _mroInput :: !(Finite 25 -> Part -> IO (Maybe String))   -- ^ Manually supply input (Default: always return Nothing)
                        }
 
 makeClassy ''MainRunOpts
@@ -124,7 +124,7 @@ filterChallengeMap = \case
     TSDayPart (CS d p) -> do
       ps <- maybeToEither (printf "Day not yet available: %d" (dayToInt d)) $
               M.lookup d challengeMap
-      c  <- maybeToEither (printf "Part not found: %c" p) $
+      c  <- maybeToEither (printf "Part not found: %c" (partChar p)) $
               M.lookup p ps
       pure $ M.singleton d (M.singleton p c)
 
@@ -133,7 +133,7 @@ mainRun
     :: (MonadIO m, MonadError [String] m)
     => Config
     -> MainRunOpts
-    -> m (Map (Finite 25) (Map Char (Maybe Bool, Either [String] String)))  -- whether or not passed tests, and result
+    -> m (Map (Finite 25) (Map Part (Maybe Bool, Either [String] String)))  -- whether or not passed tests, and result
 mainRun Cfg{..} MRO{..} =  do
     toRun <- liftEither . first (:[]) . filterChallengeMap $ _mroSpec
     liftIO . runAll _cfgSession _mroLock _mroInput toRun $ \c inp0 cd@CD{..} -> do
@@ -155,7 +155,7 @@ mainView
     :: (MonadIO m, MonadError [String] m)
     => Config
     -> MainViewOpts
-    -> m (Map (Finite 25) (Map Char Text))
+    -> m (Map (Finite 25) (Map Part Text))
 mainView Cfg{..} MVO{..} = do
     let toRun = maybe S.empty (M.keysSet . pullMap)
               . eitherToMaybe
@@ -168,7 +168,7 @@ mainView Cfg{..} MVO{..} = do
         liftEither . first ("[PROMPT ERROR]":) $ _cdPrompt
       liftIO $ do
         withColor ANSI.Dull ANSI.Blue $
-          printf ">> Day %02d%c\n" (dayToInt d) p
+          printf ">> Day %02d%c\n" (dayToInt d) (partChar p)
         T.putStrLn pmpt
         putStrLn ""
       pure pmpt
@@ -178,7 +178,7 @@ mainView Cfg{..} MVO{..} = do
       | otherwise = id
     singleTest = case _mvoSpec of
       TSAll        -> Nothing
-      TSDayAll d   -> Just (d, 'a')
+      TSDayAll d   -> Just (d, Part1)
       TSDayPart cs -> Just (_csDay cs, _csPart cs)
 
 -- | Submit and analyze result
@@ -191,15 +191,12 @@ mainSubmit Cfg{..} MSO{..} = do
     cd@CD{..} <- liftIO $ challengeData _cfgSession _msoSpec
     dMap      <- maybeToEither [printf "Day not yet available: %d" d'] $
                    M.lookup _csDay challengeMap
-    c         <- maybeToEither [printf "Part not found: %c" _csPart] $
+    c         <- maybeToEither [printf "Part not found: %c" (partChar _csPart)] $
                    M.lookup _csPart dMap
     inp       <- liftEither . first ("[PROMPT ERROR]":) $ _cdInput
     opts      <- defaultAoCOpts 2018 <$>
                     maybeToEither ["ERROR: Session Key Required to Submit"]
                       _cfgSession
-    part      <- maybeToEither [printf "Invalid part: %c" _csPart]
-               . charPart
-               $ _csPart
 
     when _msoTest $ do
       testRes <- liftIO $ runTestSuite c cd
@@ -218,7 +215,7 @@ mainSubmit Cfg{..} MSO{..} = do
     liftIO $ printf "Submitting solution: %s\n" res
 
     output@(resp, status) <- liftEither . first showAoCError
-                         =<< liftIO (runAoC opts (AoCSubmit _csDay part res))
+                         =<< liftIO (runAoC opts (AoCSubmit _csDay _csPart res))
     let resp' = formatResp
               . either (map T.pack) T.lines
               . htmlToMarkdown False
@@ -256,16 +253,16 @@ mainSubmit Cfg{..} MSO{..} = do
 runAll
     :: Maybe String                             -- ^ session key
     -> Bool                                     -- ^ run and lock answer
-    -> (Finite 25 -> Char -> IO (Maybe String))   -- ^ replacements
+    -> (Finite 25 -> Part -> IO (Maybe String))   -- ^ replacements
     -> ChallengeMap
     -> (SomeSolution -> Maybe String -> ChallengeData -> IO a)  -- ^ callback. given solution, "replacement" input, and data
-    -> IO (Map (Finite 25) (Map Char a))
+    -> IO (Map (Finite 25) (Map Part a))
 runAll sess lock rep cm f = flip M.traverseWithKey cm $ \d ->
                             M.traverseWithKey $ \p c -> do
     let CP{..} = challengePaths (CS d p)
     inp0 <- rep d p
     withColor ANSI.Dull ANSI.Blue $
-      printf ">> Day %02d%c\n" (dayToInt d) p
+      printf ">> Day %02d%c\n" (dayToInt d) (partChar p)
     when lock $ do
       CD{..} <- challengeData sess (CS d p)
       forM_ (inp0 <|> eitherToMaybe _cdInput) $ \inp ->
