@@ -28,6 +28,10 @@ module AOC2018.Util (
   , maximumValBy
   , minimumVal
   , minimumValBy
+  , maximumValNE
+  , maximumValByNE
+  , minimumValNE
+  , minimumValByNE
   , deleteFinite
   ) where
 
@@ -39,9 +43,11 @@ import           Data.Foldable
 import           Data.Function
 import           Data.List
 import           Data.Map             (Map)
+import           Data.Map.NonEmpty    (NEMap)
 import           GHC.TypeNats
 import qualified Data.List.NonEmpty   as NE
 import qualified Data.Map             as M
+import qualified Data.Map.NonEmpty    as NEM
 import qualified Data.Set             as S
 import qualified Data.Text            as T
 
@@ -153,6 +159,25 @@ minimumValBy c = fmap (minimumBy (c `on` snd))
 minimumVal :: Ord b => Map a b -> Maybe (a, b)
 minimumVal = minimumValBy compare
 
+-- | Version of 'maximumValBy' for nonempty maps.
+maximumValByNE :: (b -> b -> Ordering) -> NEMap a b -> (a, b)
+maximumValByNE c = maximumBy (c `on` snd)
+                 . NEM.toList
+
+-- | Version of 'maximumVal' for nonempty maps.
+maximumValNE :: Ord b => NEMap a b -> (a, b)
+maximumValNE = maximumValByNE compare
+
+-- | Version of 'minimumValBy' for nonempty maps.
+minimumValByNE :: (b -> b -> Ordering) -> NEMap a b -> (a, b)
+minimumValByNE c = minimumBy (c `on` snd)
+                 . NEM.toList
+
+-- | Version of 'minimumVal' for nonempty maps.
+minimumValNE :: Ord b => NEMap a b -> (a, b)
+minimumValNE = minimumValByNE compare
+
+-- | Delete a potential value from a 'Finite'.
 deleteFinite
     :: KnownNat n
     => Finite (n + 1)

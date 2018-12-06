@@ -67,6 +67,7 @@ dependencies:
 library:
   source-dirs: src
   dependencies:
+  - advent-of-code-api
   - aeson
   - ansi-terminal
   - bytestring
@@ -79,6 +80,7 @@ library:
   - dlist
   - filepath
   - finite-typelits
+  - free-algebras
   - groups
   - haskeline
   - haskell-names
@@ -103,9 +105,8 @@ library:
   - text
   - time
   - transformers
+  - witherable
   - yaml
-  - advent-of-code-api
-  - free-algebras
 
 executables:
   aoc2018:

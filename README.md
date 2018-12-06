@@ -4,13 +4,15 @@ Advent of Code 2018
 It's the most wonderful time of the year!
 
 My [Advent of Code 2018][aoc2018] Haskell solutions here, along with an automated
-fetching, testing, running environment.
+fetching, testing, running environment. (powered by the
+*[advent-of-code-api][]* library)
 
 Check out reflections and commentary at the [package haddocks][haddock]!
 (individual links down below)
 
 [aoc2018]: https://adventofcode.com/2018
 [haddock]: https://mstksg.github.io/advent-of-code-2018/
+[advent-of-code-api]: https://hackage.haskell.org/package/advent-of-code-api
 
 Reflections and Benchmarks
 --------------------------
@@ -20,6 +22,7 @@ Reflections and Benchmarks
 *   **[Day 3 Reflections][d03r]** *[code][d03g]* / *[rendered][d03h]* / *[benchmarks][d03b]*
 *   **[Day 4 Reflections][d04r]** *[code][d04g]* / *[rendered][d04h]* / *[benchmarks][d04b]*
 *   **[Day 5 Reflections][d05r]** *[code][d05g]* / *[rendered][d05h]* / *[benchmarks][d05b]*
+*   **[Day 6 Reflections][d06r]** *[code][d06g]* / *[rendered][d06h]* / *[benchmarks][d06b]*
 
 "Rendered" links go to haddock source renders for code, with reflections in the
 documentation.  Haddock source renders have hyperlinked identifiers,
@@ -64,10 +67,10 @@ which stage the error happened in.
 Interactive
 -----------
 
-The *[AOC2018.Run.Interactive][interactive]* module has code for testing
-your solutions and submitting within GHCI, so you don't have to re-compile.
-If you edit your solution programs, they are automatically updated when you hit
-`:r` in ghci.
+The *[AOC2018.Run.Interactive][interactive]* module has code (powered by
+*[advent-of-code-api][]*) for testing your solutions and submitting within
+GHCI, so you don't have to re-compile. If you edit your solution programs, they
+are automatically updated when you hit `:r` in ghci.
 
 [interactive]: https://mstksg.github.io/advent-of-code-2018/AOC2018-Run-Interactive.html
 
@@ -237,6 +240,8 @@ not your answer was correct (or invalid or ignored).  Answers that are
 confirmed correct will be locked in and saved for future testing against, in
 case you change your solution.
 
+All networking features are powered by *[advent-of-code-api][]*.
+
 [d01g]: https://github.com/mstksg/advent-of-code-2018/blob/master/src/AOC2018/Challenge/Day01.hs
 [d01h]: https://mstksg.github.io/advent-of-code-2018/src/AOC2018.Challenge.Day01.html
 [d01r]: https://github.com/mstksg/advent-of-code-2018/blob/master/reflections.md#day-1
@@ -261,3 +266,8 @@ case you change your solution.
 [d05h]: https://mstksg.github.io/advent-of-code-2018/src/AOC2018.Challenge.Day05.html
 [d05r]: https://github.com/mstksg/advent-of-code-2018/blob/master/reflections.md#day-5
 [d05b]: https://github.com/mstksg/advent-of-code-2018/blob/master/reflections.md#day-5-benchmarks
+
+[d06g]: https://github.com/mstksg/advent-of-code-2018/blob/master/src/AOC2018/Challenge/Day06.hs
+[d06h]: https://mstksg.github.io/advent-of-code-2018/src/AOC2018.Challenge.Day06.html
+[d06r]: https://github.com/mstksg/advent-of-code-2018/blob/master/reflections.md#day-6
+[d06b]: https://github.com/mstksg/advent-of-code-2018/blob/master/reflections.md#day-6-benchmarks

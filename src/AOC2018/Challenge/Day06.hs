@@ -17,71 +17,94 @@ module AOC2018.Challenge.Day06 (
   , day06b
   ) where
 
-import           AOC2018.Prelude
-import           Control.Lens
-import           Linear          (V2(..))
-import qualified Data.Ix         as Ix
-import qualified Data.Map        as M
-import qualified Data.Set        as S
-import qualified Linear          as L
+import           AOC2018.Solver    ((:~>)(..))
+import           AOC2018.Util      (freqs, clearOut, minimumValNE)
+import           Control.Lens      (view)
+import           Control.Monad     (guard)
+import           Data.Char         (isDigit)
+import           Data.Foldable     (toList)
+import           Data.Map          (Map)
+import           Data.Set.NonEmpty (NESet)
+import           Data.Witherable   (mapMaybe, catMaybes)
+import           Linear            (V2(..), _x, _y)
+import           Text.Read         (readMaybe)
+import qualified Data.Ix           as Ix
+import qualified Data.Map          as M
+import qualified Data.Map.NonEmpty as NEM
+import qualified Data.Set          as S
+import qualified Data.Set.NonEmpty as NES
+import qualified Linear            as L
 
 type Point = V2 Int
 type Box   = V2 Point
 
-parseLine :: String -> Maybe Point
-parseLine = (packUp =<<) . traverse readMaybe . words . clearOut (not . isDigit)
-  where
-    packUp [x,y] = Just $ V2 x y
-    packUp _     = Nothing
-
 manhattan :: Point -> Point -> Int
 manhattan x = sum . abs . subtract x
 
-onEdge :: Box -> Point -> Bool
-onEdge box pt = and $ elem <$> pt <*> L.transpose box
-
-boundingBox :: Set Point -> Box
-boundingBox ps = V2 bottomLeft topRight
+boundingBox :: NESet Point -> Box
+boundingBox ps = V2 xMin yMin `V2` V2 xMax yMax
   where
-    xs         = S.mapMonotonic (view _1) ps
-    ys         = S.map (view _2) ps
-    minX       = S.findMin xs
-    maxX       = S.findMax xs
-    minY       = S.findMin ys
-    maxY       = S.findMax ys
-    bottomLeft = V2 minX minY
-    topRight   = V2 maxX maxY
+    xs         = NES.mapMonotonic (view _x) ps
+    ys         = NES.map          (view _y) ps
+    xMin       = NES.findMin xs
+    xMax       = NES.findMax xs
+    yMin       = NES.findMin ys
+    yMax       = NES.findMax ys
 
-voronoi :: Box -> Set Point -> Map Point (Maybe Int)
-voronoi (V2 mins maxs) ps = flip M.fromSet allPoints $ \p ->
-    let dists                  = M.fromSet (manhattan p) ps
-        Just (minVal, minDist) = minimumVal dists
-        minIsRepeated          = M.size (M.filter (== minDist) dists) > 1
-    in  S.findIndex minVal ps <$ guard minIsRepeated
+bbPoints :: Box -> [Point]
+bbPoints (V2 mins maxs) = Ix.range (mins, maxs)
+
+voronoi :: NESet Point -> Box -> Map Point Int
+voronoi ps = catMaybes
+           . M.fromSet voronoiPoint
+           . S.fromList
+           . bbPoints
   where
-    allPoints = S.fromList $ Ix.range (mins, maxs)
+    voronoiPoint p = guard (not minIsRepeated) *> NES.lookupIndex minVal ps
+      where
+        dists             = NEM.fromSet (manhattan p) ps
+        (minVal, minDist) = minimumValNE dists
+        minIsRepeated     = (> 1) . length . filter (== minDist) . toList $ dists
 
-day06a :: Set Point :~> Int
+day06a :: NESet Point :~> Int
 day06a = MkSol
-    { sParse = fmap S.fromList . traverse parseLine . lines
+    { sParse = (NES.nonEmptySet . S.fromList =<<) . traverse parseLine . lines
     , sShow  = show
-    , sSolve = \ps ->
+    , sSolve = \ps -> Just $
         let bb    = boundingBox ps
-            v     = M.mapMaybe id . voronoi bb $ ps
-            edges = S.fromList . M.elems
-                  . M.filterWithKey (\p _ -> onEdge bb p)
-                  $ v
-            areas = freqs $ M.filter (`S.notMember` edges) v
-        in  Just . maximum . M.elems $ areas
+            voron = voronoi ps bb
+            edges = S.fromList
+                  . mapMaybe (\(p, x) -> x <$ guard (onEdge bb p))
+                  . M.toList
+                  $ voron
+        in  maximum . freqs . M.filter (`S.notMember` edges) $ voron
     }
+  where
+    onEdge :: Box -> Point -> Bool
+    onEdge (V2 xMin yMin `V2` V2 xMax yMax) (V2 x y) =
+            x `elem` [xMin, xMax]
+         || y `elem` [yMin, yMax]
 
-day06b :: [Point] :~> Int
+day06b :: NESet Point :~> Int
 day06b = MkSol
-    { sParse = traverse parseLine . lines
+    { sParse = (NES.nonEmptySet . S.fromList =<<) . traverse parseLine . lines
     , sShow  = show
-    , sSolve = \ps ->
-        let V2 mins maxs = boundingBox $ S.fromList ps
-            allPoints    = Ix.range (mins, maxs)
-            predi p      = (< 10000) . sum . map (manhattan p) $ ps
-        in  Just . length . filter predi $ allPoints
+    , sSolve = \ps -> Just
+                    . length
+                    . filter ((< 10000) . (`totalDist` NES.toList ps))
+                    . bbPoints
+                    . boundingBox
+                    $ ps
     }
+  where
+    totalDist p = sum . fmap (manhattan p)
+
+
+parseLine :: String -> Maybe Point
+parseLine = (packUp =<<)
+          . traverse readMaybe
+          . words
+          . clearOut (not . isDigit)
+  where
+    packUp [x,y] = Just $ V2 x y
+    packUp _     = Nothing
