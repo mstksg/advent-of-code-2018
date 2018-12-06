@@ -548,7 +548,7 @@ Day 5
 [d05h]: https://mstksg.github.io/advent-of-code-2018/src/AOC2018.Challenge.Day05.html
 [d05b]: https://blog.jle.im/entry/alchemical-groups.html
 
-My write-up for this is actually [on my blog, here][d05b]!  It involves my
+**My write-up for this is actually [on my blog, here][d05b]!**  It involves my
 group theory/free group/group homomorphism based solution.  That's my main
 reflection, but I also had a method that I wrote *before*, that I would still
 like to preserve.
