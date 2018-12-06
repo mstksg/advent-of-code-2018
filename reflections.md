@@ -651,8 +651,6 @@ homomorphism*.  That is, it maps *F(26)* (the free group on the 26 letters of
 the alphabet) to *F(25)* (the free group on the letters of the alphabet not
 including our cleaned letter).
 
-Luckily, the free group *F(S)* comes equipped with a free group homomorphism:
-
 ```haskell
 foldMapFree
     :: Group b
@@ -661,15 +659,15 @@ foldMapFree
 ```
 
 That is, given any `a -> b` for a group `b`, we get a group homormohpsim from
-`FreeGroup a` to `b`.  We can write a function from the *generators* of our
-group (in this case, `Char`), and i'll give us a group homomorphism on the
+`FreeGroupL a` to `b`.  We can write a function from the *generators* of our
+group (in this case, `Char`), and it'll give us a group homomorphism on the
 *free group* on our generators.
 
-We can use this to write our `F(26)` to `F(25)` group homomorphism:
+We can use this to write our $F(26) \rightarrow F(25)$ group homomorphism
 
 ```haskell
 foldMapFree
-    :: (Char -> FreeGroupL Char)  -- map letter sto letters-minus-some-letter
+    :: (Char -> FreeGroupL Char)  -- map letters to letters-minus-some-letter
     -> FreeGroupL Char
     -> FreeGroupL Char
 ```
@@ -680,30 +678,47 @@ Coincidence?)
 We can now create a "cleaned" version of our reaction by using:
 
 ```haskell
-clean :: Char -> FreeGroupL Char -> FreeGroupL Char
-clean c = foldMapFree $ \d -> if d == c then mempty else returnFree d
-           -- mempty is the identity element ^
+clean
+    :: Char                                     -- ^ given a letter to clean
+    -> (FreeGroupL Char -> FreeGroupL Char)     -- ^ return a group homomorphism
+clean c = foldMapFree $ \d ->
+        if d == c
+          then mempty
+          else returnFree d
 ```
 
-And so that's part 2: (just those that previous function, and this next one)
+And so that's part 2! We just need `clean` and this next function:
 
 ```haskell
-part2 (foldMap inject -> xs) = minimum [ lenght $ G.toList (clean c xs)
-                                       | c <- ['a' .. 'z']
-                                       ]
+day05b (foldMap inject -> xs) =
+    = minimum [ length $ FG.toList (clean c xs)
+              | c <- ['a' .. 'z']
+              ]
 ```
 
 Basically, we find the minimum of all of the possible "cleaned" lengths.
 
-Note that we actually introduced a large optimization over the naive foldr
-method, by accident: due to group theory, we know that for a group
-homomorphism, "aggregating then cleaning" is the same as "cleaning then
-aggregating".
+The best part about this, I think, is that we actually introduced a *large
+optimization*, completely *by accident*, thanks to group theory.
+
+Because we recognize that this is a group homomorphism, we know the properties
+of group homomorphisms apply.  Namely, the most important one: "Aggregating,
+then cleaning" is the *same* as "cleaning, then aggregating".
+
+That's because all group homomorphisms necessarily obey the law:
+
+```haskell
+f x <> f y == f (x <> y)
+```
 
 This means that we are free to either "clean first, then aggregate", or
-"aggregate first, then clean".  This choice is not obvious from just reading
-the problem alone, and, indeed, it seems like the problem might be deliberately
-written to obscure this choice from us.
+"aggregate first, then clean".
+
+Now, I don't know about you, but I definitely feel that this choice we have is
+*definitely not obvious* just from reading the problem immediately.  Indeed, it
+seems like the problem might be deliberately written to obscure this choice
+from us: it's implying that "cleaning, then reacting" is the only correct way,
+and "reacing, then cleaning" is not something that is even mentioned.
 
 But, thanks to group theory, we know that these are equivalent, so we can
 substitute which ever version is more efficient!
@@ -715,6 +730,10 @@ we get *the entire body of group theory* (or monad theory, or functor theory,
 etc.) to help us make program reductions that aren't immediately obviously
 legal but that have already been proven to be equivalent by mathematicians.  We
 hijack their work!
+
+We get program optimizations and reductions and substitutions for free, by
+"stealing" from the large body of such things that mathematicians have spent
+centuries collecting.
 
 ### Day 5 Benchmarks
 
