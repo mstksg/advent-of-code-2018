@@ -727,15 +727,13 @@ list) because sets have O(log n) minimum and maximum functions (whereas lists
 are O(n)).  (And, luckily for us, `NESet`'s `findMin` is actually O(1))
 
 Next, we write a function that, given a non-empty set of sites and a point we
-wish to label, return the label of that point.
+wish to label, return the label (site location) of that point.
 
 We do this by making a `NEMap` (non-empty `Map`) `dists` of sites to the
 distance between that site and the point and finding the key-value pair
 `(closestSite, minDist)` with the smallest value `minDist`.  Because our map is
 non-empty (our set of sites is non-empty), there will always be a minimum.
-
-The result is `NES.lookupIndex closestSite sites :: Maybe Int`, which finds the
-Site ID of `closestSite`.
+`closestSite` will be the result of `labelVoronoi`.
 
 One minor thing (that I forgot my first time through): there is a possibility
 that a cell might have *no* label.  This will happen if there is more than one
@@ -745,21 +743,20 @@ or not our `minDist` shows up more than once in the map of distances.
 ```haskell
 import qualified Data.Map.NonEmpty as NEM
 
-labelVoronoi :: NESet Point -> Point -> Maybe Int
-labelVoronoi sites p = guard (not minIsRepeated)
-                    *> NES.lookupIndex closestSite sites
+labelVoronoi :: NESet Point -> Point -> Maybe Point
+labelVoronoi sites p = closestSite <$ guard (not minIsRepeated)
   where
     dists                  = NEM.fromSet (distance p) sites
     (closestSite, minDist) = minimumValNE dists
     minIsRepeated          = (> 1) . length . filter (== minDist) . toList $ dists
 ```
 
-Once we have our voronoi diagram `Map Point Int`, we can use our
-`freqs :: [Int] -> Map Int a` function that we've used many times
-to get a `Map Int Int`, or a map from Site ID's to Frequencies --- essentially
-a map of Site Id's to the total area of the cells assigned to them.  The
-problem asks us what the size of the largest cell is, so that's the same as
-asking for the largest frequency, `maximum`.
+Once we have our voronoi diagram `Map Point Point` (map of points to
+nearest-site locations), we can use our `freqs :: [Point] -> Map Point Int` function
+that we've used many times to get a `Map Point Int`, or a map from Site points to
+Frequencies --- essentially a map of Sites to the total area of the cells
+assigned to them.  The problem asks us what the size of the largest cell is, so
+that's the same as asking for the largest frequency, `maximum`.
 
 ```haskell
 queryVoronoi :: Map Point Int -> Int
@@ -767,17 +764,17 @@ queryVeronoi = maximum . freqs . M.elems
 ```
 
 One caveat: we need to ignore cells that are "infinite".
-To that we can create the set of all Site Id's that touch the border, and then
-filter out all points in the map that are associated with a SiteId that touches
+To that we can create the set of all Sitse that touch the border, and then
+filter out all points in the map that are associated with a Site that touches
 the border.
 
 ```haskell
-cleanVoronoi :: Box -> Map Point Int -> Map Point Int
+cleanVoronoi :: Box -> Map Point Point -> Map Point Point
 cleanVoronoi (V2 (V2 xMin yMin) (V2 xMax yMax)) voronoi =
                   M.filter (`S.notMember` edges) voronoi
   where
     edges = S.fromList
-          . mapMaybe (\(p, x) -> x <$ guard (onEdge p))
+          . mapMaybe (\(point, site) -> site <$ guard (onEdge point))
           . M.toList
           $ voronoi
     onEdge (V2 x y) = or [ x == xMin, x == xMax, y == yMin, y == yMax ]

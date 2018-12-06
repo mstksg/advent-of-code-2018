@@ -49,9 +49,8 @@ boundingBox ps = V2 xMin yMin `V2` V2 xMax yMax
 bbPoints :: Box -> [Point]
 bbPoints (V2 mins maxs) = range (mins, maxs)
 
-labelVoronoi :: NESet Point -> Point -> Maybe Int
-labelVoronoi sites p = guard (not minIsRepeated)
-                    *> NES.lookupIndex closestSite sites
+labelVoronoi :: NESet Point -> Point -> Maybe Point
+labelVoronoi sites p = closestSite <$ guard (not minIsRepeated)
   where
     dists                  = NEM.fromSet (distance p) sites
     (closestSite, minDist) = minimumValNE dists
@@ -69,7 +68,7 @@ day06a = MkSol
                   . bbPoints
                   $ bb
             edges = S.fromList
-                  . mapMaybe (\(p, x) -> x <$ guard (onEdge bb p))
+                  . mapMaybe (\(point, site) -> site <$ guard (onEdge bb point))
                   . M.toList
                   $ voron
         in  maximum . freqs . M.filter (`S.notMember` edges) $ voron
