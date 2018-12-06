@@ -21,14 +21,14 @@ module AOC2018.Challenge.Day05 (
   , day05b
   ) where
 
-import           AOC2018.Solver     ((:~>)(..))
-import           AOC2018.Util       (deleteFinite)
-import           Data.Algebra.Free
-import           Data.Char          (ord, toLower, isLower)
-import           Data.Finite        (Finite, packFinite, finites)
-import           Data.Group
-import           Data.Group.Free    (FreeGroupL)
-import qualified Data.Group.Free    as G
+import           AOC2018.Solver    ((:~>)(..))
+import           AOC2018.Util      (deleteFinite)
+import           Data.Algebra.Free (returnFree, foldMapFree)
+import           Data.Char         (ord, toLower, isLower)
+import           Data.Finite       (Finite, packFinite, finites)
+import           Data.Group        (invert)
+import           Data.Group.Free   (FreeGroupL)
+import qualified Data.Group.Free   as G
 
 -- | One of the generators from the full alphabet
 type Elem  = Finite 26
