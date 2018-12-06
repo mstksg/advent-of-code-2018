@@ -68,7 +68,7 @@ data ChallengeData = CD { _cdPrompt :: !(Either [String] Text  )
 -- | Generate a 'ChallengePaths' from a specification of a challenge.
 challengePaths :: ChallengeSpec -> ChallengePaths
 challengePaths (CS d p) = CP
-    { _cpPrompt    = "prompt"          </> printf "%02d%c" d' p <.> "txt"
+    { _cpPrompt    = "prompt"          </> printf "%02d%c" d' p <.> "md"
     , _cpInput     = "data"            </> printf "%02d" d'     <.> "txt"
     , _cpAnswer    = "data/ans"        </> printf "%02d%c" d' p <.> "txt"
     , _cpTests     = "test-data"       </> printf "%02d%c" d' p <.> "txt"
