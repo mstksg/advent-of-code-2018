@@ -21,7 +21,6 @@ import           Control.Monad     (guard, (<=<))
 import           Data.Char         (isDigit)
 import           Data.Foldable     (toList)
 import           Data.Ix           (range)
-import           Data.Map          (Map)
 import           Data.Set.NonEmpty (NESet)
 import           Data.Witherable   (mapMaybe, catMaybes)
 import           Linear            (V2(..), _x, _y)
@@ -50,25 +49,25 @@ boundingBox ps = V2 xMin yMin `V2` V2 xMax yMax
 bbPoints :: Box -> [Point]
 bbPoints (V2 mins maxs) = range (mins, maxs)
 
-voronoi :: NESet Point -> Box -> Map Point Int
-voronoi ps = catMaybes
-           . M.fromSet voronoiPoint
-           . S.fromList
-           . bbPoints
+labelVoronoi :: NESet Point -> Point -> Maybe Int
+labelVoronoi sites p = guard (not minIsRepeated)
+                    *> NES.lookupIndex closestSite sites
   where
-    voronoiPoint p = guard (not minIsRepeated) *> NES.lookupIndex minVal ps
-      where
-        dists             = NEM.fromSet (distance p) ps
-        (minVal, minDist) = minimumValNE dists
-        minIsRepeated     = (> 1) . length . filter (== minDist) . toList $ dists
+    dists                  = NEM.fromSet (distance p) sites
+    (closestSite, minDist) = minimumValNE dists
+    minIsRepeated          = (> 1) . length . filter (== minDist) . toList $ dists
 
 day06a :: NESet Point :~> Int
 day06a = MkSol
     { sParse = (NES.nonEmptySet . S.fromList <=< traverse parseLine) . lines
     , sShow  = show
-    , sSolve = \ps -> Just $
-        let bb    = boundingBox ps
-            voron = voronoi ps bb
+    , sSolve = \sites -> Just $
+        let bb    = boundingBox sites
+            voron = catMaybes
+                  . M.fromSet (labelVoronoi sites)
+                  . S.fromList
+                  . bbPoints
+                  $ bb
             edges = S.fromList
                   . mapMaybe (\(p, x) -> x <$ guard (onEdge bb p))
                   . M.toList
@@ -85,12 +84,12 @@ day06b :: NESet Point :~> Int
 day06b = MkSol
     { sParse = (NES.nonEmptySet . S.fromList <=< traverse parseLine) . lines
     , sShow  = show
-    , sSolve = \ps -> Just
-                    . length
-                    . filter ((< 10000) . (`totalDist` NES.toList ps))
-                    . bbPoints
-                    . boundingBox
-                    $ ps
+    , sSolve = \sites -> Just
+                       . length
+                       . filter ((< 10000) . (`totalDist` NES.toList sites))
+                       . bbPoints
+                       . boundingBox
+                       $ sites
     }
   where
     totalDist p = sum . fmap (distance p)

@@ -213,10 +213,12 @@ Day 3 brings back one of my favorite data structures in Haskell -- `Map (Int,
 Int)`!  It's basically a sparse grid.  It maps coordinates to values at each
 coordinate.
 
-We're going to use `V2 Int` (from *linear*) instead of `(Int, Int)` (they're
+We're going to use `V2 Int` (from *[linear][]*) instead of `(Int, Int)` (they're
 the same thing), because we get to use the overloaded `+` operator to do
 point-wise addition.  Let's also define a rectangle specification and claim
 record type to keep things clean:
+
+[linear]: https://hackage.haskell.org/package/linear
 
 ```haskell
 type Coord = V2 Int
@@ -664,8 +666,179 @@ Day 6
 [d06g]: https://github.com/mstksg/advent-of-code-2018/blob/master/src/AOC2018/Challenge/Day06.hs
 [d06h]: https://mstksg.github.io/advent-of-code-2018/src/AOC2018.Challenge.Day06.html
 
+Day 6 Part 1 has us build a [Voronoi Diagram][], and inspect properties of it.
+Again, it's all very functional already, since we just need, basically:
 
-### Day 5 Benchmarks
+1.  A function to get a voronoi diagram from a set of points
+2.  A function to query the diagram for properties we care about
+
+[Voronoi Diagram]: https://en.wikipedia.org/wiki/Voronoi_diagram
+
+Along the way, types will help us write our programs, because we constantly
+will be asking the compiler for "what could go here" sort of things; it'll also
+prevent us from putting the wrong pieces together!
+
+We're going to leverage the *[linear][]* library again, for its `V2 Int` type
+for our points.  It has a very useful `Num` and `Foldable` instance, which we
+can use to write our `distance` function:
+
+```haskell
+type Point = V2 Int
+
+distance :: Point -> Point -> Int
+distance x y = sum $ abs (x - y)
+```
+
+We're going to be representing our voronoi diagram using a `Map Point Int`: a
+map of points to the "Site ID".  0 would mean that the closest site is Site #0,
+1 would mean that the closest site is Site #1, etc.
+
+We can generate such a map by getting a `Set Point` (a set of all points within
+our area of interest) and using `M.fromSet :: (Point -> Int) -> Set Point ->
+Map Point Int`, to assign a Site ID to each point.
+
+First, we build a bounding box so don't need to generate an infinite map.  The
+`boundingBox` function will take a non-empty set (from
+*[nonempty-containers][]*) of `Point` and return `V2 Point`, which the
+lower-left and upper-right corners of our bounding box.
+
+[nonempty-containers]: https://hackage.haskell.org/package/nonempty-containers
+
+```haskell
+import           Data.Set.NonEmpty (NESet)
+import qualified Data.Set.NonEmpty as NES
+
+type Box = V2 Point
+
+boundingBox :: NESet Point -> Box
+boundingBox ps = V2 xMin yMin `V2` V2 xMax yMax
+  where
+    xs         = NES.map (view _x) ps
+    ys         = NES.map (view _y) ps
+    xMin       = NES.findMin xs
+    xMax       = NES.findMax xs
+    yMin       = NES.findMin ys
+    yMax       = NES.findMax ys
+```
+
+We need to make sure that our input is non-empty so that `findMin` and
+`findMax` are total.  We also would like a *set* (instead of just a non-empty
+list) because sets have O(log n) minimum and maximum functions (whereas lists
+are O(n)).  (And, luckily for us, `NESet`'s `findMin` is actually O(1))
+
+Next, we write a function that, given a non-empty set of sites and a point we
+wish to label, return the label of that point.
+
+We do this by making a `NEMap` (non-empty `Map`) `dists` of sites to the
+distance between that site and the point and finding the key-value pair
+`(closestSite, minDist)` with the smallest value `minDist`.  Because our map is
+non-empty (our set of sites is non-empty), there will always be a minimum.
+
+The result is `NES.lookupIndex closestSite sites :: Maybe Int`, which finds the
+Site ID of `closestSite`.
+
+One minor thing (that I forgot my first time through): there is a possibility
+that a cell might have *no* label.  This will happen if there is more than one
+closest neighbor.  To get around this, we `guard` our `Maybe` based on whether
+or not our `minDist` shows up more than once in the map of distances.
+
+```haskell
+import qualified Data.Map.NonEmpty as NEM
+
+labelVoronoi :: NESet Point -> Point -> Maybe Int
+labelVoronoi sites p = guard (not minIsRepeated)
+                    *> NES.lookupIndex closestSite sites
+  where
+    dists                  = NEM.fromSet (distance p) sites
+    (closestSite, minDist) = minimumValNE dists
+    minIsRepeated          = (> 1) . length . filter (== minDist) . toList $ dists
+```
+
+Once we have our voronoi diagram `Map Point Int`, we can use our
+`freqs :: [Int] -> Map Int a` function that we've used many times
+to get a `Map Int Int`, or a map from Site ID's to Frequencies --- essentially
+a map of Site Id's to the total area of the cells assigned to them.  The
+problem asks us what the size of the largest cell is, so that's the same as
+asking for the largest frequency, `maximum`.
+
+```haskell
+queryVoronoi :: Map Point Int -> Int
+queryVeronoi = maximum . freqs . M.elems
+```
+
+One caveat: we need to ignore cells that are "infinite".
+To that we can create the set of all Site Id's that touch the border, and then
+filter out all points in the map that are associated with a SiteId that touches
+the border.
+
+```haskell
+cleanVoronoi :: Box -> Map Point Int -> Map Point Int
+cleanVoronoi (V2 (V2 xMin yMin) (V2 xMax yMax)) voronoi =
+                  M.filter (`S.notMember` edges) voronoi
+  where
+    edges = S.fromList
+          . mapMaybe (\(p, x) -> x <$ guard (onEdge p))
+          . M.toList
+          $ voronoi
+    onEdge (V2 x y) = or [ x == xMin, x == xMax, y == yMin, y == yMax ]
+```
+
+We turn `edges` into a `Set` (instead of just a list) because of the fast
+`S.notMember` function, to check if a Site ID is in the set of edge-touching
+ID's.
+
+
+Finally, we need to get a function from a bounding box `Box` to `[Point]`: all
+of the points in that bounding box.  Luckily, this is exactly what the `Ix`
+instance of `V2 Int` gets us:
+
+```haskell
+import qualified Data.Ix as Ix
+
+bbPoints :: Box -> [Point]
+bbPoints (V2 mins maxs) = Ix.range (mins, maxs)
+```
+
+And so Part 1 is:
+
+```haskell
+day06a :: NESet Point -> Int
+day06a sites = queryVoronoi cleaned
+  where
+    bb      = boundingBox sites
+    voronoi = catMaybes
+            . M.fromSet (labelVoronoi sites)
+            . S.fromList
+            $ bbPoints bb
+    cleaned = cleanVoronoi voronoi
+```
+
+Basically, a series of somewhat complex queries (translated straight from the
+prompt) on a voronoi diagram generated by a set of points.
+
+Part 2 is much simpler; it's just filtering for all the points that have a
+given function, and then counting how many points there are.
+
+```haskell
+day06b :: NESet Point -> Int
+day06b sites = length
+             . filter ((< 10000) . totalDist)
+             . bbPoints
+             . boundingBox
+             $ sites
+  where
+    totalDist p = sum $ distance p <$> sites
+```
+
+1.  Get the bounding box with `boundingBox`
+2.  Generate all of the points in that bounding box with `bbPoints`
+3.  Filter those points for just those where their `totalDist` is less than
+    10000
+4.  Find the number of such points
+
+Another situation where the Part 2 is much simpler than Part 1 :)
+
+### Day 6 Benchmarks
 
 ```
 >> Day 06a
