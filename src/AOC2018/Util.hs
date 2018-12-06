@@ -91,8 +91,8 @@ firstRepeated = go S.empty
     go _ []     = Nothing
 
 -- | Build a frequency map
-freqs :: Ord a => [a] -> Map a Int
-freqs = M.fromListWith (+) . map (,1)
+freqs :: (Foldable f, Ord a) => f a -> Map a Int
+freqs = M.fromListWith (+) . map (,1) . toList
 
 -- | Collect all possible single-item perturbations from a given
 -- perturbing function.

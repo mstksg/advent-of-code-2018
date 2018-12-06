@@ -12,6 +12,9 @@
 -- Note that this is slow in the current version of "Data.Group.Free" on
 -- hackage.  See https://github.com/mstksg/free-algebras/tree/freegroup2
 -- for a version that is efficient.
+--
+-- See <https://blog.jle.im/entry/alchemical-groups.html> for an
+-- explaination.
 
 module AOC2018.Challenge.Day05 (
     day05a
