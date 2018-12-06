@@ -96,6 +96,7 @@ library:
   - pointedlist
   - profunctors
   - recursion-schemes
+  - semigroupoids
   - show-prettyprint
   - singletons
   - split

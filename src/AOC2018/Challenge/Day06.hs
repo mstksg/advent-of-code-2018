@@ -14,21 +14,23 @@ module AOC2018.Challenge.Day06 (
   , day06b
   ) where
 
-import           AOC2018.Solver    ((:~>)(..))
-import           AOC2018.Util      (freqs, clearOut, minimumValNE)
-import           Control.Lens      (view)
-import           Control.Monad     (guard, (<=<))
-import           Data.Char         (isDigit)
-import           Data.Foldable     (toList)
-import           Data.Ix           (range)
-import           Data.Set.NonEmpty (NESet)
-import           Data.Witherable   (mapMaybe, catMaybes)
-import           Linear            (V2(..), _x, _y)
-import           Text.Read         (readMaybe)
-import qualified Data.Map          as M
-import qualified Data.Map.NonEmpty as NEM
-import qualified Data.Set          as S
-import qualified Data.Set.NonEmpty as NES
+import           AOC2018.Solver          ((:~>)(..))
+import           AOC2018.Util            (freqs, clearOut)
+import           Control.Monad           (guard, (<=<))
+import           Data.Char               (isDigit)
+import           Data.Foldable           (minimumBy)
+import           Data.Functor            ((<&>))
+import           Data.Ix                 (range)
+import           Data.List.NonEmpty      (NonEmpty(..))
+import           Data.Ord                (comparing)
+import           Data.Semigroup          (Min(..),Max(..))
+import           Data.Semigroup.Foldable (foldMap1)
+import           Data.Witherable         (mapMaybe, catMaybes)
+import           Linear                  (V2(..))
+import           Text.Read               (readMaybe)
+import qualified Data.List.NonEmpty      as NE
+import qualified Data.Map                as M
+import qualified Data.Set                as S
 
 type Point = V2 Int
 type Box   = V2 Point
@@ -36,29 +38,25 @@ type Box   = V2 Point
 distance :: Point -> Point -> Int
 distance x = sum . abs . subtract x
 
-boundingBox :: NESet Point -> Box
+boundingBox :: NonEmpty Point -> Box
 boundingBox ps = V2 xMin yMin `V2` V2 xMax yMax
   where
-    xs         = NES.mapMonotonic (view _x) ps
-    ys         = NES.map          (view _y) ps
-    xMin       = NES.findMin xs
-    xMax       = NES.findMax xs
-    yMin       = NES.findMin ys
-    yMax       = NES.findMax ys
+    (Min xMin, Min yMin, Max xMax, Max yMax) = flip foldMap1 ps $ \(V2 x y) ->
+        (Min x, Min y, Max x, Max y)
 
 bbPoints :: Box -> [Point]
 bbPoints (V2 mins maxs) = range (mins, maxs)
 
-labelVoronoi :: NESet Point -> Point -> Maybe Point
+labelVoronoi :: NonEmpty Point -> Point -> Maybe Point
 labelVoronoi sites p = closestSite <$ guard (not minIsRepeated)
   where
-    dists                  = NEM.fromSet (distance p) sites
-    (closestSite, minDist) = minimumValNE dists
-    minIsRepeated          = (> 1) . length . filter (== minDist) . toList $ dists
+    dists                  = sites <&> \site -> (site, distance p site)
+    (closestSite, minDist) = minimumBy (comparing snd) dists
+    minIsRepeated          = (> 1) . length . NE.filter ((== minDist) . snd) $ dists
 
-day06a :: NESet Point :~> Int
+day06a :: NonEmpty Point :~> Int
 day06a = MkSol
-    { sParse = (NES.nonEmptySet . S.fromList <=< traverse parseLine) . lines
+    { sParse = (NE.nonEmpty <=< traverse parseLine) . lines
     , sShow  = show
     , sSolve = \sites -> Just $
         let bb    = boundingBox sites
@@ -79,20 +77,19 @@ day06a = MkSol
             x `elem` [xMin, xMax]
          || y `elem` [yMin, yMax]
 
-day06b :: NESet Point :~> Int
+day06b :: NonEmpty Point :~> Int
 day06b = MkSol
-    { sParse = (NES.nonEmptySet . S.fromList <=< traverse parseLine) . lines
+    { sParse = (NE.nonEmpty <=< traverse parseLine) . lines
     , sShow  = show
     , sSolve = \sites -> Just
                        . length
-                       . filter ((< 10000) . (`totalDist` NES.toList sites))
+                       . filter ((< 10000) . (`totalDist` sites))
                        . bbPoints
                        . boundingBox
                        $ sites
     }
   where
     totalDist p = sum . fmap (distance p)
-
 
 parseLine :: String -> Maybe Point
 parseLine = (packUp =<<)

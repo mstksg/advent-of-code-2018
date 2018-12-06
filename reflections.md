@@ -689,49 +689,52 @@ distance :: Point -> Point -> Int
 distance x y = sum $ abs (x - y)
 ```
 
-We're going to be representing our voronoi diagram using a `Map Point Int`: a
-map of points to the "Site ID".  0 would mean that the closest site is Site #0,
-1 would mean that the closest site is Site #1, etc.
+We're going to be representing our voronoi diagram using a `Map Point Point`: a
+map of points to the location of the "Site" they are assigned to.
 
 We can generate such a map by getting a `Set Point` (a set of all points within
-our area of interest) and using `M.fromSet :: (Point -> Int) -> Set Point ->
-Map Point Int`, to assign a Site ID to each point.
+our area of interest) and using `M.fromSet :: (Point -> Point) -> Set Point ->
+Map Point Point`, to assign a Site to each point.
 
 First, we build a bounding box so don't need to generate an infinite map.  The
-`boundingBox` function will take a non-empty set (from
-*[nonempty-containers][]*) of `Point` and return `V2 Point`, which the
-lower-left and upper-right corners of our bounding box.
+`boundingBox` function will take a non-empty list of points (from
+`Data.List.NonEmpty`) and return a `V2 Point`, which the lower-left and
+upper-right corners of our bounding box.
 
-[nonempty-containers]: https://hackage.haskell.org/package/nonempty-containers
+We need to iterate through the whole list and accumulate the minimum and
+maximums of x and y.  We can do it all in one pass by taking advantage of the
+`(Semigroup a, Semigroup b) => Semigroup (a, b)` instance, the `Min` and `Max`
+newtype wrappers to give us the appropriate semigroups, and using `foldMap1 ::
+Semigroup m => (a -> m) -> NonEmpty a -> m`:
 
 ```haskell
-import           Data.Set.NonEmpty (NESet)
-import qualified Data.Set.NonEmpty as NES
+import           Data.List.NonEmpty (NonEmpty(..))
+import           Data.Semigroup.Foldable
 
 type Box = V2 Point
 
-boundingBox :: NESet Point -> Box
+boundingBox :: NonEmpty Point -> Box
 boundingBox ps = V2 xMin yMin `V2` V2 xMax yMax
   where
-    xs         = NES.map (view _x) ps
-    ys         = NES.map (view _y) ps
-    xMin       = NES.findMin xs
-    xMax       = NES.findMax xs
-    yMin       = NES.findMin ys
-    yMax       = NES.findMax ys
+    (Min xMin, Min yMin, Max xMax, Max yMax) = flip foldMap1 ps $ \(V2 x y) ->
+        (Min x, Min y, Max x, Max y)
 ```
 
-We need to make sure that our input is non-empty so that `findMin` and
-`findMax` are total.  We also would like a *set* (instead of just a non-empty
-list) because sets have O(log n) minimum and maximum functions (whereas lists
-are O(n)).  (And, luckily for us, `NESet`'s `findMin` is actually O(1))
+(Note that we can just use `foldMap`, because `Min` and `Max` have a `Monoid`
+instance because `Int` is bounded.  But that's no fun!  And besides, what if we
+had used `Integer`?)
+
+(Also note that this could potentially blow up the stack, because tuples in
+Haskell are lazy.  If we cared about performance, we'd use a strict tuple type
+instead of the lazy tuple.  In this case, since we only have on the order of a
+few thousand points, it's not a huge deal)
 
 Next, we write a function that, given a non-empty set of sites and a point we
 wish to label, return the label (site location) of that point.
 
-We do this by making a `NEMap` (non-empty `Map`) `dists` of sites to the
-distance between that site and the point and finding the key-value pair
-`(closestSite, minDist)` with the smallest value `minDist`.  Because our map is
+We do this by making a `NonEmpty (Point, Int)` `dists` that  pair up sites to
+the distance between that site and the point and finding the key-value pair
+`(closestSite, minDist)` with the smallest value `minDist`.  Because our list is
 non-empty (our set of sites is non-empty), there will always be a minimum.
 `closestSite` will be the result of `labelVoronoi`.
 
@@ -741,14 +744,13 @@ closest neighbor.  To get around this, we `guard` our `Maybe` based on whether
 or not our `minDist` shows up more than once in the map of distances.
 
 ```haskell
-import qualified Data.Map.NonEmpty as NEM
-
-labelVoronoi :: NESet Point -> Point -> Maybe Point
+labelVoronoi :: NonEmpty Point -> Point -> Maybe Point
 labelVoronoi sites p = closestSite <$ guard (not minIsRepeated)
   where
-    dists                  = NEM.fromSet (distance p) sites
-    (closestSite, minDist) = minimumValNE dists
-    minIsRepeated          = (> 1) . length . filter (== minDist) . toList $ dists
+    dists                  = sites <&> \site -> (site, distance p site)
+    (closestSite, minDist) = minimumBy (comparing snd) dists
+    minIsRepeated          = (> 1) . length . NE.filter ((== minDist) . snd) $ dists
+
 ```
 
 Once we have our voronoi diagram `Map Point Point` (map of points to
@@ -759,7 +761,7 @@ assigned to them.  The problem asks us what the size of the largest cell is, so
 that's the same as asking for the largest frequency, `maximum`.
 
 ```haskell
-queryVoronoi :: Map Point Int -> Int
+queryVoronoi :: Map Point Point -> Int
 queryVeronoi = maximum . freqs . M.elems
 ```
 
@@ -799,7 +801,7 @@ bbPoints (V2 mins maxs) = Ix.range (mins, maxs)
 And so Part 1 is:
 
 ```haskell
-day06a :: NESet Point -> Int
+day06a :: NonEmpty Point -> Int
 day06a sites = queryVoronoi cleaned
   where
     bb      = boundingBox sites
@@ -817,7 +819,7 @@ Part 2 is much simpler; it's just filtering for all the points that have a
 given function, and then counting how many points there are.
 
 ```haskell
-day06b :: NESet Point -> Int
+day06b :: NonEmpty Point -> Int
 day06b sites = length
              . filter ((< 10000) . totalDist)
              . bbPoints
@@ -834,6 +836,20 @@ day06b sites = length
 4.  Find the number of such points
 
 Another situation where the Part 2 is much simpler than Part 1 :)
+
+Our parser isn't too complicated; it's similar to the parsers from the previous
+parts:
+
+```haskell
+parseLine :: String -> Maybe Point
+parseLine = (packUp =<<)
+          . traverse readMaybe
+          . words
+          . clearOut (not . isDigit)
+  where
+    packUp [x,y] = Just $ V2 x y
+    packUp _     = Nothing
+```
 
 ### Day 6 Benchmarks
 
