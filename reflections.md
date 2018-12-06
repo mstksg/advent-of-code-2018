@@ -633,7 +633,7 @@ import qualified Data.Group.Free as FG
 inject :: Char -> FG.FreeGroupL Char
 inject c
     | isAlpha c && isLower c = returnFree c
-    | isAlpha c && isUpper c = invert $ returnFree c
+    | isAlpha c && isUpper c = invert $ returnFree (toLower c)
     | otherwise              = identity
 ```
 
@@ -685,7 +685,7 @@ clean c = foldMapFree $ \d -> if d == c then mempty else returnFree d
            -- mempty is the identity element ^
 ```
 
-And so that's part 2:
+And so that's part 2: (just those that previous function, and this next one)
 
 ```haskell
 part2 (foldMap inject -> xs) = minimum [ lenght $ G.toList (clean c xs)
