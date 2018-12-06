@@ -634,7 +634,7 @@ inject :: Char -> FG.FreeGroupL Char
 inject c
     | isAlpha c && isLower c = returnFree c
     | isAlpha c && isUpper c = invert $ returnFree (toLower c)
-    | otherwise              = identity
+    | otherwise              = mempty
 ```
 
 The free group has a "length" property (the length of the string of
