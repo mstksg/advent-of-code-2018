@@ -18,7 +18,6 @@ import           AOC2018.Solver          ((:~>)(..))
 import           AOC2018.Util            (freqs, clearOut)
 import           Control.Monad           (guard, (<=<))
 import           Data.Char               (isDigit)
-import           Data.Foldable           (minimumBy)
 import           Data.Functor            ((<&>))
 import           Data.Ix                 (range)
 import           Data.List.NonEmpty      (NonEmpty(..))
@@ -46,7 +45,10 @@ boundingBox ps = V2 xMin yMin `V2` V2 xMax yMax
 bbPoints :: Box -> [Point]
 bbPoints (V2 mins maxs) = range (mins, maxs)
 
-labelVoronoi :: NonEmpty Point -> Point -> Maybe Point
+labelVoronoi
+    :: NonEmpty Point     -- ^ set of sites
+    -> Point              -- ^ point to label
+    -> Maybe Point        -- ^ the label, if unique
 labelVoronoi sites p = do
     (closestSite, _) :| [] <- Just
                             . NE.head

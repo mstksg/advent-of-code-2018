@@ -750,7 +750,10 @@ Then we can pattern match on `(closestSite, minDist) :| []` to prove that this
 "first list" has exactly one item, so the minimum is unique.
 
 ```haskell
-labelVoronoi :: NonEmpty Point -> Point -> Maybe Point
+labelVoronoi
+    :: NonEmpty Point     -- ^ set of sites
+    -> Point              -- ^ point to label
+    -> Maybe Point        -- ^ the label, if unique
 labelVoronoi sites p = do
     (closestSite, _) :| [] <- Just
                             . NE.head
