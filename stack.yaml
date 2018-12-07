@@ -39,6 +39,7 @@ packages:
 # (e.g., acme-missiles-0.3)
 extra-deps:
 - advent-of-code-api-0.1.0.0
+- fgl-5.7.0.1
 - natural-numbers-0.1.2.0
 - nonempty-containers-0.1.0.0
 - taggy-0.2.1
