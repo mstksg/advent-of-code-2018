@@ -821,7 +821,7 @@ day06a sites = queryVoronoi cleaned
             . M.fromSet (labelVoronoi sites)
             . S.fromList
             $ bbPoints bb
-    cleaned = cleanVoronoi voronoi
+    cleaned = cleanVoronoi bb voronoi
 ```
 
 Basically, a series of somewhat complex queries (translated straight from the
