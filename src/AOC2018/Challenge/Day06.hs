@@ -14,7 +14,7 @@ module AOC2018.Challenge.Day06 (
   , day06b
   ) where
 
-import           AOC2018.Solver          ((:~>)(..), fromDyno_)
+import           AOC2018.Solver          ((:~>)(..), dyno_)
 import           AOC2018.Util            (freqs, clearOut)
 import           Control.Monad           (guard, (<=<))
 import           Data.Char               (isDigit)
@@ -89,7 +89,7 @@ day06b = MkSol
     , sSolve = \sites ->
             Just
           . length
-          . filter ((< (fromDyno_ @"lim" 10000)) . (`totalDist` sites))
+          . filter ((< (dyno_ @"lim" 10000)) . (`totalDist` sites))
           . bbPoints
           . boundingBox
           $ sites

@@ -16,7 +16,7 @@ module AOC2018.Challenge.Day07 (
   , day07b
   ) where
 
-import           AOC2018.Solver       ((:~>)(..), fromDyno_)
+import           AOC2018.Solver       ((:~>)(..), dyno_)
 import           Control.Lens
 import           Control.Monad        (unless)
 import           Control.Monad.State  (StateT, runStateT)
@@ -151,8 +151,8 @@ day07b = MkSol
     { sParse = parseAll
     , sShow  = show
     , sSolve = \mp -> Just $
-        let cap               = fromDyno_ @"cap" 5
-            baseWait          = fromDyno_ @"wait" 60
+        let cap               = dyno_ @"cap" 5
+            baseWait          = dyno_ @"wait" 60
             waitTime          = fromIntegral . (+ baseWait) . subtract (ord 'A') . ord
             (active, waiting) = S.splitAt cap $ findRoots mp
         in  getSum . execWriter . runStateT (buildSleigh cap mp waitTime) $ BS2

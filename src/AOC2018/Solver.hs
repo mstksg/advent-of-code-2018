@@ -21,8 +21,8 @@ module AOC2018.Solver (
   -- * 'DynoMap'
   , runSolutionWith
   , runSomeSolutionWith
-  , fromDyno
-  , fromDyno_
+  , dyno
+  , dyno_
   ) where
 
 import           AOC2018.Util
@@ -111,7 +111,7 @@ runSomeSolutionWith dm (MkSomeSol c) = runSolutionWith dm c
 -- | From a @?dyno@ Implicit Params, look up a value at a given key.  Meant
 -- to be used with TypeApplications:
 --
--- > fromDyno @"hello"
+-- > 'dyno' @"hello"
 --
 -- This can be used within the body of 'sSolve', since it will always be
 -- called with the implicit parameter.
@@ -121,23 +121,23 @@ runSomeSolutionWith dm (MkSomeSol c) = runSolutionWith dm c
 --
 -- This is useful for when some problems have parameters that are
 -- different with test inputs than for actual inputs.
-fromDyno
+dyno
     :: forall (sym :: Symbol) a. (KnownSymbol sym, Typeable a, ?dyno :: DynoMap)
     => Maybe a
-fromDyno = lookupDyno @sym ?dyno
+dyno = lookupDyno @sym ?dyno
 
--- | A version of 'fromDyno' taking a default value in case the key is not
+-- | A version of 'dyno' taking a default value in case the key is not
 -- in the map.  When called on actual puzzle input, this is always 'id'.
 -- However, for some test inputs, there might be supplied values.
 --
 -- Meant to be used with TypeApplications:
 --
--- > fromDynoWith @"hello" 7
+-- > 'dyno_' @"hello" 7
 --
 -- This is useful for when some problems have parameters that are
 -- different with test inputs than for actual inputs.
-fromDyno_
+dyno_
     :: forall (sym :: Symbol) a. (KnownSymbol sym, Typeable a, ?dyno :: DynoMap)
     => a            -- ^ default
     -> a
-fromDyno_ def = lookupDynoWith @sym def ?dyno
+dyno_ def = lookupDynoWith @sym def ?dyno
