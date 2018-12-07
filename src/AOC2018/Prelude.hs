@@ -55,5 +55,6 @@ import           Data.Witherable           as P hiding (filter)
 import           Debug.Trace               as P
 import           GHC.Generics              as P (Generic)
 import           Linear                    as P (V0(..), V1(..), V2(..), V3(..), V4(..), R1(..), R2(..), R3(..), R4(..))
+import           Numeric.Natural           as P
 import           Text.Printf               as P
 import           Text.Read                 as P (readMaybe)
