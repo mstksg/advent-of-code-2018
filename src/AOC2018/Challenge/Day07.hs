@@ -8,20 +8,27 @@
 -- Portability : non-portable
 --
 -- Day 7.  See "AOC2018.Solver" for the types used in this module!
---
--- After completing the challenge, it is recommended to:
---
--- *   Replace "AOC2018.Prelude" imports to specific modules (with explicit
---     imports) for readability.
 
 module AOC2018.Challenge.Day07 (
     day07a
   , day07b
   ) where
 
-import           AOC2018.Prelude
+import           AOC2018.Solver       ((:~>)(..))
 import           Control.Lens
-import           Control.Monad.Writer
+import           Control.Monad        (unless)
+import           Control.Monad.State  (StateT, runStateT)
+import           Control.Monad.Writer (Writer, execWriter, tell)
+import           Data.Bifunctor       (first, second)
+import           Data.Char            (ord, isUpper)
+import           Data.Foldable        (fold, find, forM_, toList)
+import           Data.Map             (Map)
+import           Data.Semigroup       (Sum(..))
+import           Data.Set             (Set)
+import           Data.Set.NonEmpty    (NESet)
+import           Data.Tuple           (swap)
+import           Data.Witherable      (wither)
+import           Numeric.Natural      (Natural)
 import qualified Data.Map             as M
 import qualified Data.Set             as S
 import qualified Data.Set.NonEmpty    as NES
@@ -62,8 +69,8 @@ lexicoTopo :: Map Char (Set Char) -> StateT BS1 (Writer String) ()
 lexicoTopo childs = go
   where
     go = do
-      deps   <- gets _bs1Deps
-      active <- gets _bs1Active
+      deps   <- use bs1Deps
+      active <- use bs1Active
       forM_ (find (`M.notMember` deps) active) $ \c -> do
         tell [c]
         bs1Deps . wither %= NES.nonEmptySet . NES.delete c
