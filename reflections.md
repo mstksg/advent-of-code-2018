@@ -733,24 +733,33 @@ Next, we write a function that, given a non-empty set of sites and a point we
 wish to label, return the label (site location) of that point.
 
 We do this by making a `NonEmpty (Point, Int)` `dists` that  pair up sites to
-the distance between that site and the point and finding the key-value pair
-`(closestSite, minDist)` with the smallest value `minDist`.  Because our list is
-non-empty (our set of sites is non-empty), there will always be a minimum.
-`closestSite` will be the result of `labelVoronoi`.
+the distance between that site and the point.
 
-One minor thing (that I forgot my first time through): there is a possibility
-that a cell might have *no* label.  This will happen if there is more than one
-closest neighbor.  To get around this, we `guard` our `Maybe` based on whether
-or not our `minDist` shows up more than once in the map of distances.
+We need now to find the *minimum* distance in that `NonEmpty`.  But not only
+that, we need to find the *unique* minimum, or return `Nothing` if we don't
+have a unique minimum.
+
+To do this, we can use `NE.head . NE.groupWith1 snd . NE.sortWith snd`.  This
+will sort the `NonEmpty` on the second item (the distance `Int`), which puts
+all of the minimal distances in the front.  `NE.groupWith1 snd` will then group
+together the pairs with matching distances, moving all of the minimal distance
+to the first item in the list.  Then we use the total `NE.head` to get the
+first item: the non-empty list with the minimal distances.
+
+Then we can pattern match on `(closestSite, minDist) :| []` to prove that this
+"first list" has exactly one item, so the minimum is unique.
 
 ```haskell
 labelVoronoi :: NonEmpty Point -> Point -> Maybe Point
-labelVoronoi sites p = closestSite <$ guard (not minIsRepeated)
+labelVoronoi sites p = do
+    (closestSite, _) :| [] <- Just
+                            . NE.head
+                            . NE.groupWith1 snd
+                            . NE.sortWith snd
+                            $ dists
+    pure closestSite
   where
     dists                  = sites <&> \site -> (site, distance p site)
-    (closestSite, minDist) = minimumBy (comparing snd) dists
-    minIsRepeated          = (> 1) . length . NE.filter ((== minDist) . snd) $ dists
-
 ```
 
 Once we have our voronoi diagram `Map Point Point` (map of points to

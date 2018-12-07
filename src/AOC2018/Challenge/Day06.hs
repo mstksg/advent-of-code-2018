@@ -22,7 +22,6 @@ import           Data.Foldable           (minimumBy)
 import           Data.Functor            ((<&>))
 import           Data.Ix                 (range)
 import           Data.List.NonEmpty      (NonEmpty(..))
-import           Data.Ord                (comparing)
 import           Data.Semigroup          (Min(..),Max(..))
 import           Data.Semigroup.Foldable (foldMap1)
 import           Data.Witherable         (mapMaybe, catMaybes)
@@ -48,11 +47,15 @@ bbPoints :: Box -> [Point]
 bbPoints (V2 mins maxs) = range (mins, maxs)
 
 labelVoronoi :: NonEmpty Point -> Point -> Maybe Point
-labelVoronoi sites p = closestSite <$ guard (not minIsRepeated)
+labelVoronoi sites p = do
+    (closestSite, _) :| [] <- Just
+                            . NE.head
+                            . NE.groupWith1 snd
+                            . NE.sortWith snd
+                            $ dists
+    pure closestSite
   where
     dists                  = sites <&> \site -> (site, distance p site)
-    (closestSite, minDist) = minimumBy (comparing snd) dists
-    minIsRepeated          = (> 1) . length . NE.filter ((== minDist) . snd) $ dists
 
 day06a :: NonEmpty Point :~> Int
 day06a = MkSol
