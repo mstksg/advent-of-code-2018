@@ -21,9 +21,10 @@ module AOC2018.Challenge.Day07 (
 
 import           AOC2018.Prelude
 import           Control.Lens
-import qualified Data.Map               as M
-import qualified Data.Set               as S
-import qualified Data.Set.NonEmpty      as NES
+import           Control.Monad.Writer
+import qualified Data.Map             as M
+import qualified Data.Set             as S
+import qualified Data.Set.NonEmpty    as NES
 
 parseAll :: String -> Maybe (Map Char (Set Char))
 parseAll = fmap (M.fromListWith (<>) . (map . second) S.singleton)
@@ -57,25 +58,24 @@ data BS1 = BS1
 
 makeLenses ''BS1
 
-lexicoTopo :: Map Char (Set Char) -> State BS1 String
+lexicoTopo :: Map Char (Set Char) -> StateT BS1 (Writer String) ()
 lexicoTopo childs = go
   where
     go = do
       deps   <- gets _bs1Deps
       active <- gets _bs1Active
-      case find (`M.notMember` deps) active of
-        Just c  -> do
-          bs1Deps . wither %= NES.nonEmptySet . NES.delete c
-          bs1Active . at c .= Nothing
-          bs1Active       <>= fold (M.lookup c childs)
-          (c:) <$> go
-        Nothing -> pure []
+      forM_ (find (`M.notMember` deps) active) $ \c -> do
+        tell [c]
+        bs1Deps . wither %= NES.nonEmptySet . NES.delete c
+        bs1Active . at c .= Nothing
+        bs1Active       <>= fold (M.lookup c childs)
+        go
 
 day07a :: Map Char (Set Char) :~> String
 day07a = MkSol
     { sParse = parseAll
     , sShow  = id
-    , sSolve = \mp -> Just . evalState (lexicoTopo mp) $ BS1
+    , sSolve = \mp -> Just . execWriter . runStateT (lexicoTopo mp) $ BS1
           { _bs1Deps   = flipMap mp
           , _bs1Active = findRoots mp
           }
@@ -93,35 +93,46 @@ data BS2 = BS2
 
 makeLenses ''BS2
 
-buildSleigh :: Map Char (Set Char) -> State BS2 Int
+-- | Tick down all current threads. If any threads finish, take them out of
+-- the map and put them into a set of finished results.
+tickAll :: Map Char Natural -> (Set Char, Map Char Natural)
+tickAll = first M.keysSet . M.mapEither tick
+  where
+    tick i
+        | i <= 0    = Left ()
+        | otherwise = Right (i - 1)
+
+buildSleigh :: Map Char (Set Char) -> StateT BS2 (Writer (Sum Int)) ()
 buildSleigh mp = go
   where
     go = do
-      (M.keysSet -> expired)
-                <- bs2Active %%= M.mapEither tick
+      -- tick the clock
+      tell $ Sum 1
 
+      -- tick the threads, and get expired items
+      expired   <- bs2Active %%= tickAll
+
+      -- remove any expired dependencies from dependencies map
       bs2Deps . wither        %= NES.nonEmptySet
                                . (`S.difference` expired)
                                . NES.toSet
 
+      -- add the dependencies of expired items to the queue
       bs2Waiting              <>= foldMap (fold . (`M.lookup` mp)) expired
 
-      numToAdd <- gets $ (5 -) . M.size . view bs2Active
-      deps     <- gets $ view bs2Deps
+      numToAdd <- uses bs2Active  $ (5 -) . M.size
+      deps     <- use  bs2Deps
+      eligible <- uses bs2Waiting $ S.filter (`M.notMember` deps)
 
-      eligible <- bs2Waiting  %%= S.partition (`M.notMember` deps)
+      -- take items from eligible waiting values to fill in the new gaps
+      let toAdd = S.take numToAdd eligible
 
-      let (toAdd, backToWaiting) = S.splitAt numToAdd eligible
-
-      bs2Waiting              <>= backToWaiting
+      -- add the items to the active threads
       newActive <- bs2Active <<>= M.fromSet waitTime toAdd
+      -- delete the newly active items from the queue
+      bs2Waiting               %= (`S.difference` toAdd)
 
-      if M.null newActive
-         then pure 1
-         else (+ 1) <$> go
-    tick i
-        | i <= 0    = Left ()
-        | otherwise = Right (i - 1)
+      unless (M.null newActive) go
 
 
 day07b :: Map Char (Set Char) :~> Int
@@ -130,7 +141,7 @@ day07b = MkSol
     , sShow  = show
     , sSolve = \mp -> Just $
         let (active, waiting) = S.splitAt 5 $ findRoots mp
-        in  evalState (buildSleigh mp) BS2
+        in  getSum . execWriter . runStateT (buildSleigh mp) $ BS2
                 { _bs2Deps    = flipMap mp
                 , _bs2Active  = M.fromSet waitTime active
                 , _bs2Waiting = waiting
