@@ -145,7 +145,7 @@ mainRun Cfg{..} MRO{..} =  do
       case inp1 of
         Right inp
           | _mroBench -> (testRes, Left ["Ran benchmark, so no result"]) <$ benchmark (nf (runSomeSolution c) inp)
-          | otherwise -> (second . first) ((:[]) . show) <$> testCase False c inp ans1
+          | otherwise -> (second . first) ((:[]) . show) <$> testCase False c inp (TM ans1 M.empty)
         Left e
           | _mroTest  -> pure (testRes, Left ["Ran tests, so no result"])
           | otherwise -> (testRes, Left e) <$ putStrLn "[INPUT ERROR]" <* mapM_ putStrLn e
@@ -289,9 +289,9 @@ testCase
     :: Bool             -- ^ is just an example
     -> SomeSolution
     -> String
-    -> Maybe String
+    -> TestMeta
     -> IO (Maybe Bool, Either SolutionError String)
-testCase emph c inp ans = do
+testCase emph c inp TM{..} = do
     withColor ANSI.Dull color $
       printf "[%c]" mark
     if emph
@@ -302,18 +302,18 @@ testCase emph c inp ans = do
         printf "(Expected: %s)\n" a
     return (status, res)
   where
-    res = runSomeSolution c inp
+    res = runSomeSolutionWith _tmData c inp
     resStr = case res of
       Right r -> r
       Left SEParse -> "ERROR: No parse"
       Left SESolve -> "ERROR: No solution"
-    (mark, showAns, status) = case ans of
+    (mark, showAns, status) = case _tmAnswer of
       Just (strip->ex)    -> case res of
         Right (strip->r)
           | r == ex   -> ('✓', Nothing, Just True )
           | otherwise -> ('✗', Just ex, Just False)
         Left _        -> ('✗', Just ex, Just False)
-      Nothing             -> ('?', Nothing, Nothing   )
+      Nothing         -> ('?', Nothing, Nothing   )
     color = case status of
       Just True  -> ANSI.Green
       Just False -> ANSI.Red

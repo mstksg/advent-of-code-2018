@@ -27,6 +27,7 @@ ghc-options:
 - -Wredundant-constraints
 
 default-extensions:
+- AllowAmbiguousTypes
 - ApplicativeDo
 - BangPatterns
 - BlockArguments
@@ -40,6 +41,7 @@ default-extensions:
 - FlexibleInstances
 - GADTs
 - GeneralizedNewtypeDeriving
+- ImplicitParams
 - KindSignatures
 - LambdaCase
 - MonadComprehensions
@@ -94,6 +96,7 @@ library:
   - nonempty-containers
   - pandoc
   - parsec
+  - parser-combinators
   - pointedlist
   - profunctors
   - recursion-schemes

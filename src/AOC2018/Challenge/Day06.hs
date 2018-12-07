@@ -14,7 +14,7 @@ module AOC2018.Challenge.Day06 (
   , day06b
   ) where
 
-import           AOC2018.Solver          ((:~>)(..))
+import           AOC2018.Solver          ((:~>)(..), fromDyno_)
 import           AOC2018.Util            (freqs, clearOut)
 import           Control.Monad           (guard, (<=<))
 import           Data.Char               (isDigit)
@@ -86,12 +86,13 @@ day06b :: NonEmpty Point :~> Int
 day06b = MkSol
     { sParse = (NE.nonEmpty <=< traverse parseLine) . lines
     , sShow  = show
-    , sSolve = \sites -> Just
-                       . length
-                       . filter ((< 10000) . (`totalDist` sites))
-                       . bbPoints
-                       . boundingBox
-                       $ sites
+    , sSolve = \sites ->
+            Just
+          . length
+          . filter ((< (fromDyno_ @"lim" 10000)) . (`totalDist` sites))
+          . bbPoints
+          . boundingBox
+          $ sites
     }
   where
     totalDist p = sum . fmap (distance p)

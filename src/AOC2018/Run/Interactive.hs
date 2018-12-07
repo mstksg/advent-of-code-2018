@@ -144,7 +144,7 @@ loadInput cs = eitherIO $ do
     liftEither _cdInput
 
 -- | Load test cases for a given challenge
-loadTests :: ChallengeSpec -> IO [(String, Maybe String)]
+loadTests :: ChallengeSpec -> IO [(String, TestMeta)]
 loadTests cs = do
     Cfg{..} <- configFile defConfPath
     _cdTests <$> challengeData _cfgSession cs

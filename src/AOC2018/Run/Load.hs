@@ -1,4 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TypeApplications  #-}
 
 -- |
 -- Module      : AOC2018.Run.Load
@@ -21,32 +22,45 @@ module AOC2018.Run.Load (
   , charPart
   , showAoCError
   , htmlToMarkdown
+  , TestMeta(..)
+  -- * Parsers
+  , parseMeta
+  , parseTests
   ) where
 
 import           AOC2018.Challenge
 import           AOC2018.Util
 import           Advent
+import           Control.Applicative
 import           Control.Concurrent
 import           Control.DeepSeq
 import           Control.Exception
 import           Control.Monad
 import           Control.Monad.Except
 import           Data.Bifunctor
+import           Data.Char
+import           Data.Dynamic
 import           Data.Finite
 import           Data.Foldable
-import           Data.List
-import           Data.Text            (Text)
+import           Data.Map                  (Map)
+import           Data.Maybe
+import           Data.Text                 (Text)
 import           Data.Time
-import           System.Console.ANSI  as ANSI
+import           Data.Void
+import           System.Console.ANSI       as ANSI
 import           System.Directory
 import           System.FilePath
 import           System.IO
 import           System.IO.Error
 import           Text.Printf
-import qualified Data.Map             as M
-import qualified Data.Text            as T
-import qualified Data.Text.IO         as T
-import qualified Text.Pandoc          as P
+import           Text.Read                 (readMaybe)
+import qualified Control.Monad.Combinators as MP
+import qualified Data.Map                  as M
+import qualified Data.Text                 as T
+import qualified Data.Text.IO              as T
+import qualified Text.Megaparsec           as MP
+import qualified Text.Megaparsec.Char      as MP
+import qualified Text.Pandoc               as P
 
 -- | A record of paths corresponding to a specific challenge.
 data ChallengePaths = CP { _cpPrompt    :: !FilePath
@@ -62,7 +76,7 @@ data ChallengePaths = CP { _cpPrompt    :: !FilePath
 data ChallengeData = CD { _cdPrompt :: !(Either [String] Text  )
                         , _cdInput  :: !(Either [String] String)
                         , _cdAnswer :: !(Maybe String)
-                        , _cdTests  :: ![(String, Maybe String)]
+                        , _cdTests  :: ![(String, TestMeta)]
                         }
 
 -- | Generate a 'ChallengePaths' from a specification of a challenge.
@@ -103,7 +117,11 @@ challengeData sess spec = do
       , fetchPrompt
       ]
     ans    <- readFileMaybe _cpAnswer
-    ts     <- foldMap (parseTests . lines) <$> readFileMaybe _cpTests
+    ts     <- readFileMaybe _cpTests >>= \case
+                Nothing  -> pure []
+                Just str -> case MP.parse parseTests _cpTests str of
+                  Left e  -> [] <$ putStrLn (MP.errorBundlePretty e)
+                  Right r -> pure r
     return CD
       { _cdPrompt = prompt
       , _cdInput  = inp
@@ -119,7 +137,7 @@ challengeData sess spec = do
        . readFile
     fetchInput :: ExceptT [String] IO String
     fetchInput = do
-        s <- maybeToEither ["Session key needed to fetch input"] $
+        s <- maybeToEither ["Session key needed to fetch input"]
               sess
         let opts = defaultAoCOpts 2018 s
         inp <- liftEither . bimap showAoCError T.unpack
@@ -144,16 +162,20 @@ challengeData sess spec = do
         e = case sess of
           Just _  -> "Part not yet released"
           Nothing -> "Part not yet released, or may require session key"
-    parseTests :: [String] -> [(String, Maybe String)]
-    parseTests xs = case break (">>> " `isPrefixOf`) xs of
-      (inp,[])
-        | null (strip (unlines inp))  -> []
-        | otherwise -> [(unlines inp, Nothing)]
-      (inp,(strip.drop 4->ans):rest)
-        | null (strip (unlines inp))  -> parseTests rest
-        | otherwise ->
-            let ans' = ans <$ guard (not (null ans))
-            in  (unlines inp, ans') : parseTests rest
+      -- where
+      --   go (inp:meta:xs) =
+
+        -- go [] = []
+    -- parseTests xs = case break (">>>" `isPrefixOf`) xs of
+    --   (inp,[])
+    --     | null (strip (unlines inp))  -> []
+    --     | otherwise -> [(unlines inp, Nothing)]
+    --   (inp,(strip.drop 4->ans):rest)
+    --     | null (strip (unlines inp))  -> parseTests rest
+    --     | otherwise ->
+    --         let ans' = ans <$ guard (not (null ans))
+    --         in  (unlines inp, ans') : parseTests rest
+
 
 showAoCError :: AoCError -> [String]
 showAoCError = \case
@@ -218,4 +240,57 @@ htmlToMarkdown pretty html = first ((:[]) . show) . P.runPure $ do
     exts = P.disableExtension P.Ext_header_attributes
          . P.disableExtension P.Ext_smart
          $ P.pandocExtensions
+
+
+
+
+
+
+type Parser = MP.Parsec Void String
+
+
+
+
+
+
+data TestMeta = TM { _tmAnswer :: Maybe String
+                   , _tmData   :: Map String Dynamic
+                   }
+  deriving Show
+
+data MetaLine = MLData   String Dynamic
+              | MLAnswer String
+  deriving Show
+
+
+parseTests :: Parser [(String, TestMeta)]
+parseTests = MP.many parseTest <* MP.eof
+  where
+    parseTest = do
+      inp <- MP.manyTill MP.anySingle $ MP.lookAhead (MP.string ">>>")
+      met <- optional (MP.try parseMeta) MP.<?> "Metadata Block"
+      pure (inp, fromMaybe (TM Nothing M.empty) met)
+
+parseMeta :: Parser TestMeta
+parseMeta = do
+    dats <- MP.many (MP.try parseData) MP.<?> "Data Block"
+    ans  <- optional (MP.try parseAnswer) MP.<?> "Expected Answer"
+    pure $ TM ans (M.fromList dats)
+  where
+    parseAnswer = MP.string ">>>"
+               *> MP.space1
+               *> MP.many (MP.try (asum [MP.alphaNumChar, MP.punctuationChar, MP.symbolChar]))
+               <* MP.space
+    parseData = do
+      MP.string ">>>"
+      sym <- MP.manyTill (MP.try MP.letterChar)   (MP.try (MP.char ':'))
+      val <- MP.manyTill (MP.try MP.alphaNumChar) (MP.try (MP.char ':'))
+      typ <- MP.many     (MP.try MP.letterChar)
+      MP.space
+      case toLower <$> typ of
+        "int"    -> maybe (fail "Could not parse metadata value") (pure . (sym,) . toDyn)
+                  . readMaybe @Int
+                  $ val
+        "string" -> pure (sym, toDyn val)
+        _        -> fail $ "Unrecognized type " ++ typ
 

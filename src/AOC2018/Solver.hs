@@ -18,11 +18,20 @@ module AOC2018.Solver (
   , SolutionError(..)
   , runSolution
   , runSomeSolution
+  -- * 'DynoMap'
+  , runSolutionWith
+  , runSomeSolutionWith
+  , fromDyno
+  , fromDyno_
   ) where
 
 import           AOC2018.Util
+import           AOC2018.Util.DynoMap
 import           Control.DeepSeq
-import           GHC.Generics     (Generic)
+import           Data.Dynamic
+import           Data.Map             (Map)
+import           GHC.Generics         (Generic)
+import           GHC.TypeLits
 
 -- | Abstracting over the type of a challenge solver to help with cleaner
 -- solutions.
@@ -35,7 +44,8 @@ import           GHC.Generics     (Generic)
 -- to handle the boilerplate of parsing and printing the solution.
 data a :~> b = MkSol
     { sParse :: String -> Maybe a    -- ^ parse input into an @a@
-    , sSolve :: a      -> Maybe b    -- ^ solve an @a@ input to a @b@ solution
+    , sSolve :: (?dyno :: DynoMap)
+             => a      -> Maybe b    -- ^ solve an @a@ input to a @b@ solution
     , sShow  :: b      -> String     -- ^ print out the @b@ solution in a pretty way
     }
 
@@ -67,11 +77,67 @@ withSolver f = MkSol
 
 -- | Run a ':~>' on some input.
 runSolution :: a :~> b -> String -> Either SolutionError String
-runSolution MkSol{..} (strip->s) = do
+runSolution = runSolutionWith mempty
+
+-- | Run a ':~>' on some input, with a map of dynamic values for testing
+runSolutionWith
+    :: Map String Dynamic       -- ^ map of dynamic values for testing with 'lookupDyno'.
+    -> a :~> b
+    -> String
+    -> Either SolutionError String
+runSolutionWith dm MkSol{..} (strip->s) = do
     x <- maybeToEither SEParse . sParse $ s
     y <- maybeToEither SESolve . sSolve $ x
     pure $ sShow y
+  where
+    ?dyno = Dyno dm
 
 -- | Run a 'SomeSolution' on some input.
-runSomeSolution :: SomeSolution -> String -> Either SolutionError String
-runSomeSolution (MkSomeSol c) = runSolution c
+runSomeSolution
+    :: SomeSolution
+    -> String
+    -> Either SolutionError String
+runSomeSolution = runSomeSolutionWith mempty
+
+-- | Run a 'SomeSolution' on some input, with a map of dynamic values for
+-- testing
+runSomeSolutionWith
+    :: Map String Dynamic       -- ^ map of dynamic values for testing with 'lookupDyno'.
+    -> SomeSolution
+    -> String
+    -> Either SolutionError String
+runSomeSolutionWith dm (MkSomeSol c) = runSolutionWith dm c
+
+-- | From a @?dyno@ Implicit Params, look up a value at a given key.  Meant
+-- to be used with TypeApplications:
+--
+-- > fromDyno @"hello"
+--
+-- This can be used within the body of 'sSolve', since it will always be
+-- called with the implicit parameter.
+--
+-- When called on actual puzzle input, result will always be 'Nothing'.
+-- But, for some test inputs, there might be supplied values.
+--
+-- This is useful for when some problems have parameters that are
+-- different with test inputs than for actual inputs.
+fromDyno
+    :: forall (sym :: Symbol) a. (KnownSymbol sym, Typeable a, ?dyno :: DynoMap)
+    => Maybe a
+fromDyno = lookupDyno @sym ?dyno
+
+-- | A version of 'fromDyno' taking a default value in case the key is not
+-- in the map.  When called on actual puzzle input, this is always 'id'.
+-- However, for some test inputs, there might be supplied values.
+--
+-- Meant to be used with TypeApplications:
+--
+-- > fromDynoWith @"hello" 7
+--
+-- This is useful for when some problems have parameters that are
+-- different with test inputs than for actual inputs.
+fromDyno_
+    :: forall (sym :: Symbol) a. (KnownSymbol sym, Typeable a, ?dyno :: DynoMap)
+    => a            -- ^ default
+    -> a
+fromDyno_ def = lookupDynoWith @sym def ?dyno

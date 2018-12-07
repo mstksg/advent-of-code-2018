@@ -1,3 +1,5 @@
+{-# LANGUAGE TypeApplications #-}
+
 -- |
 -- Module      : AOC2018.Challenge.Day07
 -- Copyright   : (c) Justin Le 2018
@@ -14,7 +16,7 @@ module AOC2018.Challenge.Day07 (
   , day07b
   ) where
 
-import           AOC2018.Solver       ((:~>)(..))
+import           AOC2018.Solver       ((:~>)(..), fromDyno_)
 import           Control.Lens
 import           Control.Monad        (unless)
 import           Control.Monad.State  (StateT, runStateT)
@@ -108,10 +110,11 @@ tickAll = first M.keysSet . M.mapEither tick
 
 buildSleigh
     :: Ord a
-    => Map a (Set a)      -- ^ children map
+    => Int                -- ^ number of threads
+    -> Map a (Set a)      -- ^ children map
     -> (a -> Natural)     -- ^ initializer
     -> StateT (BS2 a) (Writer (Sum Int)) ()
-buildSleigh childs starter = go
+buildSleigh cap childs starter = go
   where
     go = do
       -- tick the clock
@@ -128,7 +131,7 @@ buildSleigh childs starter = go
       -- add the dependencies of expired items to the queue
       bs2Waiting              <>= foldMap (fold . (`M.lookup` childs)) expired
 
-      numToAdd <- uses bs2Active  $ (5 -) . M.size
+      numToAdd <- uses bs2Active  $ (cap -) . M.size
       deps     <- use  bs2Deps
       eligible <- uses bs2Waiting $ S.filter (`M.notMember` deps)
 
@@ -148,13 +151,13 @@ day07b = MkSol
     { sParse = parseAll
     , sShow  = show
     , sSolve = \mp -> Just $
-        let (active, waiting) = S.splitAt 5 $ findRoots mp
-        in  getSum . execWriter . runStateT (buildSleigh mp waitTime) $ BS2
+        let cap               = fromDyno_ @"cap" 5
+            baseWait          = fromDyno_ @"wait" 60
+            waitTime          = fromIntegral . (+ baseWait) . subtract (ord 'A') . ord
+            (active, waiting) = S.splitAt cap $ findRoots mp
+        in  getSum . execWriter . runStateT (buildSleigh cap mp waitTime) $ BS2
                 { _bs2Deps    = flipMap mp
                 , _bs2Active  = M.fromSet waitTime active
                 , _bs2Waiting = waiting
                 }
     }
-  where
-    waitTime = fromIntegral . (+ 60) . subtract (ord 'A') . ord
-
