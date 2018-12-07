@@ -51,21 +51,21 @@ flipMap = M.fromListWith (<>)
         . concatMap (traverse toList)
         . M.toList
 
-findRoots :: Map Char (Set Char) -> Set Char
+findRoots :: Ord a => Map a (Set a) -> Set a
 findRoots mp = cs `S.difference` targs
   where
     cs = M.keysSet mp
     targs = S.unions $ toList mp
 
 
-data BS1 = BS1
-    { _bs1Deps   :: Map Char (NESet Char)
-    , _bs1Active :: Set Char
+data BS1 a = BS1
+    { _bs1Deps   :: Map a (NESet a)
+    , _bs1Active :: Set a
     }
 
 makeLenses ''BS1
 
-lexicoTopo :: Map Char (Set Char) -> StateT BS1 (Writer String) ()
+lexicoTopo :: Ord a => Map a (Set a) -> StateT (BS1 a) (Writer [a]) ()
 lexicoTopo childs = go
   where
     go = do
@@ -89,28 +89,29 @@ day07a = MkSol
     }
 
 
-waitTime :: Char -> Natural
-waitTime = fromIntegral . (+ 60) . subtract (ord 'A') . ord
-
-data BS2 = BS2
-    { _bs2Deps    :: Map Char (NESet Char)
-    , _bs2Active  :: Map Char Natural
-    , _bs2Waiting :: Set Char
+data BS2 a = BS2
+    { _bs2Deps    :: Map a (NESet a)
+    , _bs2Active  :: Map a Natural
+    , _bs2Waiting :: Set a
     }
 
 makeLenses ''BS2
 
 -- | Tick down all current threads. If any threads finish, take them out of
 -- the map and put them into a set of finished results.
-tickAll :: Map Char Natural -> (Set Char, Map Char Natural)
+tickAll :: Map a Natural -> (Set a, Map a Natural)
 tickAll = first M.keysSet . M.mapEither tick
   where
     tick i
         | i <= 0    = Left ()
         | otherwise = Right (i - 1)
 
-buildSleigh :: Map Char (Set Char) -> StateT BS2 (Writer (Sum Int)) ()
-buildSleigh mp = go
+buildSleigh
+    :: Ord a
+    => Map a (Set a)      -- ^ children map
+    -> (a -> Natural)     -- ^ initializer
+    -> StateT (BS2 a) (Writer (Sum Int)) ()
+buildSleigh childs starter = go
   where
     go = do
       -- tick the clock
@@ -125,7 +126,7 @@ buildSleigh mp = go
                                . NES.toSet
 
       -- add the dependencies of expired items to the queue
-      bs2Waiting              <>= foldMap (fold . (`M.lookup` mp)) expired
+      bs2Waiting              <>= foldMap (fold . (`M.lookup` childs)) expired
 
       numToAdd <- uses bs2Active  $ (5 -) . M.size
       deps     <- use  bs2Deps
@@ -135,7 +136,7 @@ buildSleigh mp = go
       let toAdd = S.take numToAdd eligible
 
       -- add the items to the active threads
-      newActive <- bs2Active <<>= M.fromSet waitTime toAdd
+      newActive <- bs2Active <<>= M.fromSet starter toAdd
       -- delete the newly active items from the queue
       bs2Waiting               %= (`S.difference` toAdd)
 
@@ -148,11 +149,12 @@ day07b = MkSol
     , sShow  = show
     , sSolve = \mp -> Just $
         let (active, waiting) = S.splitAt 5 $ findRoots mp
-        in  getSum . execWriter . runStateT (buildSleigh mp) $ BS2
+        in  getSum . execWriter . runStateT (buildSleigh mp waitTime) $ BS2
                 { _bs2Deps    = flipMap mp
                 , _bs2Active  = M.fromSet waitTime active
                 , _bs2Waiting = waiting
                 }
     }
-
+  where
+    waitTime = fromIntegral . (+ 60) . subtract (ord 'A') . ord
 
