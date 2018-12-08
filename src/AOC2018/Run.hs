@@ -230,7 +230,7 @@ mainSubmit Cfg{..} MSO{..} = do
           then putStrLn "Locking correct answer." >> writeFile _cpAnswer res
           else putStrLn "Not locking correct answer (--no-lock)"
       zt <- getZonedTime
-      appendFile _cpLog $ printf logFmt (show zt) res (showSubmitRes status) resp'
+      appendFile _cpLog $ printf logFmt (show zt) res (showSubmitRes status) resp resp'
     pure output
   where
     CS{..} = _msoSpec
@@ -240,6 +240,7 @@ mainSubmit Cfg{..} MSO{..} = do
     logFmt = unlines [ "[%s]"
                      , "Submission: %s"
                      , "Status: %s"
+                     , "Raw: %s"
                      , "%s"
                      ]
 
