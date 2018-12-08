@@ -39,6 +39,7 @@ default-extensions:
 - EmptyCase
 - FlexibleContexts
 - FlexibleInstances
+- FunctionalDependencies
 - GADTs
 - GeneralizedNewtypeDeriving
 - ImplicitParams
@@ -46,6 +47,7 @@ default-extensions:
 - LambdaCase
 - MonadComprehensions
 - MonoLocalBinds
+- MultiParamTypeClasses
 - MultiWayIf
 - NumDecimals
 - PartialTypeSignatures
