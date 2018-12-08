@@ -85,12 +85,12 @@ library:
   - free-algebras
   - groups
   - haskeline
+  - fgl
   - haskell-names
   - haskell-src-exts
   - hpack
   - lens
   - linear
-  - fgl
   - megaparsec
   - mtl
   - nonempty-containers
@@ -108,6 +108,7 @@ library:
   - taggy-lens
   - template-haskell
   - text
+  - these
   - time
   - transformers
   - witherable
