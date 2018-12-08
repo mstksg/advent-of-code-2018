@@ -1,6 +1,3 @@
-{-# LANGUAGE GeneralizedNewtypeDeriving #-}
-{-# LANGUAGE TypeApplications           #-}
-
 module AOC2018.Util.DynoMap (
     DynoMap(..)
   , lookupDyno
@@ -12,29 +9,29 @@ import           Data.Dynamic
 import           Data.Map      (Map)
 import           Data.Maybe
 import           Data.Proxy
-import           GHC.TypeLits
 import qualified Data.Map      as M
 
 newtype DynoMap = Dyno { runDyno :: Map String Dynamic }
   deriving (Semigroup, Monoid)
 
--- | Lookup the value at a given key in a 'Dyno'.  Meant to be used with
--- type applications:
+-- | Lookup the value at a given key in a 'Dyno'.
 --
--- > lookupDyno @"hello"
+-- > lookupDyno "hello"
 lookupDyno
-    :: forall (sym :: Symbol) a. (KnownSymbol sym, Typeable a)
-    => DynoMap
+    :: forall a. Typeable a
+    => String
+    -> DynoMap
     -> Maybe a
-lookupDyno = fromDynamic
-         <=< M.lookup (symbolVal (Proxy @sym))
-           . runDyno
+lookupDyno sym = fromDynamic
+             <=< M.lookup sym
+               . runDyno
 
 -- | Like 'lookupDyno', but with a default value to be returned if the key
 -- is not found or has the wrong type.
 lookupDynoWith
-    :: forall (sym :: Symbol) a. (KnownSymbol sym, Typeable a)
-    => a
+    :: forall a. (Typeable a)
+    => String
+    -> a
     -> DynoMap
     -> a
-lookupDynoWith def = fromMaybe def . lookupDyno @sym
+lookupDynoWith sym def = fromMaybe def . lookupDyno sym

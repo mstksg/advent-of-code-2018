@@ -151,8 +151,8 @@ day07b = MkSol
     { sParse = parseAll
     , sShow  = show
     , sSolve = \mp -> Just $
-        let cap               = dyno_ @"cap" 5
-            baseWait          = dyno_ @"wait" 60
+        let cap               = dyno_ "cap" 5
+            baseWait          = dyno_ "wait" 60
             waitTime          = fromIntegral . (+ baseWait) . subtract (ord 'A') . ord
             (active, waiting) = S.splitAt cap $ findRoots mp
         in  getSum . execWriter . runStateT (buildSleigh cap mp waitTime) $ BS2

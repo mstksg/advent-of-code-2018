@@ -31,7 +31,6 @@ import           Control.DeepSeq
 import           Data.Dynamic
 import           Data.Map             (Map)
 import           GHC.Generics         (Generic)
-import           GHC.TypeLits
 
 -- | Abstracting over the type of a challenge solver to help with cleaner
 -- solutions.
@@ -122,9 +121,10 @@ runSomeSolutionWith dm (MkSomeSol c) = runSolutionWith dm c
 -- This is useful for when some problems have parameters that are
 -- different with test inputs than for actual inputs.
 dyno
-    :: forall (sym :: Symbol) a. (KnownSymbol sym, Typeable a, ?dyno :: DynoMap)
-    => Maybe a
-dyno = lookupDyno @sym ?dyno
+    :: forall a. (Typeable a, ?dyno :: DynoMap)
+    => String
+    -> Maybe a
+dyno = (`lookupDyno` ?dyno)
 
 -- | A version of 'dyno' taking a default value in case the key is not
 -- in the map.  When called on actual puzzle input, this is always 'id'.
@@ -137,7 +137,8 @@ dyno = lookupDyno @sym ?dyno
 -- This is useful for when some problems have parameters that are
 -- different with test inputs than for actual inputs.
 dyno_
-    :: forall (sym :: Symbol) a. (KnownSymbol sym, Typeable a, ?dyno :: DynoMap)
-    => a            -- ^ default
+    :: forall a. (Typeable a, ?dyno :: DynoMap)
+    => String
+    -> a            -- ^ default
     -> a
-dyno_ def = lookupDynoWith @sym def ?dyno
+dyno_ str def = lookupDynoWith str def ?dyno

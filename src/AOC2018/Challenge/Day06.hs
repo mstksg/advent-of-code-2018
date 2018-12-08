@@ -89,7 +89,7 @@ day06b = MkSol
     , sSolve = \sites ->
             Just
           . length
-          . filter ((< (dyno_ @"lim" 10000)) . (`totalDist` sites))
+          . filter ((< dyno_ "lim" 10000) . (`totalDist` sites))
           . bbPoints
           . boundingBox
           $ sites
