@@ -23,6 +23,8 @@ Reflections and Benchmarks
 *   **[Day 4 Reflections][d04r]** *[code][d04g]* / *[rendered][d04h]* / *[benchmarks][d04b]*
 *   **[Day 5 Reflections][d05r]** *[code][d05g]* / *[rendered][d05h]* / *[benchmarks][d05b]*
 *   **[Day 6 Reflections][d06r]** *[code][d06g]* / *[rendered][d06h]* / *[benchmarks][d06b]*
+*   **[Day 7 Reflections][d07r]** *[code][d07g]* / *[rendered][d07h]* / *[benchmarks][d07b]*
+*   **[Day 8 Reflections][d08r]** *[code][d08g]* / *[rendered][d08h]* / *[benchmarks][d08b]*
 
 "Rendered" links go to haddock source renders for code, with reflections in the
 documentation.  Haddock source renders have hyperlinked identifiers,
@@ -271,3 +273,13 @@ All networking features are powered by *[advent-of-code-api][]*.
 [d06h]: https://mstksg.github.io/advent-of-code-2018/src/AOC2018.Challenge.Day06.html
 [d06r]: https://github.com/mstksg/advent-of-code-2018/blob/master/reflections.md#day-6
 [d06b]: https://github.com/mstksg/advent-of-code-2018/blob/master/reflections.md#day-6-benchmarks
+
+[d07g]: https://github.com/mstksg/advent-of-code-2018/blob/master/src/AOC2018/Challenge/Day07.hs
+[d07h]: https://mstksg.github.io/advent-of-code-2018/src/AOC2018.Challenge.Day07.html
+[d07r]: https://github.com/mstksg/advent-of-code-2018/blob/master/reflections.md#day-7
+[d07b]: https://github.com/mstksg/advent-of-code-2018/blob/master/reflections.md#day-7-benchmarks
+
+[d08g]: https://github.com/mstksg/advent-of-code-2018/blob/master/src/AOC2018/Challenge/Day08.hs
+[d08h]: https://mstksg.github.io/advent-of-code-2018/src/AOC2018.Challenge.Day08.html
+[d08r]: https://github.com/mstksg/advent-of-code-2018/blob/master/reflections.md#day-8
+[d08b]: https://github.com/mstksg/advent-of-code-2018/blob/master/reflections.md#day-8-benchmarks
