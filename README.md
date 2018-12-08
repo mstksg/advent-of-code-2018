@@ -14,8 +14,8 @@ Check out reflections and commentary at the [package haddocks][haddock]!
 [haddock]: https://mstksg.github.io/advent-of-code-2018/
 [advent-of-code-api]: https://hackage.haskell.org/package/advent-of-code-api
 
-Reflections and Benchmarks
---------------------------
+[Reflections and Benchmarks][reflections]
+-----------------------------------------
 
 *   **[Day 1 Reflections][d01r]** *[code][d01g]* / *[rendered][d01h]* / *[benchmarks][d01b]*
 *   **[Day 2 Reflections][d02r]** *[code][d02g]* / *[rendered][d02h]* / *[benchmarks][d02b]*
@@ -30,6 +30,8 @@ Reflections and Benchmarks
 documentation.  Haddock source renders have hyperlinked identifiers,
 so you can follow any unrecognized identifiers to see where I have defined them
 in the library.
+
+[reflections]: https://github.com/mstksg/advent-of-code-2018/blob/master/reflections.md
 
 ### `:~>` type
 
