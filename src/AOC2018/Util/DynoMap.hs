@@ -8,7 +8,6 @@ import           Control.Monad
 import           Data.Dynamic
 import           Data.Map      (Map)
 import           Data.Maybe
-import           Data.Proxy
 import qualified Data.Map      as M
 
 newtype DynoMap = Dyno { runDyno :: Map String Dynamic }

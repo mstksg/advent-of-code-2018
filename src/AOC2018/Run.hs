@@ -220,12 +220,7 @@ mainSubmit Cfg{..} MSO{..} = do
               . either (map T.pack) T.lines
               . htmlToMarkdown False
               $ resp
-        (color, lock, out) = case status of
-          SubCorrect r -> (ANSI.Green  , True , correctMsg r                   )
-          SubIncorrect -> (ANSI.Red    , False, "Answer was incorrect!"        )
-          SubWait      -> (ANSI.Yellow , False, "Answer re-submitted too soon.")
-          SubInvalid   -> (ANSI.Blue   , False, "Submission was rejected.  Maybe not unlocked yet, or already answered?")
-          SubUnknown   -> (ANSI.Magenta, False, "Response from server was not recognized.")
+        (color, lock, out) = displayStatus status
     liftIO $ do
       withColor ANSI.Vivid color $
         putStrLn out
@@ -238,8 +233,6 @@ mainSubmit Cfg{..} MSO{..} = do
       appendFile _cpLog $ printf logFmt (show zt) res (showSubmitRes status) resp'
     pure output
   where
-    correctMsg Nothing  = "Answer was correct!"
-    correctMsg (Just r) = printf "Answer was correct, and you made the global leaderboard at rank %d !!" r
     CS{..} = _msoSpec
     CP{..} = challengePaths _msoSpec
     d' = dayToInt _csDay
@@ -249,6 +242,34 @@ mainSubmit Cfg{..} MSO{..} = do
                      , "Status: %s"
                      , "%s"
                      ]
+
+displayStatus :: SubmitRes -> (ANSI.Color, Bool, String)
+displayStatus = \case
+    SubCorrect r     -> ( ANSI.Green  , True , correctMsg r     )
+    SubIncorrect t h -> ( ANSI.Red    , False, incorrectMsg t h )
+    SubWait t        -> let (m, s) = t `divMod` 60
+                            resp   = printf "Answer re-submitted too soon.  Please wait %dmin %dsec" m s
+                        in  ( ANSI.Yellow, False, resp )
+    SubInvalid{}     -> ( ANSI.Blue   , False
+                        , "Submission was rejected.  Maybe not unlocked yet, or already answered?"
+                        )
+    SubUnknown{}     -> ( ANSI.Magenta, False
+                        , "Response from server was not recognized."
+                        )
+  where
+    correctMsg Nothing  = "Answer was correct!"
+    correctMsg (Just r) =
+        printf "Answer was correct, and you made the global leaderboard at rank %d !!"
+          r
+    incorrectMsg t h =
+        printf "Answer was incorrect!%s  Please wait %d before submitting again"
+          hintStr
+          (t `div` 60)
+      where
+        hintStr :: String
+        hintStr = case h of
+          Nothing -> ""
+          Just s  -> printf "  Hint: Answer was %s." s
 
 runAll
     :: Maybe String                             -- ^ session key
