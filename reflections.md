@@ -881,3 +881,131 @@ time                 100.2 ms   (99.16 ms .. 102.3 ms)
 mean                 103.6 ms   (101.9 ms .. 108.9 ms)
 std dev              4.418 ms   (1.537 ms .. 7.029 ms)
 ```
+
+Day 7
+-----
+
+*[Prompt][d07p]* / *[Code][d07g]* / *[Rendered][d07h]*
+
+[d07p]: https://adventofcode.com/2018/day/7
+[d07g]: https://github.com/mstksg/advent-of-code-2018/blob/master/src/AOC2018/Challenge/Day07.hs
+[d07h]: https://mstksg.github.io/advent-of-code-2018/src/AOC2018.Challenge.Day07.html
+
+Reflections to come soon!
+
+### Day 7 Benchmarks
+
+```
+>> Day 07a
+benchmarking...
+time                 389.8 μs   (385.5 μs .. 397.7 μs)
+                     0.998 R²   (0.996 R² .. 1.000 R²)
+mean                 389.2 μs   (387.1 μs .. 392.9 μs)
+std dev              9.506 μs   (3.827 μs .. 15.65 μs)
+variance introduced by outliers: 16% (moderately inflated)
+
+>> Day 07b
+benchmarking...
+time                 428.1 μs   (426.8 μs .. 431.3 μs)
+                     0.999 R²   (0.995 R² .. 1.000 R²)
+mean                 430.4 μs   (427.6 μs .. 441.3 μs)
+std dev              16.14 μs   (3.897 μs .. 33.35 μs)
+variance introduced by outliers: 31% (moderately inflated)
+```
+
+Day 8
+-----
+
+*[Prompt][d08p]* / *[Code][d08g]* / *[Rendered][d08h]*
+
+[d08p]: https://adventofcode.com/2018/day/8
+[d08g]: https://github.com/mstksg/advent-of-code-2018/blob/master/src/AOC2018/Challenge/Day08.hs
+[d08h]: https://mstksg.github.io/advent-of-code-2018/src/AOC2018.Challenge.Day08.html
+
+Another nice one for Haskell!  We're just parsing a stream of `Int`s here :)
+
+```haskell
+import qualified Text.Parsec    as P
+
+type Parser = P.Parsec [Int] ()
+```
+
+with a `Parsec [Int] ()`, it means that our "tokens" are `Int`.  That means
+`P.anyToken :: Parser Int` will pop the next `Int` from the stream.
+
+Our Day 1 will be the `sum1`, which will parse a stream of `Int`s into the sum
+of all the metadatas.
+
+```haskell
+sum1 :: Parser Int
+sum1 = do
+    -- number of children
+    numChild <- P.anyToken
+    -- number of metas
+    numMeta  <- P.anyToken
+    -- sum up the children's sums
+    childs   <- sum <$> replicateM numChild sum1
+    -- sum up the metadata sums
+    metas    <- sum <$> replicateM numMeta  P.anyToken
+    -- ta dah
+    pure $ childs + metas
+```
+
+And so part 1 is:
+
+```haskell
+day01a :: [Int] -> Int
+day01a xs = fromRight 0 . P.parse sum1 ""
+```
+
+Part 2 is similar.  Again, we parse a stream of ints into a sum:
+
+```
+sum2 :: Parser Int
+sum2 = do
+    -- number of children
+    numChild <- P.anyToken
+    -- number of metas
+    numMeta  <- P.anyToken
+    -- the children's sums
+    childs   <- replicateM numChild sum2
+    -- the metas
+    metas    <- replicateM numMeta  P.anyToken
+    -- return something different based on if there are children or not
+    pure $ if null childs
+      then sum metas
+      else sum . mapMaybe (\i -> childs ^? ix (i - 1)) $ metas
+```
+
+I'm using `xs ^? ix i` (from lens) as a "safe indexing", that returns `Maybe
+a`.  We need to remember to index into `i - 1` because our indexing starts at
+one!
+
+And so part 2 is:
+
+```haskell
+day02a :: [Int] -> Int
+day02a = fromRight 0 . P.parse sum1 ""
+```
+
+We can get a list of `[Int]` from a string input using `map read . words`.
+
+### Day 8 Benchmarks
+
+```
+>> Day 08a
+benchmarking...
+time                 36.80 ms   (33.65 ms .. 42.18 ms)
+                     0.963 R²   (0.921 R² .. 1.000 R²)
+mean                 35.47 ms   (34.29 ms .. 38.27 ms)
+std dev              3.477 ms   (561.7 μs .. 5.309 ms)
+variance introduced by outliers: 36% (moderately inflated)
+
+>> Day 08b
+benchmarking...
+time                 29.27 ms   (28.34 ms .. 32.94 ms)
+                     0.919 R²   (0.787 R² .. 1.000 R²)
+mean                 29.46 ms   (28.41 ms .. 33.59 ms)
+std dev              4.133 ms   (89.00 μs .. 7.910 ms)
+variance introduced by outliers: 57% (severely inflated)
+```

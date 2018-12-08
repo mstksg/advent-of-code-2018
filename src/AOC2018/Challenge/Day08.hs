@@ -30,7 +30,7 @@ sum1 = do
     numMeta  <- P.anyToken
     childs   <- sum <$> replicateM numChild sum1
     metas    <- sum <$> replicateM numMeta  P.anyToken
-    pure $ metas + childs
+    pure $ childs + metas
 
 day08a :: [Int] :~> Int
 day08a = MkSol
