@@ -939,15 +939,10 @@ of all the metadatas.
 ```haskell
 sum1 :: Parser Int
 sum1 = do
-    -- number of children
     numChild <- P.anyToken
-    -- number of metas
     numMeta  <- P.anyToken
-    -- sum up the children's sums
     childs   <- sum <$> replicateM numChild sum1
-    -- sum up the metadata sums
     metas    <- sum <$> replicateM numMeta  P.anyToken
-    -- ta dah
     pure $ childs + metas
 ```
 
@@ -963,15 +958,10 @@ Part 2 is similar.  Again, we parse a stream of ints into a sum:
 ```
 sum2 :: Parser Int
 sum2 = do
-    -- number of children
     numChild <- P.anyToken
-    -- number of metas
     numMeta  <- P.anyToken
-    -- the children's sums
     childs   <- replicateM numChild sum2
-    -- the metas
     metas    <- replicateM numMeta  P.anyToken
-    -- return something different based on if there are children or not
     pure $ if null childs
       then sum metas
       else sum . mapMaybe (\i -> childs ^? ix (i - 1)) $ metas
