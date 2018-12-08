@@ -66,6 +66,17 @@ runSolution MkSol{..} s = do
 In the actual library, I have `runSolution` return an `Either` so I can debug
 which stage the error happened in.
 
+You might also notice the function `dyno_`, used like `dyno_ "limit" 10000`.  This
+is how I implement parameters in problems that vary between test data and
+actual input.  For example, Day 6 involved finding points that had a total
+distance of less than 10000, but for the test input, we found the points that
+had a total distance of less than 32.  So, I have a system that lets me write
+`dyno_ "limit" 10000` in my code instead of hard-coding in `10000`.  This
+`10000` would be replaced by `32` when running with test data (which is parsed
+from [this file][7btest])
+
+[7btest]: https://github.com/mstksg/advent-of-code-2018/blob/master/test-data/06b.txt
+
 Interactive
 -----------
 
