@@ -1,5 +1,3 @@
-{-# LANGUAGE TypeApplications #-}
-
 -- |
 -- Module      : AOC2018.Challenge.Day07
 -- Copyright   : (c) Justin Le 2018
@@ -16,13 +14,25 @@ module AOC2018.Challenge.Day07 (
   , day07b
   ) where
 
-import           AOC2018.Prelude
+import           AOC2018.Solver     ((:~>)(..), dyno_)
 import           Control.Lens
-import           Control.Monad.RWS
-import qualified Data.List.NonEmpty      as NE
-import qualified Data.Map                as M
-import qualified Data.Set                as S
-import qualified Data.Set.NonEmpty       as NES
+import           Control.Monad.RWS  (MonadReader(..), MonadWriter(..), MonadState(..), runRWS)
+import           Data.Bifunctor     (second)
+import           Data.Char          (ord, isUpper)
+import           Data.Foldable      (toList, fold, find, forM_)
+import           Data.List          (sortOn)
+import           Data.List.NonEmpty (NonEmpty(..))
+import           Data.Map           (Map)
+import           Data.Semigroup     (Sum(..))
+import           Data.Set           (Set)
+import           Data.Set.NonEmpty  (NESet)
+import           Data.Tuple         (swap)
+import           Data.Witherable    (mapMaybe)
+import           Numeric.Natural    (Natural)
+import qualified Data.List.NonEmpty as NE
+import qualified Data.Map           as M
+import qualified Data.Set           as S
+import qualified Data.Set.NonEmpty  as NES
 
 
 parseAll :: String -> Maybe (Map Char (Set Char))
