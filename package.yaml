@@ -71,7 +71,7 @@ dependencies:
 library:
   source-dirs: src
   dependencies:
-  - advent-of-code-api >= 0.1.2.0
+  - advent-of-code-api >= 0.1.2.1
   - aeson
   - ansi-terminal
   - bytestring
@@ -82,12 +82,12 @@ library:
   - deepseq
   - directory
   - dlist
+  - fgl
   - filepath
   - finite-typelits
   - free-algebras
   - groups
   - haskeline
-  - fgl
   - haskell-names
   - haskell-src-exts
   - hpack
@@ -106,8 +106,7 @@ library:
   - show-prettyprint
   - singletons
   - split
-  - taggy
-  - taggy-lens
+  - tagsoup
   - template-haskell
   - text
   - these
