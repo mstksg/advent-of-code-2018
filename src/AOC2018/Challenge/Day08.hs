@@ -29,17 +29,41 @@ module AOC2018.Challenge.Day08 (
   ) where
 
 import           AOC2018.Prelude
+import           Control.Lens
+import           Data.Tree       (Tree(..))
+import qualified Data.Tree       as Tree
+import qualified Text.Parsec     as P
 
-day08a :: _ :~> _
+type Parser = P.Parsec [Int] ()
+
+buildTree :: Parser (Tree Int)
+buildTree = do
+    numChild <- P.anyToken
+    numMeta  <- P.anyToken
+    childs   <- replicateM numChild buildTree
+    metas    <- replicateM numMeta P.anyToken
+    pure $ Node (sum metas) childs
+
+day08a :: [Int] :~> Int
 day08a = MkSol
-    { sParse = Just
-    , sShow  = id
-    , sSolve = Just
+    { sParse = traverse readMaybe . words
+    , sShow  = show
+    , sSolve = fmap sum . eitherToMaybe . P.parse buildTree ""
     }
 
-day08b :: _ :~> _
+buildTree2 :: Parser Int
+buildTree2 = do
+    numChild <- P.anyToken
+    numMeta  <- P.anyToken
+    childs   <- replicateM numChild buildTree2
+    metas    <- replicateM numMeta P.anyToken
+    pure $ if null childs
+      then sum metas
+      else sum . mapMaybe (\i -> childs ^? ix (i - 1)) $ metas
+
+day08b :: [Int] :~> Int
 day08b = MkSol
-    { sParse = Just
-    , sShow  = id
-    , sSolve = Just
+    { sParse = traverse readMaybe . words
+    , sShow  = show
+    , sSolve = eitherToMaybe . P.parse buildTree2 ""
     }
