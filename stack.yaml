@@ -38,7 +38,7 @@ packages:
 # using the same syntax as the packages field.
 # (e.g., acme-missiles-0.3)
 extra-deps:
-- advent-of-code-api-0.1.2.1
+- advent-of-code-api-0.1.2.3
 - fgl-5.7.0.1
 - natural-numbers-0.1.2.0
 - nonempty-containers-0.1.0.0

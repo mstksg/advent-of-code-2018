@@ -71,7 +71,7 @@ dependencies:
 library:
   source-dirs: src
   dependencies:
-  - advent-of-code-api >= 0.1.2.1
+  - advent-of-code-api >= 0.1.2.3
   - aeson
   - ansi-terminal
   - bytestring
