@@ -16,6 +16,7 @@ module AOC2018.Challenge.Day09 (
 
 import           AOC2018.Solver                 ((:~>)(..))
 import           Control.Lens                   (ix, (+~))
+import           Data.Bifunctor                 (second)
 import           Data.Function                  ((&))
 import           Data.List                      (foldl')
 import           Data.List.PointedList.Circular (PointedList(..))
@@ -30,36 +31,38 @@ place
     -> (Int, PointedList Int)    -- ^ resulting tape, and scored points
 place x l
     | x `mod` 23 == 0
-    =   let l'       = PL.moveN (-7) l
-            toAdd    = _focus l'
-        in  (toAdd + x, fromJust (PL.deleteRight l'))
+    = let l'       = PL.moveN (-7) l
+          toAdd    = _focus l'
+      in  (toAdd + x, fromJust (PL.deleteRight l'))
     | otherwise
     = (0, (PL.insertLeft x . PL.moveN 2) l)
 
-run :: Int -> Int -> V.Vector Int
-run numPlayers numList = fst
-                       . foldl' go (v0, PL.singleton 0)
-                       $ zip players toInsert
+run
+    :: Int                  -- ^ number of players
+    -> Int                  -- ^ Max # of piece
+    -> V.Vector Int
+run numPlayers maxPiece = fst
+                        . foldl' go (V.replicate numPlayers 0, PL.singleton 0)
+                        $ zip players toInsert
   where
-    v0 = V.replicate numPlayers 0
     go (!scores, !tp) (!p, !i) = (scores & ix p +~ pts, tp')
       where
         (pts, tp') = place i tp
     players  = (`mod` numPlayers) <$> [0 ..]
-    toInsert = [1..numList]
+    toInsert = [1..maxPiece]
 
 day09a :: (Int, Int) :~> Int
 day09a = MkSol
     { sParse = parse
     , sShow  = show
-    , sSolve = Just . V.maximum . uncurry run 
+    , sSolve = Just . V.maximum . uncurry run
     }
 
 day09b :: _ :~> _
 day09b = MkSol
     { sParse = parse
     , sShow  = show
-    , sSolve = Just . V.maximum . uncurry run
+    , sSolve = Just . V.maximum . uncurry run . second (*100)
     }
 
 parse :: String -> Maybe (Int, Int)
