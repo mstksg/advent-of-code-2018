@@ -1018,6 +1018,8 @@ Last year, I wrote my own implementations on the spot, but since then I've come
 to appreciate the *[pointed-list][]* library.  A circular tape is a circular
 data structure with a "focus" that you can move back and forth in.  This is
 the data structure that implements exactly what the challenge talks about!
+It's linear-time on "moving the focus", and constant-time on insertions and
+deletions.
 
 [pointed-list]: https://hackage.haskell.org/package/pointedlist
 
