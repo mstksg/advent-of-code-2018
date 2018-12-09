@@ -93,6 +93,7 @@ library:
   - hpack
   - lens
   - linear
+  - vector
   - megaparsec
   - mtl
   - nonempty-containers
