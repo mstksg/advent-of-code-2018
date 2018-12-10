@@ -3,12 +3,14 @@
 
 -- |
 -- Module      : AOC.Challenge.Day19
+-- Copyright   : (c) Justin Le 2018
 -- License     : BSD3
 --
+-- Maintainer  : justin@jle.im
 -- Stability   : experimental
 -- Portability : non-portable
 --
--- Day 19.  See "AOC.Challenge" for the types used in this module!
+-- Day 19.  See "AOC.Solver" for the types used in this module!
 --
 -- After completing the challenge, it is recommended to:
 --

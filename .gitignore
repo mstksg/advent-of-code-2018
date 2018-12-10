@@ -1,7 +1,8 @@
 .stack-work/
-/aoc2018.cabal
+/*.cabal
 *~
 /data
 /prompt
 /aoc-conf.yaml
 /logs
+/scratch

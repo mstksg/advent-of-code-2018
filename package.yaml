@@ -78,9 +78,11 @@ library:
   - containers
   - criterion
   - curl
+  - data-default-class
   - data-default
   - deepseq
   - directory
+  - microlens-th
   - dlist
   - fgl
   - filepath
@@ -127,6 +129,7 @@ executables:
     dependencies:
     - aoc2018
     - optparse-applicative
+    - microlens
     - containers
     - deepseq
     - lens
