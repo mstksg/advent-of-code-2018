@@ -23,23 +23,71 @@
 --     solution.  You can delete the type signatures completely and GHC
 --     will recommend what should go in place of the underscores.
 
-module AOC2018.Challenge.Day10 (
+module AOC2018.Challenge.Day10 where
     -- day10a
   -- , day10b
-  ) where
+  -- ) where
 
 import           AOC2018.Prelude
+import           Data.Semigroup.Foldable
+import qualified Data.List.NonEmpty      as NE
+import qualified Data.Map                as M
+import qualified Data.Set                as S
+import qualified Linear                  as L
 
-day10a :: _ :~> _
+type Point = V2 Int
+
+simulate :: [Point] -> [Point] -> [Point]
+simulate = zipWith (+)
+
+boundingBox :: [Point] -> V2 Point
+boundingBox ps = V2 xMin yMin `V2` V2 xMax yMax
+  where
+    (Min xMin, Min yMin, Max xMax, Max yMax) = flip foldMap ps $ \(V2 x y) ->
+        (Min x, Min y, Max x, Max y)
+
+clusterArea :: [Point] -> Int
+clusterArea (boundingBox -> V2 mins maxs) = product $ maxs - mins
+
+findWord :: [Point] -> [Point] -> (Int, Set Point)
+findWord vs xs0 = go 0 (clusterArea xs0) xs0
+  where
+    go :: Int -> Int -> [Point] -> (Int, Set Point)
+    go i area xs
+        | area' > area = (i, S.fromList xs)
+        | otherwise    = go (i + 1) area' xs'
+      where
+        xs'   = simulate vs xs
+        area' = clusterArea xs'
+
+day10a :: ([Point], [Point]) :~> Set Point
 day10a = MkSol
-    { sParse = Just
-    , sShow  = id
-    , sSolve = Just
+    { sParse = fmap unzip . traverse parsePoint . lines
+    , sShow  = display
+    , sSolve = Just . snd . uncurry findWord
     }
 
-day10b :: _ :~> _
+day10b :: ([Point], [Point]) :~> Int
 day10b = MkSol
-    { sParse = Just
-    , sShow  = id
-    , sSolve = Just
+    { sParse = fmap unzip . traverse parsePoint . lines
+    , sShow  = show
+    , sSolve = Just . fst . uncurry findWord
     }
+
+display :: Set Point -> String
+display ps = unlines [ [ if V2 x y `S.member` ps then '#' else '.'
+                       | x <- [xMin .. xMax]
+                       ]
+                     | y <- [yMin .. yMax]
+                     ]
+  where
+    V2 xMin yMin `V2` V2 xMax yMax = boundingBox (toList ps)
+
+parsePoint :: String -> Maybe (Point, Point)
+parsePoint xs = case map read . words . clearOut p $ xs of
+    [x,y,vx,vy] -> Just (V2 vx vy, V2 x y)
+    _           -> Nothing
+  where
+    p '-' = False
+    p c   = not $ isDigit c
+
