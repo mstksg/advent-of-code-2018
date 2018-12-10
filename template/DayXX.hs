@@ -2,7 +2,7 @@
 {-# OPTIONS_GHC -Wno-unused-top-binds #-}
 
 -- |
--- Module      : AOC2018.Challenge.Day${day}
+-- Module      : AOC.Challenge.Day${day}
 -- Copyright   : (c) Justin Le 2018
 -- License     : BSD3
 --
@@ -10,11 +10,11 @@
 -- Stability   : experimental
 -- Portability : non-portable
 --
--- Day ${day_short}.  See "AOC2018.Challenge" for the types used in this module!
+-- Day ${day_short}.  See "AOC.Solver" for the types used in this module!
 --
 -- After completing the challenge, it is recommended to:
 --
--- *   Replace "AOC2018.Prelude" imports to specific modules (with explicit
+-- *   Replace "AOC.Prelude" imports to specific modules (with explicit
 --     imports) for readability.
 -- *   Remove the @-Wno-unused-imports@ and @-Wno-unused-top-binds@
 --     pragmas.
@@ -23,7 +23,7 @@
 --     solution.  You can delete the type signatures completely and GHC
 --     will recommend what should go in place of the underscores.
 
-module AOC2018.Challenge.Day${day} (
+module AOC.Challenge.Day${day} (
     -- day${day}a
   -- , day${day}b
   ) where
