@@ -6163,6 +6163,80 @@ maybeToEither :: MonadError e m => e -> Maybe a -> m a
 --   takes an <tt>a -&gt; Maybe b</tt> and returns the first success.
 findMaybe :: Foldable t => (a -> Maybe b) -> t a -> Maybe b
 
+-- | Strict (!!)
+(!!!) :: [a] -> Int -> a
+
+-- | Iterate until a <a>Nothing</a> is produced
+iterateMaybe :: (a -> Maybe a) -> a -> [a]
+
+-- | A tuple of the same item twice
+dup :: a -> (a, a)
+
+-- | <a>scanl</a> generalized to all <a>Traversable</a>.
+scanlT :: Traversable t => (b -> a -> b) -> b -> t a -> t b
+
+-- | <a>scanr</a> generalized to all <a>Traversable</a>.
+scanrT :: Traversable t => (a -> b -> b) -> b -> t a -> t b
+
+-- | Lazily find the first repeated item.
+firstRepeated :: Ord a => [a] -> Maybe a
+
+-- | Build a frequency map
+freqs :: (Foldable f, Ord a) => f a -> Map a Int
+
+-- | Collect all possible single-item perturbations from a given perturbing
+--   function.
+--   
+--   <pre>
+--   perturbations (\i -&gt; [i - 1, i + 1]) [0,10,100]
+--   </pre>
+--   
+--   <h2>[ [-1,10,100]</h2>
+--   
+--   , [ 1,10,100] , [ 0, 9,100] , [ 0,11,100] , [ 0,10, 99] , [ 0,10,101]
+--   ]
+perturbations :: (a -> [a]) -> [a] -> [[a]]
+
+-- | Clear out characters not matching a predicate
+clearOut :: (Char -> Bool) -> String -> String
+
+-- | Get the key-value pair corresponding to the maximum value in the map
+maximumVal :: Ord b => Map a b -> Maybe (a, b)
+
+-- | Get the key-value pair corresponding to the maximum value in the map,
+--   with a custom comparing function.
+--   
+--   <pre>
+--   'maximumVal' == 'maximumValBy' 'compare'
+--   </pre>
+maximumValBy :: (b -> b -> Ordering) -> Map a b -> Maybe (a, b)
+
+-- | Get the key-value pair corresponding to the minimum value in the map,
+--   with a custom comparing function.
+--   
+--   <pre>
+--   'minimumVal' == 'minimumValBy' 'compare'
+--   </pre>
+minimumValBy :: (b -> b -> Ordering) -> Map a b -> Maybe (a, b)
+
+-- | Get the key-value pair corresponding to the minimum value in the map
+minimumVal :: Ord b => Map a b -> Maybe (a, b)
+
+-- | Version of <a>maximumValBy</a> for nonempty maps.
+maximumValByNE :: (b -> b -> Ordering) -> NEMap a b -> (a, b)
+
+-- | Version of <a>maximumVal</a> for nonempty maps.
+maximumValNE :: Ord b => NEMap a b -> (a, b)
+
+-- | Version of <a>minimumValBy</a> for nonempty maps.
+minimumValByNE :: (b -> b -> Ordering) -> NEMap a b -> (a, b)
+
+-- | Version of <a>minimumVal</a> for nonempty maps.
+minimumValNE :: Ord b => NEMap a b -> (a, b)
+
+-- | Delete a potential value from a <a>Finite</a>.
+deleteFinite :: KnownNat n => Finite (n + 1) -> Finite (n + 1) -> Maybe (Finite n)
+
 -- | Errors that might happen when running a <a>:~&gt;</a> on some input.
 data SolutionError
 SEParse :: SolutionError
@@ -6560,8 +6634,11 @@ instance GHC.Show.Show AOC.Discover.ChallengeSpec
 
 -- | Day 10. See <a>AOC.Solver</a> for the types used in this module!
 module AOC.Challenge.Day10
-day10a :: ([Point], [Point]) :~> Set Point
+day10a :: ([Point], [Point]) :~> Set Lattice
 day10b :: ([Point], [Point]) :~> Int
+
+-- | Shift so that centroid is at zero
+centralize :: [Point] -> [Point]
 
 
 -- | Day 9. See <a>AOC.Solver</a> for the types used in this module!
@@ -6794,13 +6871,13 @@ MRO :: !TestSpec -> !Bool -> !Bool -> !Bool -> !Finite 25 -> Part -> IO (Maybe S
 
 -- | Manually supply input (Default: always return Nothing)
 [_mroInput] :: MainRunOpts -> !Finite 25 -> Part -> IO (Maybe String)
-class HasMainRunOpts c_a1DfS
-mainRunOpts :: HasMainRunOpts c_a1DfS => Lens' c_a1DfS MainRunOpts
-mroBench :: HasMainRunOpts c_a1DfS => Lens' c_a1DfS Bool
-mroInput :: HasMainRunOpts c_a1DfS => Lens' c_a1DfS (Finite 25 -> Part -> IO (Maybe String))
-mroLock :: HasMainRunOpts c_a1DfS => Lens' c_a1DfS Bool
-mroSpec :: HasMainRunOpts c_a1DfS => Lens' c_a1DfS TestSpec
-mroTest :: HasMainRunOpts c_a1DfS => Lens' c_a1DfS Bool
+class HasMainRunOpts c_a1DqL
+mainRunOpts :: HasMainRunOpts c_a1DqL => Lens' c_a1DqL MainRunOpts
+mroBench :: HasMainRunOpts c_a1DqL => Lens' c_a1DqL Bool
+mroInput :: HasMainRunOpts c_a1DqL => Lens' c_a1DqL (Finite 25 -> Part -> IO (Maybe String))
+mroLock :: HasMainRunOpts c_a1DqL => Lens' c_a1DqL Bool
+mroSpec :: HasMainRunOpts c_a1DqL => Lens' c_a1DqL TestSpec
+mroTest :: HasMainRunOpts c_a1DqL => Lens' c_a1DqL Bool
 
 -- | Run, test, bench.
 mainRun :: (MonadIO m, MonadError [String] m) => Config -> MainRunOpts -> m (Map (Finite 25) (Map Part (Maybe Bool, Either [String] String)))
@@ -6813,10 +6890,10 @@ data MainViewOpts
 MVO :: !TestSpec -> !Bool -> MainViewOpts
 [_mvoSpec] :: MainViewOpts -> !TestSpec
 [_mvoWait] :: MainViewOpts -> !Bool
-class HasMainViewOpts c_a1DmU
-mainViewOpts :: HasMainViewOpts c_a1DmU => Lens' c_a1DmU MainViewOpts
-mvoSpec :: HasMainViewOpts c_a1DmU => Lens' c_a1DmU TestSpec
-mvoWait :: HasMainViewOpts c_a1DmU => Lens' c_a1DmU Bool
+class HasMainViewOpts c_a1DxN
+mainViewOpts :: HasMainViewOpts c_a1DxN => Lens' c_a1DxN MainViewOpts
+mvoSpec :: HasMainViewOpts c_a1DxN => Lens' c_a1DxN TestSpec
+mvoWait :: HasMainViewOpts c_a1DxN => Lens' c_a1DxN Bool
 
 -- | View prompt
 mainView :: (MonadIO m, MonadError [String] m) => Config -> MainViewOpts -> m (Map (Finite 25) (Map Part Text))
@@ -6837,12 +6914,12 @@ MSO :: !ChallengeSpec -> !Bool -> !Bool -> !Bool -> MainSubmitOpts
 
 -- | Lock answer if submission succeeded? (Default: True)
 [_msoLock] :: MainSubmitOpts -> !Bool
-class HasMainSubmitOpts c_a1Drd
-mainSubmitOpts :: HasMainSubmitOpts c_a1Drd => Lens' c_a1Drd MainSubmitOpts
-msoForce :: HasMainSubmitOpts c_a1Drd => Lens' c_a1Drd Bool
-msoLock :: HasMainSubmitOpts c_a1Drd => Lens' c_a1Drd Bool
-msoSpec :: HasMainSubmitOpts c_a1Drd => Lens' c_a1Drd ChallengeSpec
-msoTest :: HasMainSubmitOpts c_a1Drd => Lens' c_a1Drd Bool
+class HasMainSubmitOpts c_a1DC6
+mainSubmitOpts :: HasMainSubmitOpts c_a1DC6 => Lens' c_a1DC6 MainSubmitOpts
+msoForce :: HasMainSubmitOpts c_a1DC6 => Lens' c_a1DC6 Bool
+msoLock :: HasMainSubmitOpts c_a1DC6 => Lens' c_a1DC6 Bool
+msoSpec :: HasMainSubmitOpts c_a1DC6 => Lens' c_a1DC6 ChallengeSpec
+msoTest :: HasMainSubmitOpts c_a1DC6 => Lens' c_a1DC6 Bool
 
 -- | Submit and analyze result
 mainSubmit :: (MonadIO m, MonadError [String] m) => Config -> MainSubmitOpts -> m (Text, SubmitRes)
