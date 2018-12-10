@@ -4,8 +4,10 @@ Advent of Code 2018
 It's the most wonderful time of the year!
 
 My [Advent of Code 2018][aoc2018] Haskell solutions here, along with an automated
-fetching, testing, running environment. (powered by the
-*[advent-of-code-api][]* library)
+fetching, testing, running environment (powered by the
+*[advent-of-code-api][]* library).  The interactive development environment and
+runner/bench marker/viewer/tester has been pulled out [here][dev], so this is
+implemented as "fork" of it with my own solutions and reflections.
 
 Check out reflections and commentary at the [package haddocks][haddock]!
 (individual links down below)
@@ -13,6 +15,7 @@ Check out reflections and commentary at the [package haddocks][haddock]!
 [aoc2018]: https://adventofcode.com/2018
 [haddock]: https://mstksg.github.io/advent-of-code-2018/
 [advent-of-code-api]: https://hackage.haskell.org/package/advent-of-code-api
+[dev]: https://github.com/mstksg/advent-of-code-dev
 
 [Reflections and Benchmarks][reflections]
 -----------------------------------------
