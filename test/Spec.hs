@@ -1,5 +1,5 @@
 
-import           AOC2018
+import           AOC
 import           Control.Monad.Except
 import           Data.Semigroup
 import           System.Exit

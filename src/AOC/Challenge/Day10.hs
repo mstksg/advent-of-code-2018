@@ -10,24 +10,44 @@
 -- Portability : non-portable
 --
 -- Day 10.  See "AOC.Solver" for the types used in this module!
---
--- After completing the challenge, it is recommended to:
---
--- *   Replace "AOC.Prelude" imports to specific modules (with explicit
---     imports) for readability.
--- *   Remove the @-Wno-unused-imports@ and @-Wno-unused-top-binds@
---     pragmas.
--- *   Replace the partial type signatures underscores in the solution
---     types @_ :~> _@ with the actual types of inputs and outputs of the
---     solution.  You can delete the type signatures completely and GHC
---     will recommend what should go in place of the underscores.
 
 module AOC.Challenge.Day10 (
-    -- day10a
-  -- , day10b
+    day10a
+  , day10b
   ) where
 
-import           AOC.Prelude
+import           AOC.Common     (clearOut)
+import           AOC.Solver     ((:~>)(..))
+import           Control.Monad  (guard)
+import           Data.Bifunctor (second)
+import           Data.Char      (isDigit)
+import           Data.Foldable  (toList, foldMap)
+import           Data.List      (unfoldr, uncons)
+import           Data.Map       (Map)
+import           Data.Maybe     (catMaybes)
+import           Data.Semigroup (Min(..), Max(..))
+import           Data.Set       (Set)
+import           Linear         (V2(..))
+import           Text.Heredoc   (here)
+import qualified Data.Map       as M
+import qualified Data.Set       as S
+
+type Point = V2 Int
+
+simulate
+    :: [Point]        -- ^ velocities
+    -> [Point]        -- ^ points
+    -> [Point]        -- ^ new points
+simulate = zipWith (+)
+
+boundingBox :: [Point] -> V2 Point
+boundingBox ps = V2 xMin yMin `V2` V2 xMax yMax
+  where
+    (Min xMin, Min yMin, Max xMax, Max yMax) = flip foldMap ps $ \(V2 x y) ->
+        (Min x, Min y, Max x, Max y)
+
+clusterArea :: [Point] -> Int
+clusterArea (boundingBox -> V2 mins maxs) = product $ maxs - mins
 
 findWord
     :: [Point]            -- ^ velocities

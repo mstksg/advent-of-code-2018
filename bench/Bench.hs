@@ -1,5 +1,5 @@
 
-import           AOC2018
+import           AOC
 import           Control.Monad.Except
 
 main :: IO ()
