@@ -90,10 +90,10 @@ library:
   - haskeline
   - haskell-names
   - haskell-src-exts
+  - heredoc
   - hpack
   - lens
   - linear
-  - vector
   - megaparsec
   - mtl
   - nonempty-containers
@@ -109,6 +109,7 @@ library:
   - split
   - tagsoup
   - template-haskell
+  - vector
   - text
   - these
   - time

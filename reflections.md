@@ -1102,7 +1102,7 @@ variance introduced by outliers: 19% (moderately inflated)
 ```
 
 Day 10
------
+------
 
 *[Prompt][d10p]* / *[Code][d10g]* / *[Rendered][d10h]*
 

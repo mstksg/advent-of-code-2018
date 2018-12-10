@@ -1,3 +1,5 @@
+{-# LANGUAGE QuasiQuotes #-}
+
 -- |
 -- Module      : AOC2018.Challenge.Day10
 -- Copyright   : (c) Justin Le 2018
@@ -14,14 +16,21 @@ module AOC2018.Challenge.Day10 (
   , day10b
   ) where
 
-import           AOC2018.Solver     ((:~>)(..))
-import           AOC2018.Util       (clearOut)
-import           Data.Char          (isDigit)
-import           Data.Foldable      (toList)
-import           Data.Semigroup     (Min(..), Max(..))
-import           Data.Set           (Set)
-import           Linear             (V2(..))
-import qualified Data.Set           as S
+import           AOC2018.Solver ((:~>)(..))
+import           AOC2018.Util   (clearOut)
+import           Control.Monad  (guard)
+import           Data.Bifunctor (second)
+import           Data.Char      (isDigit)
+import           Data.Foldable  (toList, foldMap)
+import           Data.List      (unfoldr, uncons)
+import           Data.Map       (Map)
+import           Data.Maybe     (catMaybes)
+import           Data.Semigroup (Min(..), Max(..))
+import           Data.Set       (Set)
+import           Linear         (V2(..))
+import           Text.Heredoc   (here)
+import qualified Data.Map       as M
+import qualified Data.Set       as S
 
 type Point = V2 Int
 
@@ -57,7 +66,7 @@ findWord vs xs0 = go 0 (clusterArea xs0) xs0
 day10a :: ([Point], [Point]) :~> Set Point
 day10a = MkSol
     { sParse = fmap unzip . traverse parsePoint . lines
-    , sShow  = display
+    , sShow  = parseResult
     , sSolve = Just . fst . uncurry findWord
     }
 
@@ -68,14 +77,26 @@ day10b = MkSol
     , sSolve = Just . snd . uncurry findWord
     }
 
-display :: Set Point -> String
-display ps = unlines [ [ if V2 x y `S.member` ps then '#' else '.'
+-- | Old solution: Display the points as ASCII plot
+_display :: Set Point -> String
+_display ps = unlines [ [ if V2 x y `S.member` ps then '#' else '.'
                        | x <- [xMin .. xMax]
                        ]
                      | y <- [yMin .. yMax]
                      ]
   where
     V2 xMin yMin `V2` V2 xMax yMax = boundingBox (toList ps)
+
+-- | New solution: Parse the set of points into a string, based on
+-- 'letterforms'.
+parseResult :: Set Point -> String
+parseResult ps = case M.lookup letter letterMap of
+    Nothing -> []
+    Just c  -> c : parseResult rest
+  where
+    origin `V2` _  = boundingBox (toList ps)
+    shiftedPs      = subtract origin `S.map` ps
+    (letter, rest) = S.partition (\(V2 x y) -> x < 6 && y < 10) shiftedPs
 
 parsePoint :: String -> Maybe (Point, Point)
 parsePoint xs = case map read . words . clearOut p $ xs of
@@ -85,3 +106,39 @@ parsePoint xs = case map read . words . clearOut p $ xs of
     p '-' = False
     p c   = not $ isDigit c
 
+-- | A map of a set of "on" points (for a 6x10 grid) to the letter
+-- they represent
+letterMap :: Map (Set Point) Char
+letterMap = M.fromList
+          . unfoldr (uncurry peel)
+          . second (filter (not . null) . lines)
+          $ letterforms
+  where
+    peel :: String -> [String] -> Maybe ((Set Point, Char), (String, [String]))
+    peel cs ls = do
+      (d,ds) <- uncons cs
+      let (m,ms) = unzip . map (splitAt 6) $ ls
+          pointMap = S.fromList
+                   . foldMap catMaybes
+                   . zipWith (\j -> zipWith (\i c -> V2 i j <$ guard (c == '#'))
+                                            [0..]
+                             )
+                             [0..]
+                   $ m
+      pure ((pointMap, d), (ds, ms))
+
+-- | All known letterforms.  Based on
+-- <https://gist.github.com/usbpc/5fa0be48ad7b4b0594b3b8b029bc47b4>.
+letterforms :: (String, String)
+letterforms = ("ABCEFGHJKLNPRXZ",[here|
+..##..#####..####.############.####.#....#...####....##.....#....######.#####.#....#######
+.#..#.#....##....##.....#.....#....##....#....#.#...#.#.....##...##....##....##....#.....#
+#....##....##.....#.....#.....#.....#....#....#.#..#..#.....##...##....##....#.#..#......#
+#....##....##.....#.....#.....#.....#....#....#.#.#...#.....#.#..##....##....#.#..#.....#.
+#....######.#.....#####.#####.#.....######....#.##....#.....#.#..######.#####...##.....#..
+#######....##.....#.....#.....#..####....#....#.##....#.....#..#.##.....#..#....##....#...
+#....##....##.....#.....#.....#....##....#....#.#.#...#.....#..#.##.....#...#..#..#..#....
+#....##....##.....#.....#.....#....##....##...#.#..#..#.....#...###.....#...#..#..#.#.....
+#....##....##....##.....#.....#...###....##...#.#...#.#.....#...###.....#....##....##.....
+#....######..####.#######......###.##....#.###..#....########....##.....#....##....#######
+|])
