@@ -1101,3 +1101,95 @@ std dev              113.2 ms   (33.28 ms .. 149.6 ms)
 variance introduced by outliers: 19% (moderately inflated)
 ```
 
+Day 10
+-----
+
+*[Prompt][d10p]* / *[Code][d10g]* / *[Rendered][d10h]*
+
+[d10p]: https://adventofcode.com/2018/day/10
+[d10g]: https://github.com/mstksg/advent-of-code-2018/blob/master/src/AOC2018/Challenge/Day10.hs
+[d10h]: https://mstksg.github.io/advent-of-code-2018/src/AOC2018.Challenge.Day10.html
+
+Re-using `Point = V2 Int` from Day 6, because we get to define things in terms
+of addition.  This makes our single simulation step pretty simple: `zipWith
+(+)`.
+
+```haskell
+type Point = V2 Int
+
+simulate
+    :: [Point]    -- ^ Velocities
+    -> [Point]    -- ^ Points
+    -> [Point]    -- ^ New points
+simulate = zipWith (+)
+```
+
+Our metric for figuring out when to stop is to find the local minimum of the
+bounding box areas.  This isn't a perfect metric, but it worked!  To do this,
+we can re-use `boundingBox` from Day 6, and also a new function that computes
+the area of the bounding box:
+
+```haskell
+boundingBox :: [Point] -> V2 Point
+boundingBox ps = V2 xMin yMin `V2` V2 xMax yMax
+  where
+    (Min xMin, Min yMin, Max xMax, Max yMax) = flip foldMap ps $ \(V2 x y) ->
+        (Min x, Min y, Max x, Max y)
+
+clusterArea :: [Point] -> Int
+clusterArea (boundingBox -> V2 mins maxs) = product $ maxs - mins
+```
+
+Finally, our find function.  We can implement this using `iterate` and
+``zip`ap`tail`` to avoid explicit recursion, but in this case the recursion is
+simple enough that it's not too big a deal for a hacky job:
+
+```haskell
+findWord
+    :: [Point]            -- ^ velocities
+    -> [Point]            -- ^ points
+    -> (Set Point, Int)   -- ^ points in word, and # of iterations
+findWord vs xs0 = go 0 (clusterArea xs0) xs0
+  where
+    go :: Int -> Int -> [Point] -> (Set Point, Int)
+    go !i !area !xs
+        | area' > area = (S.fromList xs, i)
+        | otherwise    = go (i + 1) area' xs'
+      where
+        xs'   = simulate vs xs
+        area' = clusterArea xs'
+```
+
+This covers both parts 1 and 2!  To inspect things, we can write a function to
+display the point set:
+
+```haskell
+display :: Set Point -> String
+display ps = unlines [ [ if V2 x y `S.member` ps then '#' else '.'
+                       | x <- [xMin .. xMax]
+                       ]
+                     | y <- [yMin .. yMax]
+                     ]
+  where
+    V2 xMin yMin `V2` V2 xMax yMax = boundingBox (toList ps)
+```
+
+### Day 10 Benchmarks
+
+```
+>> Day 10a
+benchmarking...
+time                 447.5 ms   (406.4 ms .. 538.8 ms)
+                     0.995 R²   (0.990 R² .. 1.000 R²)
+mean                 417.1 ms   (408.7 ms .. 433.4 ms)
+std dev              16.09 ms   (161.0 ns .. 18.78 ms)
+variance introduced by outliers: 19% (moderately inflated)
+
+>> Day 10b
+benchmarking...
+time                 415.5 ms   (406.1 ms .. 436.1 ms)
+                     1.000 R²   (0.999 R² .. 1.000 R²)
+mean                 407.6 ms   (405.5 ms .. 411.7 ms)
+std dev              4.004 ms   (243.0 μs .. 4.872 ms)
+variance introduced by outliers: 19% (moderately inflated)
+```
