@@ -72,6 +72,7 @@ library:
   source-dirs: src
   dependencies:
   - advent-of-code-api >= 0.1.2.3
+  - pure-fft
   - aeson
   - ansi-terminal
   - bytestring
