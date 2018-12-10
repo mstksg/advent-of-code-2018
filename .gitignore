@@ -1,8 +1,0 @@
-.stack-work/
-/*.cabal
-*~
-/data
-/prompt
-/aoc-conf.yaml
-/logs
-/scratch
