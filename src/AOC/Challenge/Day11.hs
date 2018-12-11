@@ -68,19 +68,14 @@ day11a :: Int :~> Point
 day11a = MkSol
     { sParse = readMaybe
     , sShow  = \(V2 x y) -> show x ++ "," ++ show y
-    , sSolve = \i -> Just . findMaxThree
-                $ M.fromSet (powerLevel i) (S.fromList (range (V2 1 1, V2 300 300)))
+    , sSolve = Just . findMaxThree . mkMap
     }
 
 day11b :: Int :~> (Point, Int)
 day11b = MkSol
     { sParse = readMaybe
     , sShow  = \(V2 x y, s) -> show x ++ "," ++ show y ++ "," ++ show s
-    , sSolve = \i -> Just
-                   . findMaxAny
-                   . M.fromSet (powerLevel i)
-                   . S.fromList
-                   $ range (V2 1 1, V2 300 300)
+    , sSolve = Just . findMaxAny . mkMap
     }
 
 findMaxAny :: Map Point Int -> (Point, Int)
