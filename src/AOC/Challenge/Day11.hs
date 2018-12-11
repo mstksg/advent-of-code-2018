@@ -1,6 +1,3 @@
-{-# OPTIONS_GHC -Wno-unused-imports   #-}
-{-# OPTIONS_GHC -Wno-unused-top-binds #-}
-
 -- |
 -- Module      : AOC.Challenge.Day11
 -- Copyright   : (c) Justin Le 2018
@@ -11,34 +8,23 @@
 -- Portability : non-portable
 --
 -- Day 11.  See "AOC.Solver" for the types used in this module!
---
--- After completing the challenge, it is recommended to:
---
--- *   Replace "AOC.Prelude" imports to specific modules (with explicit
---     imports) for readability.
--- *   Remove the @-Wno-unused-imports@ and @-Wno-unused-top-binds@
---     pragmas.
--- *   Replace the partial type signatures underscores in the solution
---     types @_ :~> _@ with the actual types of inputs and outputs of the
---     solution.  You can delete the type signatures completely and GHC
---     will recommend what should go in place of the underscores.
 
-module AOC.Challenge.Day11 where
+module AOC.Challenge.Day11 (
+    day11a
+  , day11b
+  ) where
 
--- module AOC.Challenge.Day11 (
---     day11a
---   , day11b
---   ) where
-
-import           AOC.Prelude
-import           Control.Lens
-import qualified Data.List.NonEmpty as NE
-import qualified Data.Map           as M
-import qualified Data.Map.NonEmpty  as NEM
-import qualified Data.Set           as S
-import qualified Data.Set.NonEmpty  as NES
-import qualified Data.Vector        as V
-import qualified Linear             as L
+import           AOC.Solver      ((:~>)(..))
+import           Control.DeepSeq (force)
+import           Data.Foldable   (maximumBy)
+import           Data.Ix         (range)
+import           Data.Map        (Map)
+import           Data.Maybe      (catMaybes)
+import           Data.Ord        (comparing)
+import           Linear          (V2(..))
+import           Text.Read       (readMaybe)
+import qualified Data.Map        as M
+import qualified Data.Set        as S
 
 type Point = V2 Int
 
