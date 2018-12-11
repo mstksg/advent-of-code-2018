@@ -65,28 +65,30 @@ day11b = MkSol
     }
 
 findMaxAny :: Map Point Int -> (Point, Int)
-findMaxAny mp = fst . maximumBy (comparing snd) $
-                        [ ((p, n), fromPartialSums ps p n)
-                        | !n <- [1 .. 300]
-                        , !p <- range (V2 1 1, V2 (300 - n + 1) (300 - n + 1))
-                        ]
+findMaxAny mp = fst
+              . maximumBy (comparing snd)
+              $ [ ((p, n), s)
+                | !n <- [1 .. 300]
+                , !p <- range (V2 1 1, V2 (300 - n + 1) (300 - n + 1))
+                , let !s = fromPartialSums ps p n
+                ]
   where
     !ps = partialSums mp
 
 fromPartialSums :: Map Point Int -> Point -> Int -> Int
 fromPartialSums ps (subtract (V2 1 1)->p) n = sum . catMaybes $
-                [            M.lookup p            ps
-                ,            M.lookup (p + V2 n n) ps
-                , negate <$> M.lookup (p + V2 0 n) ps
-                , negate <$> M.lookup (p + V2 n 0) ps
-                ]
+    [            M.lookup p            ps
+    ,            M.lookup (p + V2 n n) ps
+    , negate <$> M.lookup (p + V2 0 n) ps
+    , negate <$> M.lookup (p + V2 n 0) ps
+    ]
 
 partialSums :: Map Point Int -> Map Point Int
 partialSums mp = force pasu
   where
     pasu = M.mapWithKey go mp
     go p0 v = (+ v) . sum . catMaybes $
-            [ negate <$> M.lookup (p0 - V2 1 1) pasu
-            ,            M.lookup (p0 - V2 1 0) pasu
-            ,            M.lookup (p0 - V2 0 1) pasu
-            ]
+      [ negate <$> M.lookup (p0 - V2 1 1) pasu
+      ,            M.lookup (p0 - V2 1 0) pasu
+      ,            M.lookup (p0 - V2 0 1) pasu
+      ]

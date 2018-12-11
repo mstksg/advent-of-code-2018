@@ -30,6 +30,7 @@ module AOC.Common (
   , minimumValNE
   , minimumValByNE
   , deleteFinite
+  , maximumOn
   ) where
 
 import           AOC.Util
@@ -38,13 +39,16 @@ import           Data.Finite
 import           Data.Foldable
 import           Data.Function
 import           Data.List
-import           Data.Map           (Map)
-import           Data.Map.NonEmpty  (NEMap)
+import           Data.List.NonEmpty      (NonEmpty)
+import           Data.Map                (Map)
+import           Data.Map.NonEmpty       (NEMap)
+import           Data.Semigroup
+import           Data.Semigroup.Foldable
 import           GHC.TypeNats
-import qualified Data.List.NonEmpty as NE
-import qualified Data.Map           as M
-import qualified Data.Map.NonEmpty  as NEM
-import qualified Data.Set           as S
+import qualified Data.List.NonEmpty      as NE
+import qualified Data.Map                as M
+import qualified Data.Map.NonEmpty       as NEM
+import qualified Data.Set                as S
 
 -- | Strict (!!)
 (!!!) :: [a] -> Int -> a
@@ -159,3 +163,9 @@ deleteFinite n m = case n `cmp` m of
     LT -> unshift m
     EQ -> Nothing
     GT -> strengthen m
+
+-- | Get the maximum value based on some projection
+maximumOn :: Ord b => (a -> b) -> NonEmpty a -> a
+maximumOn f = (\(Arg _ x) -> x)
+            . getMax
+            . foldMap1 (\x -> let !y = f x in Max (Arg y x))
