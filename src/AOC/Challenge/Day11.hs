@@ -71,7 +71,7 @@ findMaxAny mp = fst . maximumBy (comparing snd) $
                         , !p <- range (V2 1 1, V2 (300 - n + 1) (300 - n + 1))
                         ]
   where
-    ps = partialSums mp
+    !ps = partialSums mp
 
 fromPartialSums :: Map Point Int -> Point -> Int -> Int
 fromPartialSums ps (subtract (V2 1 1)->p) n = sum . catMaybes $
@@ -85,9 +85,8 @@ partialSums :: Map Point Int -> Map Point Int
 partialSums mp = force pasu
   where
     pasu = M.mapWithKey go mp
-    go p0@(V2 x0 y0) v = v + adds + M.findWithDefault 0 (p0 - V2 1 1) pasu
-      where
-        adds = sum [ mp M.! p
-                   | p <- range (V2 x0 1 , V2 x0       (y0 - 1))
-                       ++ range (V2 1  y0, V2 (x0 - 1) y0      )
-                   ]
+    go p0 v = (+ v) . sum . catMaybes $
+            [ negate <$> M.lookup (p0 - V2 1 1) pasu
+            ,            M.lookup (p0 - V2 1 0) pasu
+            ,            M.lookup (p0 - V2 0 1) pasu
+            ]
