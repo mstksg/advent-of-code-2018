@@ -557,6 +557,42 @@ infix 4 <=
 infix 4 <
 infix 4 >
 
+-- | The <a>Ix</a> class is used to map a contiguous subrange of values in
+--   a type onto integers. It is used primarily for array indexing (see the
+--   array package).
+--   
+--   The first argument <tt>(l,u)</tt> of each of these operations is a
+--   pair specifying the lower and upper bounds of a contiguous subrange of
+--   values.
+--   
+--   An implementation is entitled to assume the following laws about these
+--   operations:
+--   
+--   <ul>
+--   <li><tt><a>inRange</a> (l,u) i == <a>elem</a> i (<a>range</a>
+--   (l,u))</tt> <tt> </tt></li>
+--   <li><tt><a>range</a> (l,u) <a>!!</a> <a>index</a> (l,u) i == i</tt>,
+--   when <tt><a>inRange</a> (l,u) i</tt></li>
+--   <li><tt><a>map</a> (<a>index</a> (l,u)) (<a>range</a> (l,u))) ==
+--   [0..<a>rangeSize</a> (l,u)-1]</tt> <tt> </tt></li>
+--   <li><tt><a>rangeSize</a> (l,u) == <a>length</a> (<a>range</a>
+--   (l,u))</tt> <tt> </tt></li>
+--   </ul>
+class Ord a => Ix a
+
+-- | The list of values in the subrange defined by a bounding pair.
+range :: Ix a => (a, a) -> [a]
+
+-- | The position of a subscript in the subrange.
+index :: Ix a => (a, a) -> a -> Int
+
+-- | Returns <a>True</a> the given subscript lies in the range defined the
+--   bounding pair.
+inRange :: Ix a => (a, a) -> a -> Bool
+
+-- | The size of the subrange defined by a bounding pair.
+rangeSize :: Ix a => (a, a) -> Int
+
 -- | Monads having fixed points with a 'knot-tying' semantics. Instances of
 --   <a>MonadFix</a> should satisfy the following laws:
 --   
@@ -5469,6 +5505,10 @@ mapStateT :: () => (m (a, s) -> n (b, s)) -> StateT s m a -> StateT s n b
 --   <li><pre><a>withStateT</a> f m = <a>modify</a> f &gt;&gt; m</pre></li>
 --   </ul>
 withStateT :: () => (s -> s) -> StateT s m a -> StateT s m a
+class Foldable t => Foldable1 (t :: Type -> Type)
+fold1 :: (Foldable1 t, Semigroup m) => t m -> m
+foldMap1 :: (Foldable1 t, Semigroup m) => (a -> m) -> t a -> m
+toNonEmpty :: Foldable1 t => t a -> NonEmpty a
 
 -- | A non-empty (by construction) set of values <tt>a</tt>. At least one
 --   value exists in an <tt><a>NESet</a> a</tt> at all times.
@@ -5555,6 +5595,64 @@ data NEMap k a
 -- | The implementation of the pointed list structure which tracks the
 --   current position in the list structure.
 data PointedList a
+
+-- | Monadic fold over the elements of a non-empty structure, associating
+--   to the left, i.e. from left to right.
+--   
+--   <pre>
+--   let g = flip $ (=&lt;&lt;) . f
+--   in foldlM1 f (x1 :| [x2, ..., xn]) == (...((x1 `f` x2) `g` x2) `g`...) `g` xn
+--   </pre>
+foldlM1 :: (Foldable1 t, Monad m) => (a -> a -> m a) -> t a -> m a
+
+-- | Monadic fold over the elements of a non-empty structure, associating
+--   to the right, i.e. from right to left.
+--   
+--   <pre>
+--   let g = (=&lt;&lt;) . f
+--   in foldrM1 f (x1 :| [x2, ..., xn]) == x1 `g` (x2 `g` ... (xn-1 `f` xn)...)
+--   </pre>
+foldrM1 :: (Foldable1 t, Monad m) => (a -> a -> m a) -> t a -> m a
+asum1 :: (Foldable1 t, Alt m) => t (m a) -> m a
+
+-- | Usable default for foldMap, but only if you define foldMap1 yourself
+foldMapDefault1 :: (Foldable1 t, Monoid m) => (a -> m) -> t a -> m
+sequenceA1_ :: (Foldable1 t, Apply f) => t (f a) -> f ()
+for1_ :: (Foldable1 t, Apply f) => t a -> (a -> f b) -> f ()
+traverse1_ :: (Foldable1 t, Apply f) => (a -> f b) -> t a -> f ()
+
+-- | Insert <tt>m</tt> between each pair of <tt>m</tt> derived from
+--   <tt>a</tt>.
+--   
+--   <pre>
+--   &gt;&gt;&gt; intercalateMap1 " " show $ True :| [False, True]
+--   "True False True"
+--   </pre>
+--   
+--   <pre>
+--   &gt;&gt;&gt; intercalateMap1 " " show $ True :| []
+--   "True"
+--   </pre>
+intercalateMap1 :: (Foldable1 t, Semigroup m) => m -> (a -> m) -> t a -> m
+
+-- | Insert an <tt>m</tt> between each pair of 't m'. Equivalent to
+--   <a>intercalateMap1</a> with <a>id</a> as the second argument.
+--   
+--   <pre>
+--   &gt;&gt;&gt; intercalate1 ", " $ "hello" :| ["how", "are", "you"]
+--   "hello, how, are, you"
+--   </pre>
+--   
+--   <pre>
+--   &gt;&gt;&gt; intercalate1 ", " $ "hello" :| []
+--   "hello"
+--   </pre>
+--   
+--   <pre>
+--   &gt;&gt;&gt; intercalate1 mempty $ "I" :| ["Am", "Fine", "You?"]
+--   "IAmFineYou?"
+--   </pre>
+intercalate1 :: (Foldable1 t, Semigroup m) => m -> t m -> m
 
 -- | Substitute various time-related information for each %-code in the
 --   string, as per <a>formatCharacter</a>.
@@ -6580,8 +6678,15 @@ module AOC.Challenge.Day12
 --   will recommend what should go in place of the underscores.</li>
 --   </ul>
 module AOC.Challenge.Day11
-day11a :: _ :~> _
-day11b :: _ :~> _
+type Point = V2 Int
+powerLevel :: Int -> Point -> Int
+findMaxThree :: Map Point Int -> Point
+mkMap :: Int -> Map Point Int
+day11a :: Int :~> Point
+day11b :: Int :~> (Point, Int)
+findMaxAny :: Map Point Int -> (Point, Int)
+fromPartialSums :: Map Point Int -> Point -> Int -> Int
+partialSums :: Map Point Int -> Map Point Int
 
 
 -- | Template Haskell for discovering all named challenges in a given
@@ -6871,13 +6976,13 @@ MRO :: !TestSpec -> !Bool -> !Bool -> !Bool -> !Finite 25 -> Part -> IO (Maybe S
 
 -- | Manually supply input (Default: always return Nothing)
 [_mroInput] :: MainRunOpts -> !Finite 25 -> Part -> IO (Maybe String)
-class HasMainRunOpts c_a1Dq9
-mainRunOpts :: HasMainRunOpts c_a1Dq9 => Lens' c_a1Dq9 MainRunOpts
-mroBench :: HasMainRunOpts c_a1Dq9 => Lens' c_a1Dq9 Bool
-mroInput :: HasMainRunOpts c_a1Dq9 => Lens' c_a1Dq9 (Finite 25 -> Part -> IO (Maybe String))
-mroLock :: HasMainRunOpts c_a1Dq9 => Lens' c_a1Dq9 Bool
-mroSpec :: HasMainRunOpts c_a1Dq9 => Lens' c_a1Dq9 TestSpec
-mroTest :: HasMainRunOpts c_a1Dq9 => Lens' c_a1Dq9 Bool
+class HasMainRunOpts c_a1F09
+mainRunOpts :: HasMainRunOpts c_a1F09 => Lens' c_a1F09 MainRunOpts
+mroBench :: HasMainRunOpts c_a1F09 => Lens' c_a1F09 Bool
+mroInput :: HasMainRunOpts c_a1F09 => Lens' c_a1F09 (Finite 25 -> Part -> IO (Maybe String))
+mroLock :: HasMainRunOpts c_a1F09 => Lens' c_a1F09 Bool
+mroSpec :: HasMainRunOpts c_a1F09 => Lens' c_a1F09 TestSpec
+mroTest :: HasMainRunOpts c_a1F09 => Lens' c_a1F09 Bool
 
 -- | Run, test, bench.
 mainRun :: (MonadIO m, MonadError [String] m) => Config -> MainRunOpts -> m (Map (Finite 25) (Map Part (Maybe Bool, Either [String] String)))
@@ -6890,10 +6995,10 @@ data MainViewOpts
 MVO :: !TestSpec -> !Bool -> MainViewOpts
 [_mvoSpec] :: MainViewOpts -> !TestSpec
 [_mvoWait] :: MainViewOpts -> !Bool
-class HasMainViewOpts c_a1Dxb
-mainViewOpts :: HasMainViewOpts c_a1Dxb => Lens' c_a1Dxb MainViewOpts
-mvoSpec :: HasMainViewOpts c_a1Dxb => Lens' c_a1Dxb TestSpec
-mvoWait :: HasMainViewOpts c_a1Dxb => Lens' c_a1Dxb Bool
+class HasMainViewOpts c_a1F7b
+mainViewOpts :: HasMainViewOpts c_a1F7b => Lens' c_a1F7b MainViewOpts
+mvoSpec :: HasMainViewOpts c_a1F7b => Lens' c_a1F7b TestSpec
+mvoWait :: HasMainViewOpts c_a1F7b => Lens' c_a1F7b Bool
 
 -- | View prompt
 mainView :: (MonadIO m, MonadError [String] m) => Config -> MainViewOpts -> m (Map (Finite 25) (Map Part Text))
@@ -6914,12 +7019,12 @@ MSO :: !ChallengeSpec -> !Bool -> !Bool -> !Bool -> MainSubmitOpts
 
 -- | Lock answer if submission succeeded? (Default: True)
 [_msoLock] :: MainSubmitOpts -> !Bool
-class HasMainSubmitOpts c_a1DBu
-mainSubmitOpts :: HasMainSubmitOpts c_a1DBu => Lens' c_a1DBu MainSubmitOpts
-msoForce :: HasMainSubmitOpts c_a1DBu => Lens' c_a1DBu Bool
-msoLock :: HasMainSubmitOpts c_a1DBu => Lens' c_a1DBu Bool
-msoSpec :: HasMainSubmitOpts c_a1DBu => Lens' c_a1DBu ChallengeSpec
-msoTest :: HasMainSubmitOpts c_a1DBu => Lens' c_a1DBu Bool
+class HasMainSubmitOpts c_a1Fbu
+mainSubmitOpts :: HasMainSubmitOpts c_a1Fbu => Lens' c_a1Fbu MainSubmitOpts
+msoForce :: HasMainSubmitOpts c_a1Fbu => Lens' c_a1Fbu Bool
+msoLock :: HasMainSubmitOpts c_a1Fbu => Lens' c_a1Fbu Bool
+msoSpec :: HasMainSubmitOpts c_a1Fbu => Lens' c_a1Fbu ChallengeSpec
+msoTest :: HasMainSubmitOpts c_a1Fbu => Lens' c_a1Fbu Bool
 
 -- | Submit and analyze result
 mainSubmit :: (MonadIO m, MonadError [String] m) => Config -> MainSubmitOpts -> m (Text, SubmitRes)
