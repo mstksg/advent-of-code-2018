@@ -41,8 +41,8 @@ type Lattice = V2 Int
 centralize :: [Point] -> [Point]
 centralize ps = map (subtract mean) ps
   where
-    mean = (/ len) <$> tot
     (Sum tot, Sum len) = foldMap (\x -> (Sum x, Sum 1)) ps
+    mean               = tot L.^/ len
 
 -- | Multiply and find trace
 traceMul :: [Point] -> [Point] -> Double
@@ -52,11 +52,10 @@ findWord
     :: [Point]              -- ^ velocities
     -> [Point]              -- ^ points
     -> (Set Lattice, Int)   -- ^ points in word, and # of iterations
-findWord vs xs = (S.fromList ((map . fmap) round final), round t)
+findWord (centralize->vs) (centralize->xs) =
+    (S.fromList ((map . fmap) round final), round t)
   where
-    vs'   = centralize vs
-    xs'   = centralize xs
-    t     = negate $ traceMul xs' vs' / traceMul vs' vs'
+    t     = negate $ traceMul xs vs / traceMul vs vs
     final = zipWith (\v x -> x + t L.*^ v) vs xs
 
 day10a :: ([Point], [Point]) :~> Set Lattice
