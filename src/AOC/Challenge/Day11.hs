@@ -14,20 +14,21 @@ module AOC.Challenge.Day11 (
   , day11b
   ) where
 
-import           AOC.Common
-import           AOC.Solver      ((:~>)(..))
-import           Control.DeepSeq (force)
-import           Data.Foldable   (maximumBy)
-import           Data.Ix         (range)
-import           Data.Map        (Map)
-import           Data.Maybe      (catMaybes)
-import           Data.Maybe
-import           Data.Ord        (comparing)
-import           Data.Semigroup
-import           Linear          (V2(..))
-import           Text.Read       (readMaybe)
-import qualified Data.Map        as M
-import qualified Data.Set        as S
+import           AOC.Common         (foldMapPar1)
+import           AOC.Solver         ((:~>)(..))
+import           Control.DeepSeq    (force)
+import           Control.Monad      ((<=<))
+import           Data.Foldable      (maximumBy)
+import           Data.Ix            (range)
+import           Data.Map           (Map)
+import           Data.Maybe         (catMaybes)
+import           Data.Ord           (comparing)
+import           Data.Semigroup     (Max(..), Arg(..))
+import           Linear             (V2(..))
+import           Text.Read          (readMaybe)
+import qualified Data.List.NonEmpty as NE
+import qualified Data.Map           as M
+import qualified Data.Set           as S
 
 type Point = V2 Int
 
@@ -61,13 +62,16 @@ day11b :: Int :~> (Point, Int)
 day11b = MkSol
     { sParse = readMaybe
     , sShow  = \(V2 x y, s) -> show x ++ "," ++ show y ++ "," ++ show s
-    , sSolve = Just . findMaxAny . mkMap
+    , sSolve = findMaxAny . mkMap
     }
 
-findMaxAny :: Map Point Int -> (Point, Int)
-findMaxAny mp = (\(Arg _ x) -> x) . getMax . fromJust
-              . (foldMapPar . foldMapPar) id
-              $ [ [ Just (Max (Arg s (p, n)))
+findMaxAny :: Map Point Int -> Maybe (Point, Int)
+findMaxAny mp = fmap ( (\(Arg _ x) -> x)
+                     . getMax
+                     . (foldMapPar1 . foldMapPar1) id
+                     )
+              . (traverse NE.nonEmpty <=< NE.nonEmpty)
+              $ [ [ Max (Arg s (p, n))
                   | !p <- range (V2 1 1, V2 (300 - n + 1) (300 - n + 1))
                   , let !s = fromPartialSums ps p n
                   ]
