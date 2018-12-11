@@ -14,13 +14,16 @@ module AOC.Challenge.Day11 (
   , day11b
   ) where
 
+import           AOC.Common
 import           AOC.Solver      ((:~>)(..))
 import           Control.DeepSeq (force)
 import           Data.Foldable   (maximumBy)
 import           Data.Ix         (range)
 import           Data.Map        (Map)
 import           Data.Maybe      (catMaybes)
+import           Data.Maybe
 import           Data.Ord        (comparing)
+import           Data.Semigroup
 import           Linear          (V2(..))
 import           Text.Read       (readMaybe)
 import qualified Data.Map        as M
@@ -29,13 +32,10 @@ import qualified Data.Set        as S
 type Point = V2 Int
 
 powerLevel :: Int -> Point -> Int
-powerLevel sid (V2 x y) = pl3 - 5
+powerLevel sid (V2 x y) = hun ((rid * y + sid) * rid) - 5
   where
+    hun = (`mod` 10) . (`div` 100)
     rid = x + 10
-    pl0 = rid * y
-    pl1 = pl0 + sid
-    pl2 = pl1 * rid
-    pl3 = (pl2 `div` 100) `mod` 10
 
 findMaxThree :: Map Point Int -> Point
 findMaxThree mp = fst
@@ -65,12 +65,13 @@ day11b = MkSol
     }
 
 findMaxAny :: Map Point Int -> (Point, Int)
-findMaxAny mp = fst
-              . maximumBy (comparing snd)
-              $ [ ((p, n), s)
+findMaxAny mp = (\(Arg _ x) -> x) . getMax . fromJust
+              . (foldMapPar . foldMapPar) id
+              $ [ [ Just (Max (Arg s (p, n)))
+                  | !p <- range (V2 1 1, V2 (300 - n + 1) (300 - n + 1))
+                  , let !s = fromPartialSums ps p n
+                  ]
                 | !n <- [1 .. 300]
-                , !p <- range (V2 1 1, V2 (300 - n + 1) (300 - n + 1))
-                , let !s = fromPartialSums ps p n
                 ]
   where
     !ps = partialSums mp

@@ -94,6 +94,7 @@ library:
   - haskell-names
   - haskell-src-exts
   - heredoc
+  - parallel
   - hpack
   - lens
   - linear
