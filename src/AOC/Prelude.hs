@@ -19,7 +19,6 @@ module AOC.Prelude (
 
 import           AOC.Common                            as P
 import           AOC.Solver                            as P
-import           AOC.Util                              as P
 import           Control.Applicative                   as P
 import           Control.DeepSeq                       as P
 import           Control.Lens              as P        (over, view, set)
@@ -33,7 +32,9 @@ import           Data.Either                           as P
 import           Data.Finite               as P        (Finite, packFinite, getFinite, finites)
 import           Data.Foldable                         as P
 import           Data.Function                         as P
+import           Data.Ix                  as P
 import           Data.Functor                          as P
+import           Data.Semigroup.Foldable as P
 import           Data.IntMap               as P        (IntMap)
 import           Data.IntSet               as P        (IntSet)
 import           Data.Kind                             as P
