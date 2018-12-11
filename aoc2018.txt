@@ -137,6 +137,9 @@ minimumValByNE :: (b -> b -> Ordering) -> NEMap a b -> (a, b)
 -- | Delete a potential value from a <a>Finite</a>.
 deleteFinite :: KnownNat n => Finite (n + 1) -> Finite (n + 1) -> Maybe (Finite n)
 
+-- | Get the maximum value based on some projection
+maximumOn :: Ord b => (a -> b) -> NonEmpty a -> a
+
 module AOC.Util.DynoMap
 newtype DynoMap
 Dyno :: Map String Dynamic -> DynoMap
@@ -6335,6 +6338,9 @@ minimumValNE :: Ord b => NEMap a b -> (a, b)
 -- | Delete a potential value from a <a>Finite</a>.
 deleteFinite :: KnownNat n => Finite (n + 1) -> Finite (n + 1) -> Maybe (Finite n)
 
+-- | Get the maximum value based on some projection
+maximumOn :: Ord b => (a -> b) -> NonEmpty a -> a
+
 -- | Errors that might happen when running a <a>:~&gt;</a> on some input.
 data SolutionError
 SEParse :: SolutionError
@@ -6956,13 +6962,13 @@ MRO :: !TestSpec -> !Bool -> !Bool -> !Bool -> !Finite 25 -> Part -> IO (Maybe S
 
 -- | Manually supply input (Default: always return Nothing)
 [_mroInput] :: MainRunOpts -> !Finite 25 -> Part -> IO (Maybe String)
-class HasMainRunOpts c_a1EO7
-mainRunOpts :: HasMainRunOpts c_a1EO7 => Lens' c_a1EO7 MainRunOpts
-mroBench :: HasMainRunOpts c_a1EO7 => Lens' c_a1EO7 Bool
-mroInput :: HasMainRunOpts c_a1EO7 => Lens' c_a1EO7 (Finite 25 -> Part -> IO (Maybe String))
-mroLock :: HasMainRunOpts c_a1EO7 => Lens' c_a1EO7 Bool
-mroSpec :: HasMainRunOpts c_a1EO7 => Lens' c_a1EO7 TestSpec
-mroTest :: HasMainRunOpts c_a1EO7 => Lens' c_a1EO7 Bool
+class HasMainRunOpts c_a1ETm
+mainRunOpts :: HasMainRunOpts c_a1ETm => Lens' c_a1ETm MainRunOpts
+mroBench :: HasMainRunOpts c_a1ETm => Lens' c_a1ETm Bool
+mroInput :: HasMainRunOpts c_a1ETm => Lens' c_a1ETm (Finite 25 -> Part -> IO (Maybe String))
+mroLock :: HasMainRunOpts c_a1ETm => Lens' c_a1ETm Bool
+mroSpec :: HasMainRunOpts c_a1ETm => Lens' c_a1ETm TestSpec
+mroTest :: HasMainRunOpts c_a1ETm => Lens' c_a1ETm Bool
 
 -- | Run, test, bench.
 mainRun :: (MonadIO m, MonadError [String] m) => Config -> MainRunOpts -> m (Map (Finite 25) (Map Part (Maybe Bool, Either [String] String)))
@@ -6975,10 +6981,10 @@ data MainViewOpts
 MVO :: !TestSpec -> !Bool -> MainViewOpts
 [_mvoSpec] :: MainViewOpts -> !TestSpec
 [_mvoWait] :: MainViewOpts -> !Bool
-class HasMainViewOpts c_a1EV9
-mainViewOpts :: HasMainViewOpts c_a1EV9 => Lens' c_a1EV9 MainViewOpts
-mvoSpec :: HasMainViewOpts c_a1EV9 => Lens' c_a1EV9 TestSpec
-mvoWait :: HasMainViewOpts c_a1EV9 => Lens' c_a1EV9 Bool
+class HasMainViewOpts c_a1F0o
+mainViewOpts :: HasMainViewOpts c_a1F0o => Lens' c_a1F0o MainViewOpts
+mvoSpec :: HasMainViewOpts c_a1F0o => Lens' c_a1F0o TestSpec
+mvoWait :: HasMainViewOpts c_a1F0o => Lens' c_a1F0o Bool
 
 -- | View prompt
 mainView :: (MonadIO m, MonadError [String] m) => Config -> MainViewOpts -> m (Map (Finite 25) (Map Part Text))
@@ -6999,12 +7005,12 @@ MSO :: !ChallengeSpec -> !Bool -> !Bool -> !Bool -> MainSubmitOpts
 
 -- | Lock answer if submission succeeded? (Default: True)
 [_msoLock] :: MainSubmitOpts -> !Bool
-class HasMainSubmitOpts c_a1EZs
-mainSubmitOpts :: HasMainSubmitOpts c_a1EZs => Lens' c_a1EZs MainSubmitOpts
-msoForce :: HasMainSubmitOpts c_a1EZs => Lens' c_a1EZs Bool
-msoLock :: HasMainSubmitOpts c_a1EZs => Lens' c_a1EZs Bool
-msoSpec :: HasMainSubmitOpts c_a1EZs => Lens' c_a1EZs ChallengeSpec
-msoTest :: HasMainSubmitOpts c_a1EZs => Lens' c_a1EZs Bool
+class HasMainSubmitOpts c_a1F4H
+mainSubmitOpts :: HasMainSubmitOpts c_a1F4H => Lens' c_a1F4H MainSubmitOpts
+msoForce :: HasMainSubmitOpts c_a1F4H => Lens' c_a1F4H Bool
+msoLock :: HasMainSubmitOpts c_a1F4H => Lens' c_a1F4H Bool
+msoSpec :: HasMainSubmitOpts c_a1F4H => Lens' c_a1F4H ChallengeSpec
+msoTest :: HasMainSubmitOpts c_a1F4H => Lens' c_a1F4H Bool
 
 -- | Submit and analyze result
 mainSubmit :: (MonadIO m, MonadError [String] m) => Config -> MainSubmitOpts -> m (Text, SubmitRes)
