@@ -137,8 +137,11 @@ minimumValByNE :: (b -> b -> Ordering) -> NEMap a b -> (a, b)
 -- | Delete a potential value from a <a>Finite</a>.
 deleteFinite :: KnownNat n => Finite (n + 1) -> Finite (n + 1) -> Maybe (Finite n)
 
--- | Get the maximum value based on some projection
-maximumOn :: Ord b => (a -> b) -> NonEmpty a -> a
+-- | <a>foldMap</a>, but in parallel.
+foldMapPar :: Monoid b => (a -> b) -> [a] -> b
+
+-- | <tt>foldMap1</tt>, but in parallel.
+foldMapPar1 :: Semigroup b => (a -> b) -> NonEmpty a -> b
 
 module AOC.Util.DynoMap
 newtype DynoMap
@@ -6338,8 +6341,11 @@ minimumValNE :: Ord b => NEMap a b -> (a, b)
 -- | Delete a potential value from a <a>Finite</a>.
 deleteFinite :: KnownNat n => Finite (n + 1) -> Finite (n + 1) -> Maybe (Finite n)
 
--- | Get the maximum value based on some projection
-maximumOn :: Ord b => (a -> b) -> NonEmpty a -> a
+-- | <a>foldMap</a>, but in parallel.
+foldMapPar :: Monoid b => (a -> b) -> [a] -> b
+
+-- | <tt>foldMap1</tt>, but in parallel.
+foldMapPar1 :: Semigroup b => (a -> b) -> NonEmpty a -> b
 
 -- | Errors that might happen when running a <a>:~&gt;</a> on some input.
 data SolutionError
@@ -6962,13 +6968,13 @@ MRO :: !TestSpec -> !Bool -> !Bool -> !Bool -> !Finite 25 -> Part -> IO (Maybe S
 
 -- | Manually supply input (Default: always return Nothing)
 [_mroInput] :: MainRunOpts -> !Finite 25 -> Part -> IO (Maybe String)
-class HasMainRunOpts c_a1ETk
-mainRunOpts :: HasMainRunOpts c_a1ETk => Lens' c_a1ETk MainRunOpts
-mroBench :: HasMainRunOpts c_a1ETk => Lens' c_a1ETk Bool
-mroInput :: HasMainRunOpts c_a1ETk => Lens' c_a1ETk (Finite 25 -> Part -> IO (Maybe String))
-mroLock :: HasMainRunOpts c_a1ETk => Lens' c_a1ETk Bool
-mroSpec :: HasMainRunOpts c_a1ETk => Lens' c_a1ETk TestSpec
-mroTest :: HasMainRunOpts c_a1ETk => Lens' c_a1ETk Bool
+class HasMainRunOpts c_a1F6s
+mainRunOpts :: HasMainRunOpts c_a1F6s => Lens' c_a1F6s MainRunOpts
+mroBench :: HasMainRunOpts c_a1F6s => Lens' c_a1F6s Bool
+mroInput :: HasMainRunOpts c_a1F6s => Lens' c_a1F6s (Finite 25 -> Part -> IO (Maybe String))
+mroLock :: HasMainRunOpts c_a1F6s => Lens' c_a1F6s Bool
+mroSpec :: HasMainRunOpts c_a1F6s => Lens' c_a1F6s TestSpec
+mroTest :: HasMainRunOpts c_a1F6s => Lens' c_a1F6s Bool
 
 -- | Run, test, bench.
 mainRun :: (MonadIO m, MonadError [String] m) => Config -> MainRunOpts -> m (Map (Finite 25) (Map Part (Maybe Bool, Either [String] String)))
@@ -6981,10 +6987,10 @@ data MainViewOpts
 MVO :: !TestSpec -> !Bool -> MainViewOpts
 [_mvoSpec] :: MainViewOpts -> !TestSpec
 [_mvoWait] :: MainViewOpts -> !Bool
-class HasMainViewOpts c_a1F0m
-mainViewOpts :: HasMainViewOpts c_a1F0m => Lens' c_a1F0m MainViewOpts
-mvoSpec :: HasMainViewOpts c_a1F0m => Lens' c_a1F0m TestSpec
-mvoWait :: HasMainViewOpts c_a1F0m => Lens' c_a1F0m Bool
+class HasMainViewOpts c_a1Fdu
+mainViewOpts :: HasMainViewOpts c_a1Fdu => Lens' c_a1Fdu MainViewOpts
+mvoSpec :: HasMainViewOpts c_a1Fdu => Lens' c_a1Fdu TestSpec
+mvoWait :: HasMainViewOpts c_a1Fdu => Lens' c_a1Fdu Bool
 
 -- | View prompt
 mainView :: (MonadIO m, MonadError [String] m) => Config -> MainViewOpts -> m (Map (Finite 25) (Map Part Text))
@@ -7005,12 +7011,12 @@ MSO :: !ChallengeSpec -> !Bool -> !Bool -> !Bool -> MainSubmitOpts
 
 -- | Lock answer if submission succeeded? (Default: True)
 [_msoLock] :: MainSubmitOpts -> !Bool
-class HasMainSubmitOpts c_a1F4F
-mainSubmitOpts :: HasMainSubmitOpts c_a1F4F => Lens' c_a1F4F MainSubmitOpts
-msoForce :: HasMainSubmitOpts c_a1F4F => Lens' c_a1F4F Bool
-msoLock :: HasMainSubmitOpts c_a1F4F => Lens' c_a1F4F Bool
-msoSpec :: HasMainSubmitOpts c_a1F4F => Lens' c_a1F4F ChallengeSpec
-msoTest :: HasMainSubmitOpts c_a1F4F => Lens' c_a1F4F Bool
+class HasMainSubmitOpts c_a1FhN
+mainSubmitOpts :: HasMainSubmitOpts c_a1FhN => Lens' c_a1FhN MainSubmitOpts
+msoForce :: HasMainSubmitOpts c_a1FhN => Lens' c_a1FhN Bool
+msoLock :: HasMainSubmitOpts c_a1FhN => Lens' c_a1FhN Bool
+msoSpec :: HasMainSubmitOpts c_a1FhN => Lens' c_a1FhN ChallengeSpec
+msoTest :: HasMainSubmitOpts c_a1FhN => Lens' c_a1FhN Bool
 
 -- | Submit and analyze result
 mainSubmit :: (MonadIO m, MonadError [String] m) => Config -> MainSubmitOpts -> m (Text, SubmitRes)
