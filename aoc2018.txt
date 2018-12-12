@@ -1134,6 +1134,12 @@ LT :: Ordering
 EQ :: Ordering
 GT :: Ordering
 
+-- | <tt>RealWorld</tt> is deeply magical. It is <i>primitive</i>, but it
+--   is not <i>unlifted</i> (hence <tt>ptrArg</tt>). We never manipulate
+--   values of type <tt>RealWorld</tt>; it's only used in the type system,
+--   to parameterise <tt>State#</tt>.
+data RealWorld :: Type
+
 -- | The <a>Either</a> type represents values with two possibilities: a
 --   value of type <tt><a>Either</a> a b</tt> is either <tt><a>Left</a>
 --   a</tt> or <tt><a>Right</a> b</tt>.
@@ -4821,6 +4827,16 @@ StateT :: (s -> m (a, s)) -> StateT s a
 newtype ExceptT e (m :: Type -> Type) a
 ExceptT :: m (Either e a) -> ExceptT e a
 
+-- | Class of monads which can perform primitive state-transformer actions
+class Monad m => PrimMonad (m :: Type -> Type) where {
+    
+    -- | State token type
+    type family PrimState (m :: Type -> Type) :: Type;
+}
+
+-- | Execute a primitive operation
+primitive :: PrimMonad m => (State# (PrimState m) -> (# State# (PrimState m), a #)) -> m a
+
 -- | The class of monad transformers. Instances should satisfy the
 --   following laws, which state that <a>lift</a> is a monad
 --   transformation:
@@ -5604,6 +5620,67 @@ data NEMap k a
 -- | The implementation of the pointed list structure which tracks the
 --   current position in the list structure.
 data PointedList a
+
+-- | Create an action to force a value; generalizes <a>evaluate</a>
+evalPrim :: PrimMonad m => a -> m a
+touch :: PrimMonad m => a -> m ()
+unsafeInlineST :: () => ST s a -> a
+unsafeInlineIO :: () => IO a -> a
+unsafeInlinePrim :: PrimBase m => m a -> a
+
+-- | Convert an <a>IO</a> action to any <a>PrimMonad</a>. This operation is
+--   highly unsafe!
+unsafeIOToPrim :: PrimMonad m => IO a -> m a
+
+-- | Convert an <a>ST</a> action with an arbitraty state token to any
+--   <a>PrimMonad</a>. This operation is highly unsafe!
+unsafeSTToPrim :: PrimMonad m => ST s a -> m a
+
+-- | Convert any <a>PrimBase</a> to <a>IO</a>. This operation is highly
+--   unsafe!
+unsafePrimToIO :: PrimBase m => m a -> IO a
+
+-- | Convert any <a>PrimBase</a> to <a>ST</a> with an arbitrary state
+--   token. This operation is highly unsafe!
+unsafePrimToST :: PrimBase m => m a -> ST s a
+
+-- | Convert a <a>PrimBase</a> to another monad with a possibly different
+--   state token. This operation is highly unsafe!
+unsafePrimToPrim :: (PrimBase m1, PrimMonad m2) => m1 a -> m2 a
+
+-- | Convert an <a>ST</a> action to a <a>PrimMonad</a>.
+stToPrim :: PrimMonad m => ST (PrimState m) a -> m a
+
+-- | Convert an <a>IO</a> action to a <a>PrimMonad</a>.
+ioToPrim :: (PrimMonad m, PrimState m ~ RealWorld) => IO a -> m a
+
+-- | Convert a <a>PrimBase</a> to <a>ST</a>
+primToST :: PrimBase m => m a -> ST (PrimState m) a
+
+-- | Convert a <a>PrimBase</a> with a <a>RealWorld</a> state token to
+--   <a>IO</a>
+primToIO :: (PrimBase m, PrimState m ~ RealWorld) => m a -> IO a
+
+-- | Convert a <a>PrimBase</a> to another monad with the same state token.
+primToPrim :: (PrimBase m1, PrimMonad m2, PrimState m1 ~ PrimState m2) => m1 a -> m2 a
+
+-- | Lifts a <a>PrimBase</a> into another <a>PrimMonad</a> with the same
+--   underlying state token type.
+liftPrim :: (PrimBase m1, PrimMonad m2, PrimState m1 ~ PrimState m2) => m1 a -> m2 a
+
+-- | Execute a primitive operation with no result
+primitive_ :: PrimMonad m => (State# (PrimState m) -> State# (PrimState m)) -> m ()
+
+-- | Class of primitive monads for state-transformer actions.
+--   
+--   Unlike <a>PrimMonad</a>, this typeclass requires that the
+--   <tt>Monad</tt> be fully expressed as a state transformer, therefore
+--   disallowing other monad transformers on top of the base <tt>IO</tt> or
+--   <tt>ST</tt>.
+class PrimMonad m => PrimBase (m :: Type -> Type)
+
+-- | Expose the internal structure of the monad
+internal :: PrimBase m => m a -> State# (PrimState m) -> (# State# (PrimState m), a #)
 
 -- | Monadic fold over the elements of a non-empty structure, associating
 --   to the left, i.e. from left to right.
@@ -6664,27 +6741,12 @@ module AOC.Challenge.Day14
 module AOC.Challenge.Day13
 
 
--- | Day 12. See <a>AOC.Solver</a> for the types used in this module!
---   
---   After completing the challenge, it is recommended to:
---   
---   <ul>
---   <li>Replace <a>AOC.Prelude</a> imports to specific modules (with
---   explicit imports) for readability.</li>
---   <li>Remove the <tt>-Wno-unused-imports</tt> and
---   <tt>-Wno-unused-top-binds</tt> pragmas.</li>
---   <li>Replace the partial type signatures underscores in the solution
---   types <tt>_ :~&gt; _</tt> with the actual types of inputs and outputs
---   of the solution. You can delete the type signatures completely and GHC
---   will recommend what should go in place of the underscores.</li>
---   </ul>
-module AOC.Challenge.Day12
-
-
 -- | Day 11. See <a>AOC.Solver</a> for the types used in this module!
 module AOC.Challenge.Day11
 day11a :: Int :~> Point
 day11b :: Int :~> (Point, Int)
+chunkyVars :: Map Point Int -> Map Int Double
+mkMap :: Int -> Map Point Int
 
 
 -- | Template Haskell for discovering all named challenges in a given
@@ -6733,6 +6795,14 @@ charPart :: Char -> Maybe Part
 instance GHC.Classes.Ord AOC.Discover.ChallengeSpec
 instance GHC.Classes.Eq AOC.Discover.ChallengeSpec
 instance GHC.Show.Show AOC.Discover.ChallengeSpec
+
+
+-- | Day 12. See <a>AOC.Solver</a> for the types used in this module!
+--   
+--   After completing the challenge, it is recommended to:
+module AOC.Challenge.Day12
+day12a :: (IntSet, Set Ctx) :~> Int
+day12b :: (IntSet, Set Ctx) :~> Int
 
 
 -- | Day 10. See <a>AOC.Solver</a> for the types used in this module!
@@ -6974,13 +7044,13 @@ MRO :: !TestSpec -> !Bool -> !Bool -> !Bool -> !Finite 25 -> Part -> IO (Maybe S
 
 -- | Manually supply input (Default: always return Nothing)
 [_mroInput] :: MainRunOpts -> !Finite 25 -> Part -> IO (Maybe String)
-class HasMainRunOpts c_a1G6Q
-mainRunOpts :: HasMainRunOpts c_a1G6Q => Lens' c_a1G6Q MainRunOpts
-mroBench :: HasMainRunOpts c_a1G6Q => Lens' c_a1G6Q Bool
-mroInput :: HasMainRunOpts c_a1G6Q => Lens' c_a1G6Q (Finite 25 -> Part -> IO (Maybe String))
-mroLock :: HasMainRunOpts c_a1G6Q => Lens' c_a1G6Q Bool
-mroSpec :: HasMainRunOpts c_a1G6Q => Lens' c_a1G6Q TestSpec
-mroTest :: HasMainRunOpts c_a1G6Q => Lens' c_a1G6Q Bool
+class HasMainRunOpts c_a1Hik
+mainRunOpts :: HasMainRunOpts c_a1Hik => Lens' c_a1Hik MainRunOpts
+mroBench :: HasMainRunOpts c_a1Hik => Lens' c_a1Hik Bool
+mroInput :: HasMainRunOpts c_a1Hik => Lens' c_a1Hik (Finite 25 -> Part -> IO (Maybe String))
+mroLock :: HasMainRunOpts c_a1Hik => Lens' c_a1Hik Bool
+mroSpec :: HasMainRunOpts c_a1Hik => Lens' c_a1Hik TestSpec
+mroTest :: HasMainRunOpts c_a1Hik => Lens' c_a1Hik Bool
 
 -- | Run, test, bench.
 mainRun :: (MonadIO m, MonadError [String] m) => Config -> MainRunOpts -> m (Map (Finite 25) (Map Part (Maybe Bool, Either [String] String)))
@@ -6993,10 +7063,10 @@ data MainViewOpts
 MVO :: !TestSpec -> !Bool -> MainViewOpts
 [_mvoSpec] :: MainViewOpts -> !TestSpec
 [_mvoWait] :: MainViewOpts -> !Bool
-class HasMainViewOpts c_a1GdS
-mainViewOpts :: HasMainViewOpts c_a1GdS => Lens' c_a1GdS MainViewOpts
-mvoSpec :: HasMainViewOpts c_a1GdS => Lens' c_a1GdS TestSpec
-mvoWait :: HasMainViewOpts c_a1GdS => Lens' c_a1GdS Bool
+class HasMainViewOpts c_a1Hpm
+mainViewOpts :: HasMainViewOpts c_a1Hpm => Lens' c_a1Hpm MainViewOpts
+mvoSpec :: HasMainViewOpts c_a1Hpm => Lens' c_a1Hpm TestSpec
+mvoWait :: HasMainViewOpts c_a1Hpm => Lens' c_a1Hpm Bool
 
 -- | View prompt
 mainView :: (MonadIO m, MonadError [String] m) => Config -> MainViewOpts -> m (Map (Finite 25) (Map Part Text))
@@ -7017,12 +7087,12 @@ MSO :: !ChallengeSpec -> !Bool -> !Bool -> !Bool -> MainSubmitOpts
 
 -- | Lock answer if submission succeeded? (Default: True)
 [_msoLock] :: MainSubmitOpts -> !Bool
-class HasMainSubmitOpts c_a1Gib
-mainSubmitOpts :: HasMainSubmitOpts c_a1Gib => Lens' c_a1Gib MainSubmitOpts
-msoForce :: HasMainSubmitOpts c_a1Gib => Lens' c_a1Gib Bool
-msoLock :: HasMainSubmitOpts c_a1Gib => Lens' c_a1Gib Bool
-msoSpec :: HasMainSubmitOpts c_a1Gib => Lens' c_a1Gib ChallengeSpec
-msoTest :: HasMainSubmitOpts c_a1Gib => Lens' c_a1Gib Bool
+class HasMainSubmitOpts c_a1HtF
+mainSubmitOpts :: HasMainSubmitOpts c_a1HtF => Lens' c_a1HtF MainSubmitOpts
+msoForce :: HasMainSubmitOpts c_a1HtF => Lens' c_a1HtF Bool
+msoLock :: HasMainSubmitOpts c_a1HtF => Lens' c_a1HtF Bool
+msoSpec :: HasMainSubmitOpts c_a1HtF => Lens' c_a1HtF ChallengeSpec
+msoTest :: HasMainSubmitOpts c_a1HtF => Lens' c_a1HtF Bool
 
 -- | Submit and analyze result
 mainSubmit :: (MonadIO m, MonadError [String] m) => Config -> MainSubmitOpts -> m (Text, SubmitRes)
