@@ -1,6 +1,3 @@
-{-# OPTIONS_GHC -Wno-unused-imports   #-}
-{-# OPTIONS_GHC -Wno-unused-top-binds #-}
-
 -- |
 -- Module      : AOC.Challenge.Day12
 -- Copyright   : (c) Justin Le 2018
@@ -13,33 +10,22 @@
 -- Day 12.  See "AOC.Solver" for the types used in this module!
 --
 -- After completing the challenge, it is recommended to:
---
--- *   Replace "AOC.Prelude" imports to specific modules (with explicit
---     imports) for readability.
--- *   Remove the @-Wno-unused-imports@ and @-Wno-unused-top-binds@
---     pragmas.
--- *   Replace the partial type signatures underscores in the solution
---     types @_ :~> _@ with the actual types of inputs and outputs of the
---     solution.  You can delete the type signatures completely and GHC
---     will recommend what should go in place of the underscores.
 
-module AOC.Challenge.Day12 where
--- module AOC.Challenge.Day12 (
---     day12a
---   , day12b
---   ) where
+module AOC.Challenge.Day12 (
+    day12a
+  , day12b
+  ) where
 
-import           AOC.Prelude
-import           Control.Lens
-import           Control.Monad.Fail
-import           Control.Monad.ST
-import           Data.Word
-import qualified Data.IntMap         as IM
-import qualified Data.IntSet         as IS
-import qualified Data.Map            as M
-import qualified Data.Set            as S
-import qualified Data.Vector         as V
-import qualified Data.Vector.Mutable as MV
+import           AOC.Common     ((!!!))
+import           AOC.Solver     ((:~>)(..))
+import           Data.Bifunctor (bimap)
+import           Data.Finite    (Finite, finites)
+import           Data.IntSet    (IntSet)
+import           Data.Set       (Set)
+import qualified Data.IntMap    as IM
+import qualified Data.IntSet    as IS
+import qualified Data.Map       as M
+import qualified Data.Set       as S
 
 type Ctx = Set (Finite 5)
 
@@ -74,7 +60,7 @@ step ctxs w0 = IS.fromDistinctAscList
   where
     go i = neighbs `S.member` ctxs
       where
-        neighbs = flip S.filter (S.fromList [0 .. 4]) $ \j ->
+        neighbs = flip S.filter (S.fromList finites) $ \j ->
           (i - 2 + fromIntegral j) `IS.member` w0
 
 findLoop
