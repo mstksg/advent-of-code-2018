@@ -18,31 +18,29 @@ import           AOC.Common     ((!!!))
 import           AOC.Solver     ((:~>)(..))
 import           Data.Bifunctor (bimap)
 import           Data.Finite    (Finite, finites)
-import           Data.IntSet    (IntSet)
 import           Data.Set       (Set)
-import qualified Data.IntMap    as IM
-import qualified Data.IntSet    as IS
 import qualified Data.Map       as M
 import qualified Data.Set       as S
 
 type Ctx = Set (Finite 5)
+type Pos = Int
 
 step
     :: Set Ctx
-    -> IntSet
-    -> IntSet
-step ctxs w0 = IS.fromDistinctAscList
+    -> Set Pos
+    -> Set Pos
+step ctxs w0 = S.fromDistinctAscList
              . filter go
-             $ [IS.findMin w0 - 2 .. IS.findMax w0 + 2]
+             $ [S.findMin w0 - 2 .. S.findMax w0 + 2]
   where
     go i = neighbs `S.member` ctxs
       where
-        neighbs = flip S.filter (S.fromList finites) $ \j ->
-          (i - 2 + fromIntegral j) `IS.member` w0
+        neighbs = S.fromDistinctAscList . flip filter finites $ \j ->
+          (i - 2 + fromIntegral j) `S.member` w0
 
 findLoop
     :: Set Ctx
-    -> IntSet
+    -> Set Pos
     -> (Int, Int, Int)      -- time to loop, loop size, loop incr
 findLoop ctxs w0 = go (M.singleton w0 (0, 0)) 1 w0
   where
@@ -52,17 +50,17 @@ findLoop ctxs w0 = go (M.singleton w0 (0, 0)) 1 w0
       where
         w'           = step ctxs w
         (mn, w'Norm) = normalize w'
-    normalize w = (mn, IS.map (subtract mn) w)
+    normalize w = (mn, S.map (subtract mn) w)
       where
-        mn = IS.findMin w
+        mn = S.findMin w
 
 stepN
     :: Int
-    -> IntSet
+    -> Set Pos
     -> Set Ctx
-    -> IntSet
+    -> Set Pos
 stepN n w ctx = goN extra
-              . IS.map (+ (loopIncr * looped))
+              . S.map (+ (loopIncr * looped))
               . goN ttl
               $ w
   where
@@ -70,30 +68,27 @@ stepN n w ctx = goN extra
     (ttl, loopSize, loopIncr) = findLoop ctx w
     (looped, extra) = (n - ttl) `divMod` loopSize
 
-countPlants :: IntSet -> Int
-countPlants = sum . IS.toList
-
-day12a :: (IntSet, Set Ctx) :~> Int
+day12a :: (Set Pos, Set Ctx) :~> Int
 day12a = MkSol
     { sParse = Just . bimap makeState makeCtxs . span (/= '\n')
     , sShow  = show
-    , sSolve = \(w, ctx) -> Just . countPlants $ iterate (step ctx) w !!! 20
+    , sSolve = \(w, ctx) -> Just . sum $ iterate (step ctx) w !!! 20
     }
 
-day12b :: (IntSet, Set Ctx) :~> Int
+day12b :: (Set Pos, Set Ctx) :~> Int
 day12b = MkSol
     { sParse = Just . bimap makeState makeCtxs . span (/= '\n')
     , sShow  = show
-    , sSolve = Just . countPlants . uncurry (stepN 50000000000)
+    , sSolve = Just . sum . uncurry (stepN 50000000000)
     }
 
 
 
 
-makeState :: String -> IntSet
-makeState = IM.keysSet
-          . IM.filter (== '#')
-          . IM.fromList
+makeState :: String -> Set Pos
+makeState = M.keysSet
+          . M.filter (== '#')
+          . M.fromList
           . zip [0..]
           . filter (`elem` "#.")
 
@@ -108,4 +103,4 @@ makeCtxs = M.keysSet
                )
          . lines
   where
-    parseLine = S.fromList . map fst . filter snd . zip [0..]
+    parseLine = S.fromList . map fst . filter snd . zip finites
