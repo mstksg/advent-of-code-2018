@@ -9,26 +9,33 @@
 --
 -- Day 11.  See "AOC.Solver" for the types used in this module!
 
+-- module AOC.Challenge.Day11 where
+
 module AOC.Challenge.Day11 (
     day11a
   , day11b
   ) where
 
-import           AOC.Common         (foldMapPar1)
-import           AOC.Solver         ((:~>)(..))
-import           Control.DeepSeq    (force)
-import           Control.Monad      ((<=<))
-import           Data.Foldable      (maximumBy)
-import           Data.Ix            (range)
-import           Data.Map           (Map)
-import           Data.Maybe         (catMaybes)
-import           Data.Ord           (comparing)
-import           Data.Semigroup     (Max(..), Arg(..))
-import           Linear             (V2(..))
-import           Text.Read          (readMaybe)
-import qualified Data.List.NonEmpty as NE
-import qualified Data.Map           as M
-import qualified Data.Set           as S
+-- import           AOC.Common                    (foldMapPar1)
+-- import           AOC.Solver                    ((:~>)(..))
+-- import           Control.DeepSeq               (force)
+-- import           Control.Monad                 ((<=<))
+-- import           Data.Foldable                 (maximumBy)
+-- import           Data.Ix                       (range)
+-- import           Data.Map                      (Map)
+-- import           Data.Maybe                    (catMaybes)
+-- import           Data.Ord                      (comparing)
+-- import           Data.Semigroup                (Max(..), Arg(..))
+-- import           Linear                        (V2(..))
+-- import           Text.Read                     (readMaybe)
+-- import qualified Data.List.NonEmpty            as NE
+import           AOC.Prelude
+import qualified Control.Foldl                    as F
+import qualified Data.Map                         as M
+import qualified Data.Set                         as S
+import qualified Statistics.Distribution          as D
+import qualified Statistics.Distribution.Binomial as D
+import qualified Statistics.Distribution.Normal   as D
 
 type Point = V2 Int
 
@@ -62,23 +69,49 @@ day11b :: Int :~> (Point, Int)
 day11b = MkSol
     { sParse = readMaybe
     , sShow  = \(V2 x y, s) -> show x ++ "," ++ show y ++ "," ++ show s
-    , sSolve = findMaxAny . mkMap
+    , sSolve = Just . findMaxAny . mkMap
     }
 
-findMaxAny :: Map Point Int -> Maybe (Point, Int)
-findMaxAny mp = fmap ( (\(Arg _ x) -> x)
-                     . getMax
-                     . (foldMapPar1 . foldMapPar1) id
-                     )
-              . (traverse NE.nonEmpty <=< NE.nonEmpty)
-              $ [ [ Max (Arg s (p, n))
-                  | !p <- range (V2 1 1, V2 (300 - n + 1) (300 - n + 1))
-                  , let !s = fromPartialSums ps p n
-                  ]
-                | !n <- [1 .. 300]
-                ]
+data Result = R { _rSize    :: Int
+                , _rPoint   :: Point
+                , _rMaximum :: Double
+                }
+
+findMaxAny :: Map Point Int -> (Point, Int)
+findMaxAny mp = fst $ go 1
   where
+    go n
+       | goOn > 0.0001 = maximumBy (comparing snd) [((pMax, n), oMax), go (n + 1)]
+       | otherwise = -- traceShow (n, oMax, goOn)
+                     ((pMax, n), oMax)
+      where
+        (pMax, oMax) = maximumBy (comparing snd)
+            [ (p, fromIntegral (fromPartialSums ps p n))
+            | p <- range (V2 1 1, V2 (300 - n + 1) (300 - n + 1))
+            ]
+        goOn = sum
+            [ probGreaterThan oMax n'
+            | n' <- [n + 1 .. 300]
+            ]
+    σ2 = F.fold (dimap fromIntegral snd meanVar) mp
     !ps = partialSums mp
+    probGreaterThan o n
+        | prob2 == 0 = 0
+        | otherwise  = probIn2
+      where
+        n' = fromIntegral n
+        distr2  = D.normalDistr (-(n' ** 2)) . sqrt . sum $
+                    [ (n' ** 2) * σ2
+                    , 2 * fromIntegral (choose2 n) * σ2 * ρ
+                    ]
+        -- TODO: this probably should be figured out
+        ρ = 1 - (n' ** 2 - (n' - 1) ** 2) / (n' ** 2)
+        prob2   = D.complCumulative distr2 o
+        numIn2  = (300 - n + 1)^(2 :: Int)
+        probIn2 = 1 - D.probability (D.binomial numIn2 prob2) 0
+
+choose2 :: Int -> Int
+choose2 n = (n * (n - 1)) `div` 2
 
 fromPartialSums :: Map Point Int -> Point -> Int -> Int
 fromPartialSums ps (subtract (V2 1 1)->p) n = sum . catMaybes $

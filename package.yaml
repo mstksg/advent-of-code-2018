@@ -72,52 +72,54 @@ library:
   source-dirs: src
   dependencies:
   - advent-of-code-api >= 0.1.2.3
-  - pure-fft
   - aeson
   - ansi-terminal
   - bytestring
   - containers
   - criterion
   - curl
-  - data-default-class
   - data-default
+  - data-default-class
   - deepseq
   - directory
-  - microlens-th
   - dlist
   - fgl
   - filepath
   - finite-typelits
+  - foldl
   - free-algebras
   - groups
   - haskeline
   - haskell-names
   - haskell-src-exts
   - heredoc
-  - parallel
   - hpack
   - lens
   - linear
   - megaparsec
+  - microlens-th
   - mtl
   - nonempty-containers
   - pandoc
+  - parallel
   - parsec
   - parser-combinators
   - pointedlist
   - profunctors
+  - pure-fft
   - recursion-schemes
   - semigroupoids
   - show-prettyprint
   - singletons
   - split
+  - statistics
   - tagsoup
   - template-haskell
-  - vector
   - text
   - these
   - time
   - transformers
+  - vector
   - witherable
   - yaml
 

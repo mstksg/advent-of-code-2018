@@ -32,6 +32,7 @@ module AOC.Common (
   , deleteFinite
   , foldMapPar
   , foldMapPar1
+  , meanVar
   ) where
 
 import           AOC.Util
@@ -46,6 +47,7 @@ import           Data.Map                    (Map)
 import           Data.Map.NonEmpty           (NEMap)
 import           Data.Semigroup
 import           GHC.TypeNats
+import qualified Control.Foldl               as F
 import qualified Data.List.NonEmpty          as NE
 import qualified Data.Map                    as M
 import qualified Data.Map.NonEmpty           as NEM
@@ -172,3 +174,13 @@ foldMapPar f = runEval . fmap mconcat . traverse (rpar . f)
 -- | 'foldMap1', but in parallel.
 foldMapPar1 :: Semigroup b => (a -> b) -> NonEmpty a -> b
 foldMapPar1 f = runEval . fmap sconcat . traverse (rpar . f)
+
+-- | 'F.Fold' for computing mean and variance
+meanVar :: Fractional a => F.Fold a (a, a)
+meanVar = do
+    n  <- fromIntegral <$> F.length
+    x  <- F.sum
+    x2 <- lmap (^ (2 :: Int)) F.sum
+    pure $ let μ  = x / n
+               σ2 = x2 / n - μ * μ
+           in  (μ, σ2)
