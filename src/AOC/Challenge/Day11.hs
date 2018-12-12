@@ -9,8 +9,6 @@
 --
 -- Day 11.  See "AOC.Solver" for the types used in this module!
 
--- module AOC.Challenge.Day11 where
-
 module AOC.Challenge.Day11 (
     day11a
   , day11b
@@ -58,6 +56,16 @@ findMaxThree mp = fst
 mkMap :: Int -> Map Point Int
 mkMap i = M.fromSet (powerLevel i) . S.fromList $ range (V2 1 1, V2 300 300)
 
+chunkyVars :: Map Point Int -> Map Int Double
+chunkyVars mp = flip M.fromSet (S.fromList [1..300]) $ \n ->
+    F.fold (dimap fromIntegral snd meanVar)
+      [ fromPartialSums ps p n
+      | p <- range (V2 1 1, V2 (300 - n + 1) (300 - n + 1))
+      ]
+  where
+    !ps = partialSums mp
+
+
 day11a :: Int :~> Point
 day11a = MkSol
     { sParse = readMaybe
@@ -71,11 +79,6 @@ day11b = MkSol
     , sShow  = \(V2 x y, s) -> show x ++ "," ++ show y ++ "," ++ show s
     , sSolve = Just . findMaxAny . mkMap
     }
-
-data Result = R { _rSize    :: Int
-                , _rPoint   :: Point
-                , _rMaximum :: Double
-                }
 
 findMaxAny :: Map Point Int -> (Point, Int)
 findMaxAny mp = fst $ go 1
