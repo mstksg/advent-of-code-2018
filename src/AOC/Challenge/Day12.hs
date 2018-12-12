@@ -8,8 +8,6 @@
 -- Portability : non-portable
 --
 -- Day 12.  See "AOC.Solver" for the types used in this module!
---
--- After completing the challenge, it is recommended to:
 
 module AOC.Challenge.Day12 (
     day12a
@@ -28,27 +26,6 @@ import qualified Data.Map       as M
 import qualified Data.Set       as S
 
 type Ctx = Set (Finite 5)
-
-makeState :: String -> IntSet
-makeState = IM.keysSet
-          . IM.filter (== '#')
-          . IM.fromList
-          . zip [0..]
-          . filter (`elem` "#.")
-
-makeCtxs :: String -> Set Ctx
-makeCtxs = M.keysSet
-         . M.filter id
-         . M.fromList
-         . map ( bimap parseLine head
-               . splitAt 5
-               . map (== '#')
-               . filter (`elem` "#.")
-               )
-         . lines
-  where
-    parseLine = S.fromList . map fst . filter snd . zip [0..]
-
 
 step
     :: Set Ctx
@@ -80,17 +57,17 @@ findLoop ctxs w0 = go (M.singleton w0 (0, 0)) 1 w0
         mn = IS.findMin w
 
 stepN
-    :: Set Ctx
-    -> Int
+    :: Int
     -> IntSet
+    -> Set Ctx
     -> IntSet
-stepN ctx n mp = goN extra
-               . IS.map (+ (loopIncr * looped))
-               . goN ttl
-               $ mp
+stepN n w ctx = goN extra
+              . IS.map (+ (loopIncr * looped))
+              . goN ttl
+              $ w
   where
     goN m = (!!! m) . iterate (step ctx)
-    (ttl, loopSize, loopIncr) = findLoop ctx mp
+    (ttl, loopSize, loopIncr) = findLoop ctx w
     (looped, extra) = (n - ttl) `divMod` loopSize
 
 countPlants :: IntSet -> Int
@@ -100,12 +77,35 @@ day12a :: (IntSet, Set Ctx) :~> Int
 day12a = MkSol
     { sParse = Just . bimap makeState makeCtxs . span (/= '\n')
     , sShow  = show
-    , sSolve = \(mp, ctx) -> Just . countPlants $ iterate (step ctx) mp !!! 20
+    , sSolve = \(w, ctx) -> Just . countPlants $ iterate (step ctx) w !!! 20
     }
 
 day12b :: (IntSet, Set Ctx) :~> Int
 day12b = MkSol
     { sParse = Just . bimap makeState makeCtxs . span (/= '\n')
     , sShow  = show
-    , sSolve = \(mp, ctx) -> Just . countPlants $ stepN ctx 50000000000 mp
+    , sSolve = Just . countPlants . uncurry (stepN 50000000000)
     }
+
+
+
+
+makeState :: String -> IntSet
+makeState = IM.keysSet
+          . IM.filter (== '#')
+          . IM.fromList
+          . zip [0..]
+          . filter (`elem` "#.")
+
+makeCtxs :: String -> Set Ctx
+makeCtxs = M.keysSet
+         . M.filter id
+         . M.fromList
+         . map ( bimap parseLine head
+               . splitAt 5
+               . map (== '#')
+               . filter (`elem` "#.")
+               )
+         . lines
+  where
+    parseLine = S.fromList . map fst . filter snd . zip [0..]
