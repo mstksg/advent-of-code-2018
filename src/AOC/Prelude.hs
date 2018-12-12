@@ -25,6 +25,7 @@ import           Control.Lens              as P        (over, view, set)
 import           Control.Monad                         as P
 import           Control.Monad.Except                  as P
 import           Control.Monad.State                   as P
+import           Control.Monad.Primitive as P
 import           Data.Bifunctor                        as P
 import           Data.Char                             as P
 import           Data.Containers.ListUtils             as P

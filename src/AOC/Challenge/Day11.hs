@@ -12,6 +12,8 @@
 module AOC.Challenge.Day11 (
     day11a
   , day11b
+  , chunkyVars
+  , mkMap
   ) where
 
 -- import           AOC.Common                    (foldMapPar1)
