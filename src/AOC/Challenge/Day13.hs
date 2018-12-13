@@ -1,6 +1,3 @@
-{-# OPTIONS_GHC -Wno-unused-imports   #-}
-{-# OPTIONS_GHC -Wno-unused-top-binds #-}
-
 -- |
 -- Module      : AOC.Challenge.Day13
 -- Copyright   : (c) Justin Le 2018
@@ -11,26 +8,20 @@
 -- Portability : non-portable
 --
 -- Day 13.  See "AOC.Solver" for the types used in this module!
---
--- After completing the challenge, it is recommended to:
---
--- *   Replace "AOC.Prelude" imports to specific modules (with explicit
---     imports) for readability.
--- *   Remove the @-Wno-unused-imports@ and @-Wno-unused-top-binds@
---     pragmas.
--- *   Replace the partial type signatures underscores in the solution
---     types @_ :~> _@ with the actual types of inputs and outputs of the
---     solution.  You can delete the type signatures completely and GHC
---     will recommend what should go in place of the underscores.
 
 module AOC.Challenge.Day13 (
     day13a
   , day13b
   ) where
 
-import           AOC.Prelude
-import           Control.Lens
-import           Data.Functor.Foldable
+import           AOC.Solver            ((:~>)(..))
+import           Control.Lens          (view, makeLenses, (^.), (%~), (+~))
+import           Data.Function         ((&))
+import           Data.Functor.Foldable (hylo)
+import           Data.Map              (Map)
+import           Data.Ord              (comparing)
+import           Data.Set              (Set)
+import           Linear                (V2(..), _x, _y)
 import qualified Data.Map              as M
 import qualified Data.Set              as S
 
@@ -60,8 +51,6 @@ newtype ScanPoint = SP { _getSP :: Point }
 instance Ord ScanPoint where
     compare = comparing (view _y . _getSP)
            <> comparing (view _x . _getSP)
-
-makeLenses ''ScanPoint
 
 type World = Map Point     Track
 type Carts = Map ScanPoint Cart
