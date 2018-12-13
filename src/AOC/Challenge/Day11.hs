@@ -83,8 +83,9 @@ findMaxAny mp = fst $ go 1
             [ probGreaterThan oMax n'
             | n' <- [n + 1 .. 300]
             ]
-    (sqrt->σ) = F.fold (dimap fromIntegral snd meanVar) mp
     !sat = summedAreaTable mp
+    σ :: Double
+    σ = sqrt $ ((4 + 5)**2)/12   -- stdev of uniform distribution between -5 and 4
     probGreaterThan o n
         | prob2 == 0 = 0
         | otherwise  = probIn2
