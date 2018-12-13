@@ -1389,15 +1389,16 @@ Day 13
 ```
 >> Day 13a
 benchmarking...
-time                 41.23 ms   (40.28 ms .. 42.54 ms)
-                     0.998 R²   (0.994 R² .. 1.000 R²)
-mean                 40.85 ms   (40.33 ms .. 41.58 ms)
-std dev              1.149 ms   (518.9 μs .. 1.501 ms)
+time                 16.18 ms   (16.10 ms .. 16.27 ms)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 16.11 ms   (16.07 ms .. 16.15 ms)
+std dev              100.8 μs   (73.57 μs .. 145.0 μs)
 
 >> Day 13b
 benchmarking...
-time                 42.25 ms   (41.72 ms .. 43.61 ms)
-                     0.997 R²   (0.987 R² .. 1.000 R²)
-mean                 42.65 ms   (42.31 ms .. 43.86 ms)
-std dev              1.138 ms   (249.4 μs .. 2.041 ms)
+time                 26.35 ms   (25.68 ms .. 26.87 ms)
+                     0.997 R²   (0.993 R² .. 0.999 R²)
+mean                 26.78 ms   (26.39 ms .. 27.28 ms)
+std dev              995.5 μs   (671.4 μs .. 1.251 ms)
+variance introduced by outliers: 10% (moderately inflated)
 ```
