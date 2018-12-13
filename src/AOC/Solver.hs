@@ -84,7 +84,7 @@ runSolutionWith
     -> a :~> b
     -> String
     -> Either SolutionError String
-runSolutionWith dm MkSol{..} (strip->s) = do
+runSolutionWith dm MkSol{..} s = do
     x <- maybeToEither SEParse . sParse $ s
     y <- maybeToEither SESolve . sSolve $ x
     pure $ sShow y

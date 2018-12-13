@@ -71,9 +71,9 @@ findMaxAny :: Map Point Int -> (Point, Int)
 findMaxAny mp = fst $ go 1
   where
     go n
-       | goOn > 0.01 = maximumBy (comparing snd) [((pMax, n), oMax), go (n + 1)]
-       | otherwise   = ((pMax, n), oMax)
-                     -- & traceShow (n, oMax, goOn)
+       | goOn > 0.001 = maximumBy (comparing snd) [((pMax, n), oMax), go (n + 1)]
+       | otherwise    = ((pMax, n), oMax)
+                      -- & traceShow (n, oMax, goOn)
       where
         (pMax, oMax) = maximumBy (comparing snd)
             [ (p, fromIntegral (fromSAT sat p n))
