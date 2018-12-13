@@ -73,7 +73,7 @@ findMaxAny mp = fst $ go 1
     go n
        | goOn > 0.01 = maximumBy (comparing snd) [((pMax, n), oMax), go (n + 1)]
        | otherwise   = ((pMax, n), oMax)
-       -- = traceShow (n, oMax, goOn) ((pMax, n), oMax)
+                     -- & traceShow (n, oMax, goOn)
       where
         (pMax, oMax) = maximumBy (comparing snd)
             [ (p, fromIntegral (fromSAT sat p n))
@@ -90,11 +90,15 @@ findMaxAny mp = fst $ go 1
         | otherwise  = probIn2
       where
         n' = fromIntegral n
-        distr2  = D.normalDistr (-(n' ** 2) * 0.5) . (* σ) $
-                    n' * (1 - ((n' - 1) / 300) ** 3)    -- TODO: find the actual stdev
+        distr2  = D.normalDistr (-(n' ** 2) * 0.5) (n' * σ)
         prob2   = D.complCumulative distr2 o
-        numIn2  = (300 - n + 1)^(2 :: Int)
+        numIn2  = ( (300 `div` n) ^ (2 :: Int)    -- we compensate for dependence
+                  + (300 - n + 1)^(2 :: Int)
+                  ) `div` 2
         probIn2 = 1 - D.probability (D.binomial numIn2 prob2) 0
+                    -- this is technically not a bernoulli process,
+                    -- because our items are dependent. but we fudge this
+                    -- by tweaking the number of trials
 
 fromSAT :: Map Point Int -> Point -> Int -> Int
 fromSAT sat (subtract (V2 1 1)->p) n = sum . catMaybes $
