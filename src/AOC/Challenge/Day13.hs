@@ -15,8 +15,7 @@ module AOC.Challenge.Day13 (
   ) where
 
 import           AOC.Solver            ((:~>)(..))
-import           Control.Lens          (view, makeLenses, (^.), (%~), (+~), (<.>), ifoldMapOf, folded, lined)
-import           Data.Function         ((&))
+import           Control.Lens          (view, makeLenses, (^.), (<.>), ifoldMapOf, folded, lined, over)
 import           Data.Functor.Foldable (hylo)
 import           Data.Map              (Map)
 import           Data.Ord              (comparing)
@@ -25,10 +24,9 @@ import qualified Data.Map              as M
 
 type Point = V2 Int
 
-data Track = TStraight    -- ^ go straight
-           | TTurnNW      -- ^ a forward-slash mirror @/@
-           | TTurnNE      -- ^ a backwards-slash mirror @\\@
-           | TInter       -- ^ a four-way intersection
+data Turn = TurnNW      -- ^ a forward-slash mirror @/@
+          | TurnNE      -- ^ a backwards-slash mirror @\\@
+          | TurnInter   -- ^ a four-way intersection
   deriving (Eq, Show, Ord)
 
 data Dir = DN | DE | DS | DW
@@ -50,23 +48,24 @@ instance Ord ScanPoint where
     compare = comparing (view _y . _getSP)
            <> comparing (view _x . _getSP)
 
-type World = Map Point     Track
+-- | All turns on the map.  We don't need to store the straight-line paths
+-- because they're effectively a vacuum.
+type World = Map Point     Turn
 type Carts = Map ScanPoint Cart
 
 -- | Step a single cart through the world.
 stepCart :: World -> ScanPoint -> Cart -> (ScanPoint, Cart)
-stepCart w (SP p) c = (SP p',) $ case w M.! p' of
-    TTurnNW   -> c & cDir   %~ \case DN -> DE; DE -> DN; DS -> DW; DW -> DS
-    TTurnNE   -> c & cDir   %~ \case DN -> DW; DW -> DN; DS -> DE; DE -> DS
-    TInter    -> c & cDir   %~ turnWith (c ^. cTurns)
-                   & cTurns +~ 1
-    TStraight -> c
+stepCart w (SP p) c = (SP p', maybe id turner (M.lookup p' w) c)
   where
     p' = p + case c ^. cDir of
       DN -> V2 0    (-1)
       DE -> V2 1    0
       DS -> V2 0    1
       DW -> V2 (-1) 0
+    turner = \case
+      TurnNW    -> over cDir $ \case DN -> DE; DE -> DN; DS -> DW; DW -> DS
+      TurnNE    -> over cDir $ \case DN -> DW; DW -> DN; DS -> DE; DE -> DS
+      TurnInter -> over cTurns (+ 1) . over cDir (turnWith (c ^. cTurns))
     turnWith i = case i `mod` 3 of
       0 -> turnLeft
       1 -> id
@@ -132,15 +131,13 @@ parseWorld :: String -> (World, Carts)
 parseWorld = ifoldMapOf (lined <.> folded) (uncurry classify)
   where
     classify y x = \case
-        '|'  -> (M.singleton p TStraight, M.empty                    )
-        '-'  -> (M.singleton p TStraight, M.empty                    )
-        '/'  -> (M.singleton p TTurnNW  , M.empty                    )
-        '\\' -> (M.singleton p TTurnNE  , M.empty                    )
-        '+'  -> (M.singleton p TInter   , M.empty                    )
-        'v'  -> (M.singleton p TStraight, M.singleton (SP p) (C DS 0))
-        '^'  -> (M.singleton p TStraight, M.singleton (SP p) (C DN 0))
-        '>'  -> (M.singleton p TStraight, M.singleton (SP p) (C DE 0))
-        '<'  -> (M.singleton p TStraight, M.singleton (SP p) (C DW 0))
+        '/'  -> (M.singleton p TurnNW   , M.empty                    )
+        '\\' -> (M.singleton p TurnNE   , M.empty                    )
+        '+'  -> (M.singleton p TurnInter, M.empty                    )
+        'v'  -> (M.empty                , M.singleton (SP p) (C DS 0))
+        '^'  -> (M.empty                , M.singleton (SP p) (C DN 0))
+        '>'  -> (M.empty                , M.singleton (SP p) (C DE 0))
+        '<'  -> (M.empty                , M.singleton (SP p) (C DW 0))
         _    -> mempty
       where
         p = V2 x y
