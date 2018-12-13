@@ -88,17 +88,14 @@ stepCarts
     :: World
     -> (Carts, Carts)
     -> CartLog (Carts, Carts)
-stepCarts w = uncurry go
-  where
-    go :: Carts -> Carts -> CartLog (Carts, Carts)
-    go waiting done = case M.minViewWithKey waiting of
-      Nothing -> case M.minViewWithKey done of
-        Just ((SP lastPos, _), M.null->True) -> CLDone lastPos
-        _                                    -> CLTick (done, M.empty)
-      Just (uncurry (stepCart w) -> (p, c), waiting') ->
-        case M.lookup p (waiting' <> done) of
-          Nothing -> CLTick (waiting', M.insert p c done)
-          Just _  -> CLCrash (_getSP p) (M.delete p waiting', M.delete p done)
+stepCarts w (waiting, done) = case M.minViewWithKey waiting of
+    Nothing -> case M.minViewWithKey done of
+      Just ((SP lastPos, _), M.null->True) -> CLDone lastPos
+      _                                    -> CLTick (done, M.empty)
+    Just (uncurry (stepCart w) -> (p, c), waiting') ->
+      case M.lookup p (waiting' <> done) of
+        Nothing -> CLTick             (waiting'           , M.insert p c done)
+        Just _  -> CLCrash (_getSP p) (M.delete p waiting', M.delete p done  )
 
 -- | Given a folding function, simulate on events emitted by 'stepCarts'.
 simulateWith
