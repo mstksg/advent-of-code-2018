@@ -11,8 +11,8 @@ Day 1
 *[Prompt][d01p]* / *[Code][d01g]* / *[Rendered][d01h]*
 
 [d01p]: https://adventofcode.com/2018/day/1
-[d01g]: https://github.com/mstksg/advent-of-code-2018/blob/master/src/AOC2018/Challenge/Day01.hs
-[d01h]: https://mstksg.github.io/advent-of-code-2018/src/AOC2018.Challenge.Day01.html
+[d01g]: https://github.com/mstksg/advent-of-code-2018/blob/master/src/AOC/Challenge/Day01.hs
+[d01h]: https://mstksg.github.io/advent-of-code-2018/src/AOC.Challenge.Day01.html
 
 Day 1 is a pretty straightforward functional programming sort of pipeline.
 
@@ -102,8 +102,8 @@ Day 2
 *[Prompt][d02p]* / *[Code][d02g]* / *[Rendered][d02h]*
 
 [d02p]: https://adventofcode.com/2018/day/2
-[d02g]: https://github.com/mstksg/advent-of-code-2018/blob/master/src/AOC2018/Challenge/Day02.hs
-[d02h]: https://mstksg.github.io/advent-of-code-2018/src/AOC2018.Challenge.Day02.html
+[d02g]: https://github.com/mstksg/advent-of-code-2018/blob/master/src/AOC/Challenge/Day02.hs
+[d02h]: https://mstksg.github.io/advent-of-code-2018/src/AOC.Challenge.Day02.html
 
 Day 2 part 1 works out nicely in a functional paradigm because it can be seen
 as just building a couple of frequency tables.
@@ -206,8 +206,8 @@ Day 3
 *[Prompt][d03p]* / *[Code][d03g]* / *[Rendered][d03h]*
 
 [d03p]: https://adventofcode.com/2018/day/3
-[d03g]: https://github.com/mstksg/advent-of-code-2018/blob/master/src/AOC2018/Challenge/Day03.hs
-[d03h]: https://mstksg.github.io/advent-of-code-2018/src/AOC2018.Challenge.Day03.html
+[d03g]: https://github.com/mstksg/advent-of-code-2018/blob/master/src/AOC/Challenge/Day03.hs
+[d03h]: https://mstksg.github.io/advent-of-code-2018/src/AOC.Challenge.Day03.html
 
 Day 3 brings back one of my favorite data structures in Haskell -- `Map (Int,
 Int)`!  It's basically a sparse grid.  It maps coordinates to values at each
@@ -331,8 +331,8 @@ Day 4
 *[Prompt][d04p]* / *[Code][d04g]* / *[Rendered][d04h]*
 
 [d04p]: https://adventofcode.com/2018/day/4
-[d04g]: https://github.com/mstksg/advent-of-code-2018/blob/master/src/AOC2018/Challenge/Day04.hs
-[d04h]: https://mstksg.github.io/advent-of-code-2018/src/AOC2018.Challenge.Day04.html
+[d04g]: https://github.com/mstksg/advent-of-code-2018/blob/master/src/AOC/Challenge/Day04.hs
+[d04h]: https://mstksg.github.io/advent-of-code-2018/src/AOC.Challenge.Day04.html
 
 Day 4 was fun because it's something that, on the surface, sounds like it
 requires a state machine to run through a stateful log and accumulate a bunch
@@ -544,8 +544,8 @@ Day 5
 *[Prompt][d05p]* / *[Code][d05g]* / *[Rendered][d05h]* / *[Blog][d05b]*
 
 [d05p]: https://adventofcode.com/2018/day/5
-[d05g]: https://github.com/mstksg/advent-of-code-2018/blob/master/src/AOC2018/Challenge/Day05.hs
-[d05h]: https://mstksg.github.io/advent-of-code-2018/src/AOC2018.Challenge.Day05.html
+[d05g]: https://github.com/mstksg/advent-of-code-2018/blob/master/src/AOC/Challenge/Day05.hs
+[d05h]: https://mstksg.github.io/advent-of-code-2018/src/AOC.Challenge.Day05.html
 [d05b]: https://blog.jle.im/entry/alchemical-groups.html
 
 **My write-up for this is actually [on my blog, here][d05b]!**  It involves my
@@ -663,8 +663,8 @@ Day 6
 *[Prompt][d06p]* / *[Code][d06g]* / *[Rendered][d06h]*
 
 [d06p]: https://adventofcode.com/2018/day/6
-[d06g]: https://github.com/mstksg/advent-of-code-2018/blob/master/src/AOC2018/Challenge/Day06.hs
-[d06h]: https://mstksg.github.io/advent-of-code-2018/src/AOC2018.Challenge.Day06.html
+[d06g]: https://github.com/mstksg/advent-of-code-2018/blob/master/src/AOC/Challenge/Day06.hs
+[d06h]: https://mstksg.github.io/advent-of-code-2018/src/AOC.Challenge.Day06.html
 
 Day 6 Part 1 has us build a [Voronoi Diagram][], and inspect properties of it.
 Again, it's all very functional already, since we just need, basically:
@@ -888,8 +888,8 @@ Day 7
 *[Prompt][d07p]* / *[Code][d07g]* / *[Rendered][d07h]*
 
 [d07p]: https://adventofcode.com/2018/day/7
-[d07g]: https://github.com/mstksg/advent-of-code-2018/blob/master/src/AOC2018/Challenge/Day07.hs
-[d07h]: https://mstksg.github.io/advent-of-code-2018/src/AOC2018.Challenge.Day07.html
+[d07g]: https://github.com/mstksg/advent-of-code-2018/blob/master/src/AOC/Challenge/Day07.hs
+[d07h]: https://mstksg.github.io/advent-of-code-2018/src/AOC.Challenge.Day07.html
 
 Reflections to come soon!
 
@@ -919,8 +919,8 @@ Day 8
 *[Prompt][d08p]* / *[Code][d08g]* / *[Rendered][d08h]*
 
 [d08p]: https://adventofcode.com/2018/day/8
-[d08g]: https://github.com/mstksg/advent-of-code-2018/blob/master/src/AOC2018/Challenge/Day08.hs
-[d08h]: https://mstksg.github.io/advent-of-code-2018/src/AOC2018.Challenge.Day08.html
+[d08g]: https://github.com/mstksg/advent-of-code-2018/blob/master/src/AOC/Challenge/Day08.hs
+[d08h]: https://mstksg.github.io/advent-of-code-2018/src/AOC.Challenge.Day08.html
 
 Another nice one for Haskell!  We're just parsing a stream of `Int`s here :)
 
@@ -1006,8 +1006,8 @@ Day 9
 *[Prompt][d09p]* / *[Code][d09g]* / *[Rendered][d09h]*
 
 [d09p]: https://adventofcode.com/2018/day/9
-[d09g]: https://github.com/mstksg/advent-of-code-2018/blob/master/src/AOC2018/Challenge/Day09.hs
-[d09h]: https://mstksg.github.io/advent-of-code-2018/src/AOC2018.Challenge.Day09.html
+[d09g]: https://github.com/mstksg/advent-of-code-2018/blob/master/src/AOC/Challenge/Day09.hs
+[d09h]: https://mstksg.github.io/advent-of-code-2018/src/AOC.Challenge.Day09.html
 
 And today features the re-introduction of an Advent of Code staple: the
 (circular) tape/zipper!  I used this data structure last year for days 5, 17,
@@ -1107,8 +1107,8 @@ Day 10
 *[Prompt][d10p]* / *[Code][d10g]* / *[Rendered][d10h]* / *[Blog][d10b]*
 
 [d10p]: https://adventofcode.com/2018/day/10
-[d10g]: https://github.com/mstksg/advent-of-code-2018/blob/master/src/AOC2018/Challenge/Day10.hs
-[d10h]: https://mstksg.github.io/advent-of-code-2018/src/AOC2018.Challenge.Day10.html
+[d10g]: https://github.com/mstksg/advent-of-code-2018/blob/master/src/AOC/Challenge/Day10.hs
+[d10h]: https://mstksg.github.io/advent-of-code-2018/src/AOC.Challenge.Day10.html
 [d10b]: https://blog.jle.im/entry/shifting-the-stars.html
 
 I originally did this by running a simulation, parting the velocity and points
@@ -1131,4 +1131,246 @@ time                 5.800 ms   (5.769 ms .. 5.846 ms)
                      1.000 R²   (0.999 R² .. 1.000 R²)
 mean                 5.779 ms   (5.760 ms .. 5.800 ms)
 std dev              58.91 μs   (43.82 μs .. 90.77 μs)
+```
+
+Day 11
+------
+
+*[Prompt][d11p]* / *[Code][d11g]* / *[Rendered][d11h]*
+
+[d11p]: https://adventofcode.com/2018/day/11
+[d11g]: https://github.com/mstksg/advent-of-code-2018/blob/master/src/AOC/Challenge/Day11.hs
+[d11h]: https://mstksg.github.io/advent-of-code-2018/src/AOC.Challenge.Day11.html
+
+Day 11 is a nice opportunity to demonstrate dynamic programming in a purely
+functional language like Haskell.
+
+Once we define a function to get a power level based on a serial number:
+
+```haskell
+type Point = V2 Int
+
+powerLevel :: Int -> Point -> Int
+powerLevel sid (V2 x y) = hun ((rid * y + sid) * rid) - 5
+  where
+    hun = (`mod` 10) . (`div` 100)
+    rid = x + 10
+```
+
+We can create a `Map` of of `Point` to power level, by creating the set of all
+points (using `range` from *Data.Ix*) and using `M.fromSet` with a function.
+
+```haskell
+mkMap :: Int -> Map Point Int
+mkMap i = M.fromSet (powerLevel i)
+        . S.fromList
+        $ range (V2 1 1, V2 300 300)
+```
+
+Now, both Part 1 and Part 2 involve finding sums of contiguous squares in the
+input.  One popular way to do this quickly for many different sums is to build
+a [summed-area table][]
+
+```haskell
+summedAreaTable :: Map Point Int -> Map Point Int
+summedAreaTable mp = force sat
+  where
+    sat = M.mapWithKey go mp
+    go p0 v = (+ v) . sum . catMaybes $
+      [ negate <$> M.lookup (p0 - V2 1 1) sat
+      ,            M.lookup (p0 - V2 1 0) sat
+      ,            M.lookup (p0 - V2 0 1) sat
+      ]
+```
+
+This is where the dynamic programming happens: our summed area is `sat`, and we
+define `sat` in a self-recursive way, using `M.mapWithKey go`.  `M.mapWithKey
+go` lazily generates each cell of `sat` by *referring to other cells in `sat`*.
+Because of laziness, `mapWithKey` doesn't do any actual "mapping"; but, rather,
+allocates thunks at each value in the map.  As soon as these thunks are asked
+for, they resolve and are kept as resolved values.
+
+For example, note that `go (V2 1 1) v11` does not refer to any other value.  So,
+the map at `V2 1 1` is just `v11`.
+
+However, `go (V2 2 1) v21` depends on one other value: `M.lookup (V2 1 1) sat`.
+But, because we already have evaluated this to `v11`, all is well; our answer
+is `v21 + v11`.
+
+Now, `go (V2 2 2) v22` depends on three other values: it depends on `M.lookup (V
+1 1) sat`, `M.lookup (V2 1 2) sat`, and `M.lookup (V2 1 2) sat`.  GHC will go
+and evaluate the ones it needs to evaluate, caching them in the values of the
+map, and then just now return the pre-evaluated results.
+
+In this way, we build the summed area table "lazily" in a self-recursive way.
+At the end of it all, we return `force sat`, which makes sure the entire `sat`
+map is filled out all the way (getting rid of all thunks) when the user
+actually tries to *use* the summed area table.
+
+The rest of this involves just making a list of all possible sums of squares,
+and finding the maximum of all of them.  Because all of our sums of squares are
+now calculable in O(1) on the size of the square (after we generate our
+table), the search is very manageable.
+
+```haskell
+fromSAT :: Map Point Int -> Point -> Int -> Int
+fromSAT sat (subtract (V2 1 1)->p) n = sum . catMaybes $
+    [            M.lookup p            sat
+    ,            M.lookup (p + V2 n n) sat
+    , negate <$> M.lookup (p + V2 0 n) sat
+    , negate <$> M.lookup (p + V2 n 0) sat
+    ]
+
+findMaxAny :: Map Point Int -> (Point, Int)
+findMaxAny mp = fst . maximumBy (comparing snd)
+             $ [ ((p, n), fromSAT sat p n)
+               , n <- [1 .. 300]
+               , p <- range (V2 1 1, V2 (300 - n + 1) (300 - n + 1))
+               ]
+  where
+    sat = summedAreaTable mp
+```
+
+### Day 11 Benchmarks
+
+Note these benchmarks are actually using an early-cut-off version of
+`findMaxAny` that I implemented after thinking about ways of optimization.
+
+```
+>> Day 11a
+benchmarking...
+time                 117.5 ms   (113.8 ms .. 120.1 ms)
+                     0.999 R²   (0.998 R² .. 1.000 R²)
+mean                 119.5 ms   (117.4 ms .. 124.3 ms)
+std dev              4.802 ms   (2.094 ms .. 7.573 ms)
+variance introduced by outliers: 11% (moderately inflated)
+
+>> Day 11b
+benchmarking...
+time                 1.115 s    (1.074 s .. 1.176 s)
+                     1.000 R²   (0.999 R² .. 1.000 R²)
+mean                 1.138 s    (1.120 s .. 1.165 s)
+std dev              27.13 ms   (4.430 ms .. 35.08 ms)
+variance introduced by outliers: 19% (moderately inflated)
+```
+
+Day 12
+------
+
+*[Prompt][d12p]* / *[Code][d12g]* / *[Rendered][d12h]*
+
+[d12p]: https://adventofcode.com/2018/day/12
+[d12g]: https://github.com/mstksg/advent-of-code-2018/blob/master/src/AOC/Challenge/Day12.hs
+[d12h]: https://mstksg.github.io/advent-of-code-2018/src/AOC.Challenge.Day12.html
+
+Day 12 is made a little more fun with everyone's favorite Haskell data
+structures: maps and sets! (Note that I've pretty much used Maps and Sets for
+every challenge, more or less!)
+
+We can represent a "context", or neighborhood, as a `Set (Finite 5)`, where
+`Finite 5` can be thought of as a type that only contains the numbers 0, 1, 2,
+3, and 4 (five elements only).  We'll treat 0 as "two to the left", 1 as "one
+to the left", 2 as "the current point", 3 as "one to the right", and 4 as "two
+to the right".  The set will *contain* the given finite if it is "on" in that
+position.  So, for example, the context `#.##.` would be `S.fromList [0,2,3]`.
+
+```haskell
+type Ctx = Set (Finite 5)
+```
+
+Our ruleset will be `Set Ctx`, or a set of neighborhoods.  If a given
+neighborhood is *in* the set, then that means that the plant is meant to turn
+on.  Otherwise, it means that the plant is meant to turn off.  So, `#.##. => #`
+would mean that the item `S.fromList [0,2,3]` is in the ruleset, but `##..# =>
+.` would mean that the item `S.fromList [0,1,4]` is *not* in the ruleset.
+
+Finally, the type of our "world" is just `Set Int`.  If a plant is "on", then
+its index will be in the set.  Otherwise, its index will *not* be in the set.
+
+One nice thing about representing the world as `Set Int` is that getting the
+"sum of all plant IDs that are on" is just `sum :: Set Int -> Int` :)
+
+Writing our step function is going to be filtering all of the "candidate"
+positions for the ones that remain "on".  That's it!  We perform this filter by
+aggregating the neighborhood around each point and checking if the neighborhood
+is in the ruleset.
+
+```haskell
+step
+    :: Set Ctx
+    -> Set Int
+    -> Set Int
+step ctxs w0 = S.fromDistinctAscList
+             . filter go
+             $ [S.findMin w0 - 2 .. S.findMax w0 + 2]
+  where
+    go i = neighbs `S.member` ctxs
+      where
+        neighbs = S.fromDistinctAscList . flip filter finites $ \j ->
+          (i - 2 + fromIntegral j) `S.member` w0
+```
+
+Part 2 requires a bit of trickery.  If we monitor our outputs, we can observe
+that the entire shape of the world starts to loop after a given amount of time.
+We can find this loop structure by stepping repeatedly and finding the first
+item that is repeated, by using a "seen items" set.  We have to make sure to
+"normalize" our representation so that the same shame will be matched no matter
+what coordinate it starts at.  I did this by subtracting out the minimum item
+in the set, so that the leftmost plant is always at zero.
+
+```haskell
+findLoop
+    :: Set Ctx
+    -> Set Pos
+    -> (Int, Int, Int)      -- time to loop, loop size, loop incr
+findLoop ctxs w0 = go (M.singleton w0 (0, 0)) 1 w0
+  where
+    go !seen !i !w = case M.lookup w'Norm seen of
+        Nothing              -> go (M.insert w'Norm (mn, i) seen) (i + 1) w'
+        Just (seenMn, seenI) -> (seenI, i - seenI, mn - seenMn)
+      where
+        w'           = step ctxs w
+        (mn, w'Norm) = normalize w'
+    normalize w = (mn, S.map (subtract mn) w)
+      where
+        mn = S.findMin w
+```
+
+And now we can be a little clever using `divMod` to factor out 50 billion into
+the "initialization", the "loop amount", and the "amount to increase":
+
+```haskell
+stepN
+    :: Int
+    -> Set Pos
+    -> Set Ctx
+    -> Set Pos
+stepN n w ctx = goN extra
+              . S.map (+ (loopIncr * looped))
+              . goN ttl
+              $ w
+  where
+    goN m = (!!! m) . iterate (step ctx)
+    (ttl, loopSize, loopIncr) = findLoop ctx w
+    (looped, extra) = (n - ttl) `divMod` loopSize
+```
+
+### Day 12 Benchmarks
+
+```haskell
+>> Day 12a
+benchmarking...
+time                 1.603 ms   (1.586 ms .. 1.623 ms)
+                     0.998 R²   (0.997 R² .. 0.999 R²)
+mean                 1.628 ms   (1.605 ms .. 1.689 ms)
+std dev              110.9 μs   (34.20 μs .. 210.2 μs)
+variance introduced by outliers: 51% (severely inflated)
+
+>> Day 12b
+benchmarking...
+time                 33.39 ms   (32.78 ms .. 34.02 ms)
+                     0.998 R²   (0.994 R² .. 1.000 R²)
+mean                 33.83 ms   (33.43 ms .. 35.01 ms)
+std dev              1.143 ms   (69.18 μs .. 1.958 ms)
+variance introduced by outliers: 11% (moderately inflated)
 ```

@@ -76,7 +76,7 @@ findMaxAny mp = fst $ go 1
        -- = traceShow (n, oMax, goOn) ((pMax, n), oMax)
       where
         (pMax, oMax) = maximumBy (comparing snd)
-            [ (p, fromIntegral (fromPartialSums ps p n))
+            [ (p, fromIntegral (fromSAT sat p n))
             | p <- range (V2 1 1, V2 (300 - n + 1) (300 - n + 1))
             ]
         goOn = sum
@@ -84,7 +84,7 @@ findMaxAny mp = fst $ go 1
             | n' <- [n + 1 .. 300]
             ]
     (sqrt->σ) = F.fold (dimap fromIntegral snd meanVar) mp
-    !ps = partialSums mp
+    !sat = summedAreaTable mp
     probGreaterThan o n
         | prob2 == 0 = 0
         | otherwise  = probIn2
@@ -96,32 +96,30 @@ findMaxAny mp = fst $ go 1
         numIn2  = (300 - n + 1)^(2 :: Int)
         probIn2 = 1 - D.probability (D.binomial numIn2 prob2) 0
 
-fromPartialSums :: Map Point Int -> Point -> Int -> Int
-fromPartialSums ps (subtract (V2 1 1)->p) n = sum . catMaybes $
-    [            M.lookup p            ps
-    ,            M.lookup (p + V2 n n) ps
-    , negate <$> M.lookup (p + V2 0 n) ps
-    , negate <$> M.lookup (p + V2 n 0) ps
+fromSAT :: Map Point Int -> Point -> Int -> Int
+fromSAT sat (subtract (V2 1 1)->p) n = sum . catMaybes $
+    [            M.lookup p            sat
+    ,            M.lookup (p + V2 n n) sat
+    , negate <$> M.lookup (p + V2 0 n) sat
+    , negate <$> M.lookup (p + V2 n 0) sat
     ]
 
-partialSums :: Map Point Int -> Map Point Int
-partialSums mp = force pasu
+summedAreaTable :: Map Point Int -> Map Point Int
+summedAreaTable mp = force sat
   where
-    pasu = M.mapWithKey go mp
+    sat = M.mapWithKey go mp
     go p0 v = (+ v) . sum . catMaybes $
-      [ negate <$> M.lookup (p0 - V2 1 1) pasu
-      ,            M.lookup (p0 - V2 1 0) pasu
-      ,            M.lookup (p0 - V2 0 1) pasu
+      [ negate <$> M.lookup (p0 - V2 1 1) sat
+      ,            M.lookup (p0 - V2 1 0) sat
+      ,            M.lookup (p0 - V2 0 1) sat
       ]
 
 -- | Debug: find the variance of the map at every square size
 _chunkyVars :: Map Point Int -> Map Int Double
 _chunkyVars mp = flip M.fromSet (S.fromList [1..300]) $ \n ->
     F.fold (dimap fromIntegral snd meanVar)
-      [ fromPartialSums ps p n
+      [ fromSAT sat p n
       | p <- range (V2 1 1, V2 (300 - n + 1) (300 - n + 1))
       ]
   where
-    !ps = partialSums mp
-
-
+    !sat = summedAreaTable mp
