@@ -7045,13 +7045,13 @@ MRO :: !TestSpec -> !Bool -> !Bool -> !Bool -> !Finite 25 -> Part -> IO (Maybe S
 
 -- | Manually supply input (Default: always return Nothing)
 [_mroInput] :: MainRunOpts -> !Finite 25 -> Part -> IO (Maybe String)
-class HasMainRunOpts c_a1LCk
-mainRunOpts :: HasMainRunOpts c_a1LCk => Lens' c_a1LCk MainRunOpts
-mroBench :: HasMainRunOpts c_a1LCk => Lens' c_a1LCk Bool
-mroInput :: HasMainRunOpts c_a1LCk => Lens' c_a1LCk (Finite 25 -> Part -> IO (Maybe String))
-mroLock :: HasMainRunOpts c_a1LCk => Lens' c_a1LCk Bool
-mroSpec :: HasMainRunOpts c_a1LCk => Lens' c_a1LCk TestSpec
-mroTest :: HasMainRunOpts c_a1LCk => Lens' c_a1LCk Bool
+class HasMainRunOpts c_a1LC0
+mainRunOpts :: HasMainRunOpts c_a1LC0 => Lens' c_a1LC0 MainRunOpts
+mroBench :: HasMainRunOpts c_a1LC0 => Lens' c_a1LC0 Bool
+mroInput :: HasMainRunOpts c_a1LC0 => Lens' c_a1LC0 (Finite 25 -> Part -> IO (Maybe String))
+mroLock :: HasMainRunOpts c_a1LC0 => Lens' c_a1LC0 Bool
+mroSpec :: HasMainRunOpts c_a1LC0 => Lens' c_a1LC0 TestSpec
+mroTest :: HasMainRunOpts c_a1LC0 => Lens' c_a1LC0 Bool
 
 -- | Run, test, bench.
 mainRun :: (MonadIO m, MonadError [String] m) => Config -> MainRunOpts -> m (Map (Finite 25) (Map Part (Maybe Bool, Either [String] String)))
@@ -7064,10 +7064,10 @@ data MainViewOpts
 MVO :: !TestSpec -> !Bool -> MainViewOpts
 [_mvoSpec] :: MainViewOpts -> !TestSpec
 [_mvoWait] :: MainViewOpts -> !Bool
-class HasMainViewOpts c_a1LJm
-mainViewOpts :: HasMainViewOpts c_a1LJm => Lens' c_a1LJm MainViewOpts
-mvoSpec :: HasMainViewOpts c_a1LJm => Lens' c_a1LJm TestSpec
-mvoWait :: HasMainViewOpts c_a1LJm => Lens' c_a1LJm Bool
+class HasMainViewOpts c_a1LJ2
+mainViewOpts :: HasMainViewOpts c_a1LJ2 => Lens' c_a1LJ2 MainViewOpts
+mvoSpec :: HasMainViewOpts c_a1LJ2 => Lens' c_a1LJ2 TestSpec
+mvoWait :: HasMainViewOpts c_a1LJ2 => Lens' c_a1LJ2 Bool
 
 -- | View prompt
 mainView :: (MonadIO m, MonadError [String] m) => Config -> MainViewOpts -> m (Map (Finite 25) (Map Part Text))
@@ -7088,12 +7088,12 @@ MSO :: !ChallengeSpec -> !Bool -> !Bool -> !Bool -> MainSubmitOpts
 
 -- | Lock answer if submission succeeded? (Default: True)
 [_msoLock] :: MainSubmitOpts -> !Bool
-class HasMainSubmitOpts c_a1LNF
-mainSubmitOpts :: HasMainSubmitOpts c_a1LNF => Lens' c_a1LNF MainSubmitOpts
-msoForce :: HasMainSubmitOpts c_a1LNF => Lens' c_a1LNF Bool
-msoLock :: HasMainSubmitOpts c_a1LNF => Lens' c_a1LNF Bool
-msoSpec :: HasMainSubmitOpts c_a1LNF => Lens' c_a1LNF ChallengeSpec
-msoTest :: HasMainSubmitOpts c_a1LNF => Lens' c_a1LNF Bool
+class HasMainSubmitOpts c_a1LNl
+mainSubmitOpts :: HasMainSubmitOpts c_a1LNl => Lens' c_a1LNl MainSubmitOpts
+msoForce :: HasMainSubmitOpts c_a1LNl => Lens' c_a1LNl Bool
+msoLock :: HasMainSubmitOpts c_a1LNl => Lens' c_a1LNl Bool
+msoSpec :: HasMainSubmitOpts c_a1LNl => Lens' c_a1LNl ChallengeSpec
+msoTest :: HasMainSubmitOpts c_a1LNl => Lens' c_a1LNl Bool
 
 -- | Submit and analyze result
 mainSubmit :: (MonadIO m, MonadError [String] m) => Config -> MainSubmitOpts -> m (Text, SubmitRes)
