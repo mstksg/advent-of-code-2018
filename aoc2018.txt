@@ -6724,41 +6724,6 @@ module AOC.Challenge.Day15
 module AOC.Challenge.Day14
 
 
--- | Day 13. See <a>AOC.Solver</a> for the types used in this module!
---   
---   After completing the challenge, it is recommended to:
---   
---   <ul>
---   <li>Replace <a>AOC.Prelude</a> imports to specific modules (with
---   explicit imports) for readability.</li>
---   <li>Remove the <tt>-Wno-unused-imports</tt> and
---   <tt>-Wno-unused-top-binds</tt> pragmas.</li>
---   <li>Replace the partial type signatures underscores in the solution
---   types <tt>_ :~&gt; _</tt> with the actual types of inputs and outputs
---   of the solution. You can delete the type signatures completely and GHC
---   will recommend what should go in place of the underscores.</li>
---   </ul>
-module AOC.Challenge.Day13
-day13a :: (World, Carts) :~> Point
-day13b :: (World, Carts) :~> Point
-instance GHC.Base.Functor AOC.Challenge.Day13.CartLog
-instance GHC.Show.Show a => GHC.Show.Show (AOC.Challenge.Day13.CartLog a)
-instance GHC.Num.Num AOC.Challenge.Day13.ScanPoint
-instance GHC.Show.Show AOC.Challenge.Day13.ScanPoint
-instance GHC.Classes.Eq AOC.Challenge.Day13.ScanPoint
-instance GHC.Classes.Ord AOC.Challenge.Day13.ScanPoint
-instance GHC.Show.Show AOC.Challenge.Day13.Cart
-instance GHC.Classes.Eq AOC.Challenge.Day13.Cart
-instance GHC.Enum.Bounded AOC.Challenge.Day13.Dir
-instance GHC.Enum.Enum AOC.Challenge.Day13.Dir
-instance GHC.Classes.Ord AOC.Challenge.Day13.Dir
-instance GHC.Show.Show AOC.Challenge.Day13.Dir
-instance GHC.Classes.Eq AOC.Challenge.Day13.Dir
-instance GHC.Classes.Ord AOC.Challenge.Day13.Track
-instance GHC.Show.Show AOC.Challenge.Day13.Track
-instance GHC.Classes.Eq AOC.Challenge.Day13.Track
-
-
 -- | Template Haskell for discovering all named challenges in a given
 --   directory.
 module AOC.Discover
@@ -6805,6 +6770,28 @@ charPart :: Char -> Maybe Part
 instance GHC.Classes.Ord AOC.Discover.ChallengeSpec
 instance GHC.Classes.Eq AOC.Discover.ChallengeSpec
 instance GHC.Show.Show AOC.Discover.ChallengeSpec
+
+
+-- | Day 13. See <a>AOC.Solver</a> for the types used in this module!
+module AOC.Challenge.Day13
+day13a :: (World, Carts) :~> Point
+day13b :: (World, Carts) :~> Point
+instance GHC.Base.Functor AOC.Challenge.Day13.CartLog
+instance GHC.Show.Show a => GHC.Show.Show (AOC.Challenge.Day13.CartLog a)
+instance GHC.Num.Num AOC.Challenge.Day13.ScanPoint
+instance GHC.Show.Show AOC.Challenge.Day13.ScanPoint
+instance GHC.Classes.Eq AOC.Challenge.Day13.ScanPoint
+instance GHC.Classes.Ord AOC.Challenge.Day13.ScanPoint
+instance GHC.Show.Show AOC.Challenge.Day13.Cart
+instance GHC.Classes.Eq AOC.Challenge.Day13.Cart
+instance GHC.Enum.Bounded AOC.Challenge.Day13.Dir
+instance GHC.Enum.Enum AOC.Challenge.Day13.Dir
+instance GHC.Classes.Ord AOC.Challenge.Day13.Dir
+instance GHC.Show.Show AOC.Challenge.Day13.Dir
+instance GHC.Classes.Eq AOC.Challenge.Day13.Dir
+instance GHC.Classes.Ord AOC.Challenge.Day13.Track
+instance GHC.Show.Show AOC.Challenge.Day13.Track
+instance GHC.Classes.Eq AOC.Challenge.Day13.Track
 
 
 -- | Day 12. See <a>AOC.Solver</a> for the types used in this module!
@@ -7058,13 +7045,13 @@ MRO :: !TestSpec -> !Bool -> !Bool -> !Bool -> !Finite 25 -> Part -> IO (Maybe S
 
 -- | Manually supply input (Default: always return Nothing)
 [_mroInput] :: MainRunOpts -> !Finite 25 -> Part -> IO (Maybe String)
-class HasMainRunOpts c_a1Lh7
-mainRunOpts :: HasMainRunOpts c_a1Lh7 => Lens' c_a1Lh7 MainRunOpts
-mroBench :: HasMainRunOpts c_a1Lh7 => Lens' c_a1Lh7 Bool
-mroInput :: HasMainRunOpts c_a1Lh7 => Lens' c_a1Lh7 (Finite 25 -> Part -> IO (Maybe String))
-mroLock :: HasMainRunOpts c_a1Lh7 => Lens' c_a1Lh7 Bool
-mroSpec :: HasMainRunOpts c_a1Lh7 => Lens' c_a1Lh7 TestSpec
-mroTest :: HasMainRunOpts c_a1Lh7 => Lens' c_a1Lh7 Bool
+class HasMainRunOpts c_a1LeX
+mainRunOpts :: HasMainRunOpts c_a1LeX => Lens' c_a1LeX MainRunOpts
+mroBench :: HasMainRunOpts c_a1LeX => Lens' c_a1LeX Bool
+mroInput :: HasMainRunOpts c_a1LeX => Lens' c_a1LeX (Finite 25 -> Part -> IO (Maybe String))
+mroLock :: HasMainRunOpts c_a1LeX => Lens' c_a1LeX Bool
+mroSpec :: HasMainRunOpts c_a1LeX => Lens' c_a1LeX TestSpec
+mroTest :: HasMainRunOpts c_a1LeX => Lens' c_a1LeX Bool
 
 -- | Run, test, bench.
 mainRun :: (MonadIO m, MonadError [String] m) => Config -> MainRunOpts -> m (Map (Finite 25) (Map Part (Maybe Bool, Either [String] String)))
@@ -7077,10 +7064,10 @@ data MainViewOpts
 MVO :: !TestSpec -> !Bool -> MainViewOpts
 [_mvoSpec] :: MainViewOpts -> !TestSpec
 [_mvoWait] :: MainViewOpts -> !Bool
-class HasMainViewOpts c_a1Lo9
-mainViewOpts :: HasMainViewOpts c_a1Lo9 => Lens' c_a1Lo9 MainViewOpts
-mvoSpec :: HasMainViewOpts c_a1Lo9 => Lens' c_a1Lo9 TestSpec
-mvoWait :: HasMainViewOpts c_a1Lo9 => Lens' c_a1Lo9 Bool
+class HasMainViewOpts c_a1LlZ
+mainViewOpts :: HasMainViewOpts c_a1LlZ => Lens' c_a1LlZ MainViewOpts
+mvoSpec :: HasMainViewOpts c_a1LlZ => Lens' c_a1LlZ TestSpec
+mvoWait :: HasMainViewOpts c_a1LlZ => Lens' c_a1LlZ Bool
 
 -- | View prompt
 mainView :: (MonadIO m, MonadError [String] m) => Config -> MainViewOpts -> m (Map (Finite 25) (Map Part Text))
@@ -7101,12 +7088,12 @@ MSO :: !ChallengeSpec -> !Bool -> !Bool -> !Bool -> MainSubmitOpts
 
 -- | Lock answer if submission succeeded? (Default: True)
 [_msoLock] :: MainSubmitOpts -> !Bool
-class HasMainSubmitOpts c_a1Lss
-mainSubmitOpts :: HasMainSubmitOpts c_a1Lss => Lens' c_a1Lss MainSubmitOpts
-msoForce :: HasMainSubmitOpts c_a1Lss => Lens' c_a1Lss Bool
-msoLock :: HasMainSubmitOpts c_a1Lss => Lens' c_a1Lss Bool
-msoSpec :: HasMainSubmitOpts c_a1Lss => Lens' c_a1Lss ChallengeSpec
-msoTest :: HasMainSubmitOpts c_a1Lss => Lens' c_a1Lss Bool
+class HasMainSubmitOpts c_a1Lqi
+mainSubmitOpts :: HasMainSubmitOpts c_a1Lqi => Lens' c_a1Lqi MainSubmitOpts
+msoForce :: HasMainSubmitOpts c_a1Lqi => Lens' c_a1Lqi Bool
+msoLock :: HasMainSubmitOpts c_a1Lqi => Lens' c_a1Lqi Bool
+msoSpec :: HasMainSubmitOpts c_a1Lqi => Lens' c_a1Lqi ChallengeSpec
+msoTest :: HasMainSubmitOpts c_a1Lqi => Lens' c_a1Lqi Bool
 
 -- | Submit and analyze result
 mainSubmit :: (MonadIO m, MonadError [String] m) => Config -> MainSubmitOpts -> m (Text, SubmitRes)
