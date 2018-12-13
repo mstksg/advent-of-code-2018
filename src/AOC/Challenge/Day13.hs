@@ -27,10 +27,10 @@ import qualified Data.Set              as S
 
 type Point = V2 Int
 
-data Track = TStraight
-           | TTurnNW
-           | TTurnNE
-           | TInter
+data Track = TStraight    -- ^ go straight
+           | TTurnNW      -- ^ a forward-slash mirror @/@
+           | TTurnNE      -- ^ a backwards-slash mirror @\\@
+           | TInter       -- ^ a four-way intersection
   deriving (Eq, Show, Ord)
 
 data Dir = DN | DE | DS |DW
@@ -103,18 +103,18 @@ stepCarts w = uncurry go
           Just _  -> CLCrash (_getSP p) (M.delete p waiting', M.delete p done)
 
 -- | Given a folding function, simulate on events emitted by 'stepCarts'.
-simulate
+simulateWith
     :: (CartLog a -> a)
     -> World
     -> Carts
     -> a
-simulate f w c = (f `hylo` stepCarts w) (c,M.empty)
+simulateWith f w c = (f `hylo` stepCarts w) (c, M.empty)
 
 day13a :: (World, Carts) :~> Point
 day13a = MkSol
     { sParse = Just . parseWorld
     , sShow  = \(V2 x y) -> show x ++ "," ++ show y
-    , sSolve = Just . uncurry (simulate firstCrash)
+    , sSolve = Just . uncurry (simulateWith firstCrash)
     }
   where
     firstCrash (CLCrash p _) = p
@@ -126,7 +126,7 @@ day13b :: (World, Carts) :~> Point
 day13b = MkSol
     { sParse = Just . parseWorld
     , sShow  = \(V2 x y) -> show x ++ "," ++ show y
-    , sSolve = Just . uncurry (simulate lastPoint)
+    , sSolve = Just . uncurry (simulateWith lastPoint)
     }
   where
     lastPoint (CLCrash _ p) = p
