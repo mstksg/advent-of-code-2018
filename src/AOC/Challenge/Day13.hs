@@ -52,6 +52,8 @@ data Cart = C { _cDir   :: Dir
 
 makeLenses ''Cart
 
+-- | It's 'Point', but with a newtype wrapper so we have an 'Ord' that
+-- sorts by y first, then x
 newtype ScanPoint = SP { _getSP :: Point }
   deriving (Eq, Show, Num)
 
@@ -64,6 +66,7 @@ makeLenses ''ScanPoint
 type World = Map Point     Track
 type Carts = Map ScanPoint Cart
 
+-- | Step a single cart through the world.
 stepCart :: World -> ScanPoint -> Cart -> (ScanPoint, Cart)
 stepCart w (SP p) c = (SP p',) $ case w M.! p' of
     TTurnNW   -> c & cDir   %~ \case DN -> DE; DE -> DN; DS -> DW; DW -> DS
@@ -87,11 +90,13 @@ stepCart w (SP p) c = (SP p',) $ case w M.! p' of
     turnLeft DW = DS
 
 -- | One of the ways a single step of the simulation can go.
-data CartLog a = CLCrash Point a      -- ^ A crash at, a given point
+data CartLog a = CLCrash Point a      -- ^ A crash, at a given point
                | CLTick        a      -- ^ No crashes, just a normal timestep
                | CLDone  Point        -- ^ Only one car left, at a given point
   deriving (Show, Functor)
 
+-- | Given a (waiting, done) queue, emit a 'CartLog' event with an updated
+-- (waiting, done) queue.
 stepCarts
     :: World
     -> (Carts, Carts)
@@ -108,18 +113,19 @@ stepCarts w = uncurry go
           Nothing -> CLTick (waiting', M.insert p c done)
           Just _  -> CLCrash (_getSP p) (M.delete p waiting', M.delete p done)
 
+-- | Given a folding function, simulate on events emitted by 'stepCarts'.
 simulate
-    :: (CartLog a      -> a                     )
-    -> ((Carts, Carts) -> CartLog (Carts, Carts))
+    :: (CartLog a -> a)
+    -> World
     -> Carts
     -> a
-simulate f g = (f `hylo` g) . (,M.empty)
+simulate f w c = (f `hylo` stepCarts w) (c,M.empty)
 
 day13a :: (World, Carts) :~> Point
 day13a = MkSol
     { sParse = Just . parseWorld
     , sShow  = \(V2 x y) -> show x ++ "," ++ show y
-    , sSolve = \(w, c) -> Just . simulate firstCrash (stepCarts w) $ c
+    , sSolve = Just . uncurry (simulate firstCrash)
     }
   where
     firstCrash (CLCrash p _) = p
@@ -131,7 +137,7 @@ day13b :: (World, Carts) :~> Point
 day13b = MkSol
     { sParse = Just . parseWorld
     , sShow  = \(V2 x y) -> show x ++ "," ++ show y
-    , sSolve = \(w, c) -> Just . simulate lastPoint (stepCarts w) $ c
+    , sSolve = Just . uncurry (simulate lastPoint)
     }
   where
     lastPoint (CLCrash _ p) = p
