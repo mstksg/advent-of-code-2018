@@ -23,12 +23,10 @@
 --     solution.  You can delete the type signatures completely and GHC
 --     will recommend what should go in place of the underscores.
 
-module AOC.Challenge.Day13 where
-
--- module AOC.Challenge.Day13 (
---     day13a
---   , day13b
---   ) where
+module AOC.Challenge.Day13 (
+    day13a
+  , day13b
+  ) where
 
 import           AOC.Prelude
 import           Control.Lens
@@ -44,35 +42,37 @@ data Track = TStraight
            | TInter
   deriving (Eq, Show, Ord)
 
-type World = Map Point Track
-
 data Dir = DN | DE | DS |DW
   deriving (Eq, Show, Ord, Enum, Bounded)
 
-data Cart = C { _cPos   :: Point
-              , _cDir   :: Dir
+data Cart = C { _cDir   :: Dir
               , _cTurns :: Int
               }
   deriving (Eq, Show)
 
-instance Ord Cart where
-    compare = mconcat [ comparing (view _y . _cPos)
-                      , comparing (view _x . _cPos)
-                      , comparing _cDir
-                      , comparing _cTurns
-                      ]
-
 makeLenses ''Cart
 
-stepCart :: World -> Cart -> Cart
-stepCart w c = case w M.! (c' ^. cPos) of
-    TTurnNW   -> c' & cDir   %~ \case DN -> DE; DE -> DN; DS -> DW; DW -> DS
-    TTurnNE   -> c' & cDir   %~ \case DN -> DW; DW -> DN; DS -> DE; DE -> DS
-    TInter    -> c' & cDir   %~ turnWith (c ^. cTurns)
-                    & cTurns +~ 1
-    TStraight -> c'
+newtype ScanPoint = SP { _getSP :: Point }
+  deriving (Eq, Show, Num)
+
+instance Ord ScanPoint where
+    compare = comparing (view _y . _getSP)
+           <> comparing (view _x . _getSP)
+
+makeLenses ''ScanPoint
+
+type World = Map Point     Track
+type Carts = Map ScanPoint Cart
+
+stepCart :: World -> ScanPoint -> Cart -> (ScanPoint, Cart)
+stepCart w (SP p) c = (SP p',) $ case w M.! p' of
+    TTurnNW   -> c & cDir   %~ \case DN -> DE; DE -> DN; DS -> DW; DW -> DS
+    TTurnNE   -> c & cDir   %~ \case DN -> DW; DW -> DN; DS -> DE; DE -> DS
+    TInter    -> c & cDir   %~ turnWith (c ^. cTurns)
+                   & cTurns +~ 1
+    TStraight -> c
   where
-    c' = c & cPos +~ case c ^. cDir of
+    p' = p + case c ^. cDir of
       DN -> V2 0    (-1)
       DE -> V2 1    0
       DS -> V2 0    1
@@ -86,66 +86,73 @@ stepCart w c = case w M.! (c' ^. cPos) of
     turnLeft DS = DE
     turnLeft DW = DS
 
-data CartLog a = CLCrash Point a
-               | CLDone  Point
+-- | One of the ways a single step of the simulation can go.
+data CartLog a = CLCrash Point a      -- ^ A crash at, a given point
+               | CLTick        a      -- ^ No crashes, just a normal timestep
+               | CLDone  Point        -- ^ Only one car left, at a given point
   deriving (Show, Functor)
 
 stepCarts
     :: World
-    -> Set Cart
-    -> Fix CartLog
-stepCarts w = ana (uncurry go) . (,S.empty)
+    -> (Carts, Carts)
+    -> CartLog (Carts, Carts)
+stepCarts w = uncurry go
   where
-    go :: Set Cart -> Set Cart -> CartLog (Set Cart, Set Cart)
-    go waiting done = case S.minView waiting of
-      Nothing -> case S.minView done of
-        Just (lastCar, S.null->True) -> CLDone (lastCar ^. cPos)
-        _                            -> go done S.empty
-      Just (stepCart w -> c, waiting') ->
-        let allPoints = waiting' <> done
-        in  case find (collides c) allPoints of
-              Nothing -> go waiting' (S.insert c done)
-              Just d  -> CLCrash (d ^. cPos) (S.delete d waiting', S.delete d done)
-    collides = (==) `on` _cPos
+    go :: Carts -> Carts -> CartLog (Carts, Carts)
+    go waiting done = case M.minViewWithKey waiting of
+      Nothing -> case M.minViewWithKey done of
+        Just ((SP lastPos, _), M.null->True) -> CLDone lastPos
+        _                                    -> CLTick (done, M.empty)
+      Just (uncurry (stepCart w) -> (p, c), waiting') ->
+        case M.lookup p (waiting' <> done) of
+          Nothing -> CLTick (waiting', M.insert p c done)
+          Just _  -> CLCrash (_getSP p) (M.delete p waiting', M.delete p done)
 
-firstCrash :: Fix CartLog -> Point
-firstCrash = cata $ \case
-    CLCrash p _ -> p
-    CLDone  p   -> p
+simulate
+    :: (CartLog a      -> a                     )
+    -> ((Carts, Carts) -> CartLog (Carts, Carts))
+    -> Carts
+    -> a
+simulate f g = (f `hylo` g) . (,M.empty)
 
-day13a :: (World, Set Cart) :~> Point
+day13a :: (World, Carts) :~> Point
 day13a = MkSol
-    { sParse = Just . swap . parseWorld
+    { sParse = Just . parseWorld
     , sShow  = \(V2 x y) -> show x ++ "," ++ show y
-    , sSolve = Just . firstCrash . uncurry stepCarts
+    , sSolve = \(w, c) -> Just . simulate firstCrash (stepCarts w) $ c
     }
+  where
+    firstCrash (CLCrash p _) = p
+    firstCrash (CLTick    p) = p
+    firstCrash (CLDone  p  ) = p
 
-lastPoint :: Fix CartLog -> Point
-lastPoint = cata $ \case
-    CLCrash _ p -> p
-    CLDone  p   -> p
 
-day13b :: (World, Set Cart) :~> Point
+day13b :: (World, Carts) :~> Point
 day13b = MkSol
-    { sParse = Just . swap . parseWorld
+    { sParse = Just . parseWorld
     , sShow  = \(V2 x y) -> show x ++ "," ++ show y
-    , sSolve = Just . lastPoint . uncurry stepCarts
+    , sSolve = \(w, c) -> Just . simulate lastPoint (stepCarts w) $ c
     }
+  where
+    lastPoint (CLCrash _ p) = p
+    lastPoint (CLTick    p) = p
+    lastPoint (CLDone  p  ) = p
 
-parseWorld :: String -> (Set Cart, World)
+parseWorld :: String -> (World, Carts)
 parseWorld = foldMap (\(y, xs) -> foldMap (uncurry (classify y)) . zip [0..] $ xs)
            . zip [0..]
            . lines
   where
     classify y x = \case
-      '|'  -> (S.empty                      , M.singleton (V2 x y) TStraight)
-      '-'  -> (S.empty                      , M.singleton (V2 x y) TStraight)
-      '/'  -> (S.empty                      , M.singleton (V2 x y) TTurnNW  )
-      '\\' -> (S.empty                      , M.singleton (V2 x y) TTurnNE  )
-      '+'  -> (S.empty                      , M.singleton (V2 x y) TInter   )
-      'v'  -> (S.singleton (C (V2 x y) DS 0), M.singleton (V2 x y) TStraight)
-      '^'  -> (S.singleton (C (V2 x y) DN 0), M.singleton (V2 x y) TStraight)
-      '>'  -> (S.singleton (C (V2 x y) DE 0), M.singleton (V2 x y) TStraight)
-      '<'  -> (S.singleton (C (V2 x y) DW 0), M.singleton (V2 x y) TStraight)
-      _    -> mempty
-
+        '|'  -> (M.singleton p TStraight, M.empty                    )
+        '-'  -> (M.singleton p TStraight, M.empty                    )
+        '/'  -> (M.singleton p TTurnNW  , M.empty                    )
+        '\\' -> (M.singleton p TTurnNE  , M.empty                    )
+        '+'  -> (M.singleton p TInter   , M.empty                    )
+        'v'  -> (M.singleton p TStraight, M.singleton (SP p) (C DS 0))
+        '^'  -> (M.singleton p TStraight, M.singleton (SP p) (C DN 0))
+        '>'  -> (M.singleton p TStraight, M.singleton (SP p) (C DE 0))
+        '<'  -> (M.singleton p TStraight, M.singleton (SP p) (C DW 0))
+        _    -> mempty
+      where
+        p = V2 x y
