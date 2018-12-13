@@ -32,8 +32,9 @@ module AOC.Challenge.Day13 where
 
 import           AOC.Prelude
 import           Control.Lens
-import qualified Data.Map     as M
-import qualified Data.Set     as S
+import           Data.Functor.Foldable
+import qualified Data.Map              as M
+import qualified Data.Set              as S
 
 type Point = V2 Int
 
@@ -76,83 +77,59 @@ stepCart w c = case w M.! (c' ^. cPos) of
       DE -> V2 1    0
       DS -> V2 0    1
       DW -> V2 (-1) 0
-
-turnWith :: Int -> Dir -> Dir
-turnWith i = case i `mod` 3 of
-    0 -> turnLeft
-    1 -> id
-    _ -> turnLeft . turnLeft . turnLeft
-  where
+    turnWith i = case i `mod` 3 of
+      0 -> turnLeft
+      1 -> id
+      _ -> turnLeft . turnLeft . turnLeft
     turnLeft DN = DW
     turnLeft DE = DN
     turnLeft DS = DE
     turnLeft DW = DS
 
-stepCarts :: World -> Set Cart -> Either Point (Set Cart)
-stepCarts w s0 = fmap snd . execStateT go $ (s0, S.empty)
+data CartLog a = CLCrash Point a
+               | CLDone  Point
+  deriving (Show, Functor)
+
+stepCarts
+    :: World
+    -> Set Cart
+    -> Fix CartLog
+stepCarts w = ana (uncurry go) . (,S.empty)
   where
-    go = uses _1 S.minView >>= \case
-      Nothing -> pure ()
-      Just (c, leftovers) -> do
-        _1 .= leftovers
-        let c' = stepCart w c
-        allPoints <- gets (uncurry (<>))
-        case find (collides c') allPoints of
-          Nothing -> do
-            _2 %= S.insert c'
-            go
-          Just d -> throwError $ d ^. cPos
+    go :: Set Cart -> Set Cart -> CartLog (Set Cart, Set Cart)
+    go waiting done = case S.minView waiting of
+      Nothing -> case S.minView done of
+        Just (lastCar, S.null->True) -> CLDone (lastCar ^. cPos)
+        _                            -> go done S.empty
+      Just (stepCart w -> c, waiting') ->
+        let allPoints = waiting' <> done
+        in  case find (collides c) allPoints of
+              Nothing -> go waiting' (S.insert c done)
+              Just d  -> CLCrash (d ^. cPos) (S.delete d waiting', S.delete d done)
     collides = (==) `on` _cPos
 
-runWorld :: World -> Set Cart -> Maybe Point
-runWorld w = go
-  where
-    go s = case stepCarts w s of
-      Left e   -> Just e
-      Right s' -> go s'
+firstCrash :: Fix CartLog -> Point
+firstCrash = cata $ \case
+    CLCrash p _ -> p
+    CLDone  p   -> p
 
 day13a :: (World, Set Cart) :~> Point
 day13a = MkSol
     { sParse = Just . swap . parseWorld
     , sShow  = \(V2 x y) -> show x ++ "," ++ show y
-    , sSolve = uncurry runWorld
+    , sSolve = Just . firstCrash . uncurry stepCarts
     }
 
-stepCarts2 :: World -> Set Cart -> Either Point (Set Cart)
-stepCarts2 w s0 = fmap snd . execStateT go $ (s0, S.empty)
-  where
-    go = uses _1 S.minView >>= \case
-      Nothing -> pure ()
-      Just (c, leftovers) -> do
-        _1 .= leftovers
-        let c' = stepCart w c
-        allPoints <- gets (uncurry (<>))
-        case find (collides c') allPoints of
-          Nothing -> do
-            _2 %= S.insert c'
-            go
-          Just d -> do
-            _2 %= S.delete d
-            _1 %= S.delete d
-            case S.minView (S.delete d allPoints) of
-              Nothing -> error "no carts left?"
-              Just (lastCar, whatever)
-                | S.null whatever -> throwError $ lastCar ^. cPos
-                | otherwise       -> go
-    collides = (==) `on` _cPos
-
-runWorld2 :: World -> Set Cart -> Maybe Point
-runWorld2 w = go
-  where
-    go s = case stepCarts2 w s of
-      Left e   -> Just e
-      Right s' -> go s'
+lastPoint :: Fix CartLog -> Point
+lastPoint = cata $ \case
+    CLCrash _ p -> p
+    CLDone  p   -> p
 
 day13b :: (World, Set Cart) :~> Point
 day13b = MkSol
     { sParse = Just . swap . parseWorld
     , sShow  = \(V2 x y) -> show x ++ "," ++ show y
-    , sSolve = uncurry runWorld2
+    , sSolve = Just . lastPoint . uncurry stepCarts
     }
 
 parseWorld :: String -> (Set Cart, World)
