@@ -15,15 +15,13 @@ module AOC.Challenge.Day13 (
   ) where
 
 import           AOC.Solver            ((:~>)(..))
-import           Control.Lens          (view, makeLenses, (^.), (%~), (+~))
+import           Control.Lens          (view, makeLenses, (^.), (%~), (+~), (<.>), ifoldMapOf, folded, lined)
 import           Data.Function         ((&))
 import           Data.Functor.Foldable (hylo)
 import           Data.Map              (Map)
 import           Data.Ord              (comparing)
-import           Data.Set              (Set)
 import           Linear                (V2(..), _x, _y)
 import qualified Data.Map              as M
-import qualified Data.Set              as S
 
 type Point = V2 Int
 
@@ -33,7 +31,7 @@ data Track = TStraight    -- ^ go straight
            | TInter       -- ^ a four-way intersection
   deriving (Eq, Show, Ord)
 
-data Dir = DN | DE | DS |DW
+data Dir = DN | DE | DS | DW
   deriving (Eq, Show, Ord, Enum, Bounded)
 
 data Cart = C { _cDir   :: Dir
@@ -134,9 +132,7 @@ day13b = MkSol
     lastPoint (CLDone  p  ) = p
 
 parseWorld :: String -> (World, Carts)
-parseWorld = foldMap (\(y, xs) -> foldMap (uncurry (classify y)) . zip [0..] $ xs)
-           . zip [0..]
-           . lines
+parseWorld = ifoldMapOf (lined <.> folded) (uncurry classify)
   where
     classify y x = \case
         '|'  -> (M.singleton p TStraight, M.empty                    )
