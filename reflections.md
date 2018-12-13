@@ -1374,3 +1374,30 @@ mean                 33.83 ms   (33.43 ms .. 35.01 ms)
 std dev              1.143 ms   (69.18 μs .. 1.958 ms)
 variance introduced by outliers: 11% (moderately inflated)
 ```
+
+Day 13
+------
+
+*[Prompt][d13p]* / *[Code][d13g]* / *[Rendered][d13h]*
+
+[d13p]: https://adventofcode.com/2018/day/13
+[d13g]: https://github.com/mstksg/advent-of-code-2018/blob/master/src/AOC/Challenge/Day13.hs
+[d13h]: https://mstksg.github.io/advent-of-code-2018/src/AOC.Challenge.Day13.html
+
+### Day 13 Benchmarks
+
+```
+>> Day 13a
+benchmarking...
+time                 41.23 ms   (40.28 ms .. 42.54 ms)
+                     0.998 R²   (0.994 R² .. 1.000 R²)
+mean                 40.85 ms   (40.33 ms .. 41.58 ms)
+std dev              1.149 ms   (518.9 μs .. 1.501 ms)
+
+>> Day 13b
+benchmarking...
+time                 42.25 ms   (41.72 ms .. 43.61 ms)
+                     0.997 R²   (0.987 R² .. 1.000 R²)
+mean                 42.65 ms   (42.31 ms .. 43.86 ms)
+std dev              1.138 ms   (249.4 μs .. 2.041 ms)
+```
