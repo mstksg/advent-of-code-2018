@@ -36,6 +36,8 @@ digitize ((`divMod` 10)->(x,y))
 --
 -- Note that this is independent of the input numbers, so it can be
 -- generated in advance and shared by all inputs.
+--
+-- (This is actually a futumorphism, but don't tell anyone)
 chocolatePractice :: [Int]
 chocolatePractice = 3 : 7 : go (T 0 1 (Seq.fromList [3,7]))
   where
