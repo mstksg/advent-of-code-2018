@@ -19,6 +19,7 @@ import           Control.Lens          (view, makeLenses, (^.), (<.>), ifoldMapO
 import           Data.Functor.Foldable (hylo)
 import           Data.Map              (Map)
 import           Data.Ord              (comparing)
+import           Data.These            (These(..), fromThese)
 import           Linear                (V2(..), _x, _y)
 import qualified Data.Map              as M
 
@@ -128,16 +129,17 @@ day13b = MkSol
     lastPoint (CLDone  p  ) = p
 
 parseWorld :: String -> (World, Carts)
-parseWorld = ifoldMapOf (lined <.> folded) (uncurry classify)
+parseWorld = maybe mempty (fromThese mempty mempty)
+           . ifoldMapOf (lined <.> folded) (uncurry classify)
   where
     classify y x = \case
-        '/'  -> (M.singleton p TurnNW   , M.empty                    )
-        '\\' -> (M.singleton p TurnNE   , M.empty                    )
-        '+'  -> (M.singleton p TurnInter, M.empty                    )
-        'v'  -> (M.empty                , M.singleton (SP p) (C DS 0))
-        '^'  -> (M.empty                , M.singleton (SP p) (C DN 0))
-        '>'  -> (M.empty                , M.singleton (SP p) (C DE 0))
-        '<'  -> (M.empty                , M.singleton (SP p) (C DW 0))
-        _    -> mempty
+        '/'  -> Just . This $ M.singleton p      TurnNW
+        '\\' -> Just . This $ M.singleton p      TurnNE
+        '+'  -> Just . This $ M.singleton p      TurnInter
+        'v'  -> Just . That $ M.singleton (SP p) (C DS 0)
+        '^'  -> Just . That $ M.singleton (SP p) (C DN 0)
+        '>'  -> Just . That $ M.singleton (SP p) (C DE 0)
+        '<'  -> Just . That $ M.singleton (SP p) (C DW 0)
+        _    -> Nothing
       where
         p = V2 x y
