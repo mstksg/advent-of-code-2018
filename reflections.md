@@ -1437,7 +1437,7 @@ step T{..} = (newDigits, T newTp1 newTp2 newSeq)
     sc1 = _tSeq `Seq.index` _tp1
     sc2 = _tSeq `Seq.index` _tp2
     newDigits = digitize $ sc1 + sc2
-    newSeq = _tSeq Seq.>< Seq.fromList newDigits
+    newSeq = _tSeq <> Seq.fromList newDigits
     newTp1 = (_tp1 + sc1 + 1) `mod` length newSeq
     newTp2 = (_tp2 + sc2 + 1) `mod` length newSeq
 

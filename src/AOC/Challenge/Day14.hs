@@ -22,7 +22,7 @@ step T{..} = (newDigits, T newTp1 newTp2 newSeq)
     sc1 = _tSeq `Seq.index` _tp1
     sc2 = _tSeq `Seq.index` _tp2
     newDigits = digitize $ sc1 + sc2
-    newSeq = _tSeq Seq.>< Seq.fromList newDigits
+    newSeq = _tSeq <> Seq.fromList newDigits
     newTp1 = (_tp1 + sc1 + 1) `mod` length newSeq
     newTp2 = (_tp2 + sc2 + 1) `mod` length newSeq
 
@@ -31,6 +31,11 @@ digitize ((`divMod` 10)->(x,y))
     | x == 0    = [y]
     | otherwise = [x,y]
 
+-- | This is our lazily generated stream of chocolate practice numbers!
+-- Items will be demanded as users ask for them.
+--
+-- Note that this is independent of the input numbers, so it can be
+-- generated in advance and shared by all inputs.
 chocolatePractice :: [Int]
 chocolatePractice = 3 : 7 : go (T 0 1 (Seq.fromList [3,7]))
   where
