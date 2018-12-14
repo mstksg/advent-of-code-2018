@@ -75,6 +75,7 @@ library:
   - aeson
   - ansi-terminal
   - bytestring
+  - conduit
   - containers
   - criterion
   - curl
@@ -87,8 +88,8 @@ library:
   - filepath
   - finite-typelits
   - foldl
+  - free
   - free-algebras
-  - primitive
   - groups
   - haskeline
   - haskell-names
@@ -106,6 +107,7 @@ library:
   - parsec
   - parser-combinators
   - pointedlist
+  - primitive
   - profunctors
   - pure-fft
   - recursion-schemes

@@ -6,25 +6,8 @@ module AOC.Challenge.Day14 (
 import           AOC.Solver    ((:~>)(..))
 import           Data.List     (tails, isPrefixOf)
 import           Data.Maybe    (mapMaybe)
-import           Data.Sequence (Seq(..))
 import           Text.Read     (readMaybe)
 import qualified Data.Sequence as Seq
-
-data Tape = T { _tp1    :: !Int
-              , _tp2    :: !Int
-              , _tSeq   :: !(Seq Int)
-              }
-  deriving Show
-
-step :: Tape -> ([Int], Tape)      -- tape, and "new digits"
-step T{..} = (newDigits, T newTp1 newTp2 newSeq)
-  where
-    sc1 = _tSeq `Seq.index` _tp1
-    sc2 = _tSeq `Seq.index` _tp2
-    newDigits = digitize $ sc1 + sc2
-    newSeq = _tSeq <> Seq.fromList newDigits
-    newTp1 = (_tp1 + sc1 + 1) `mod` length newSeq
-    newTp2 = (_tp2 + sc2 + 1) `mod` length newSeq
 
 digitize :: Int -> [Int]
 digitize ((`divMod` 10)->(x,y))
@@ -39,9 +22,16 @@ digitize ((`divMod` 10)->(x,y))
 --
 -- (This is actually a futumorphism, but don't tell anyone)
 chocolatePractice :: [Int]
-chocolatePractice = 3 : 7 : go (T 0 1 (Seq.fromList [3,7]))
+chocolatePractice = 3 : 7 : go 0 1 (Seq.fromList [3,7])
   where
-    go (step->(out,t)) = out ++ go t
+    go !p1 !p2 !tp = newDigits ++ go p1' p2' tp'
+      where
+        sc1 = tp `Seq.index` p1
+        sc2 = tp `Seq.index` p2
+        newDigits = digitize $ sc1 + sc2
+        tp' = tp <> Seq.fromList newDigits
+        p1' = (p1 + sc1 + 1) `mod` length tp'
+        p2' = (p2 + sc2 + 1) `mod` length tp'
 
 day14a :: Int :~> [Int]
 day14a = MkSol
