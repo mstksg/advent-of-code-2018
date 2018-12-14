@@ -1559,26 +1559,18 @@ However, it becomes much simpler if you separate the act of generation and
 checking as two different things.  Luckily, with Haskell, this is fairly easy
 with lazily linked lists.
 
-First, a way to step our state:
-
 ```haskell
-import qualified Data.Sequence as Seq
-
-data Tape = T { _tp1    :: !Int
-              , _tp2    :: !Int
-              , _tSeq   :: !(Seq Int)
-              }
-  deriving Show
-
-step :: Tape -> ([Int], Tape)      -- tape, and "new digits"
-step T{..} = (newDigits, T newTp1 newTp2 newSeq)
+chocolatePractice :: [Int]
+chocolatePractice = 3 : 7 : go 0 1 (Seq.fromList [3,7])
   where
-    sc1 = _tSeq `Seq.index` _tp1
-    sc2 = _tSeq `Seq.index` _tp2
-    newDigits = digitize $ sc1 + sc2
-    newSeq = _tSeq <> Seq.fromList newDigits
-    newTp1 = (_tp1 + sc1 + 1) `mod` length newSeq
-    newTp2 = (_tp2 + sc2 + 1) `mod` length newSeq
+    go !p1 !p2 !tp = newDigits ++ go p1' p2' tp'
+      where
+        sc1 = tp `Seq.index` p1
+        sc2 = tp `Seq.index` p2
+        newDigits = digitize $ sc1 + sc2
+        tp' = tp <> Seq.fromList newDigits
+        p1' = (p1 + sc1 + 1) `mod` length tp'
+        p2' = (p2 + sc2 + 1) `mod` length tp'
 
 digitize :: Int -> [Int]
 digitize ((`divMod` 10)->(x,y))
@@ -1586,21 +1578,14 @@ digitize ((`divMod` 10)->(x,y))
     | otherwise = [x,y]
 ```
 
-We use `Seq` from *Data.Sequence* for its O(1) appends and O(log) indexing --
-the two things we do the most.  We could also get away with pre-allocation with
-vectors for amortized O(1) suffix appends and O(1) indexing, as well.
+We use `go` to lazily generate new items as they are demanded.  Once the user
+consumes all of the `newDigits` asks for more, `go` will be asked to generate
+new digits.  The important thing is that this is demand-driven.
 
-Now, for the actual magic: we *generate a list of infinite digits*
-corresponding to the outputs of our tape.  This list is demand-driven; if the
-user ever asks for a "new" items, then `step` will be run to just produce the
-next few digits, one (or two) cells at a time.
-
-```haskell
-chocolatePractice :: [Int]
-chocolatePractice = 3 : 7 : go (T 0 1 (Seq.fromList [3,7]))
-  where
-    go (step->(out,t)) = out ++ go t
-```
+We keep track of the current tape using `Seq` from *Data.Sequence* for its O(1)
+appends and O(log) indexing -- the two things we do the most.  We could also
+get away with pre-allocation with vectors for amortized O(1) suffix appends and
+O(1) indexing, as well.
 
 Note that `chocolatePractice` is effectively the same for every per-user input
 data. It's just a (lazily generated) list of all of the chocolate practice digits.
