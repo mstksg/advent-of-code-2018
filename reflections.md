@@ -1463,6 +1463,9 @@ chocolatePractice = 3 : 7 : go (T 0 1 (Seq.fromList [3,7]))
     go (step->(out,t)) = out ++ go t
 ```
 
+Note that `chocolatePractice` is effectively the same for every per-user input
+data. It's just a (lazily generated) list of all of the chocolate practice digits.
+
 Part 1 then is just a `drop` then a `take`:
 
 ```haskell
