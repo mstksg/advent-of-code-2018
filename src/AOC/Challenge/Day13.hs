@@ -49,8 +49,6 @@ instance Ord ScanPoint where
     compare = comparing (view _y . _getSP)
            <> comparing (view _x . _getSP)
 
--- | All turns on the map.  We don't need to store the straight-line paths
--- because they're effectively a vacuum.
 type World = Map Point     Turn
 type Carts = Map ScanPoint Cart
 
@@ -109,12 +107,12 @@ day13a :: (World, Carts) :~> Point
 day13a = MkSol
     { sParse = Just . parseWorld
     , sShow  = \(V2 x y) -> show x ++ "," ++ show y
-    , sSolve = Just . uncurry (simulateWith firstCrash)
+    , sSolve = uncurry (simulateWith firstCrash)
     }
   where
-    firstCrash (CLCrash p _) = p
+    firstCrash (CLCrash p _) = Just p
     firstCrash (CLTick    p) = p
-    firstCrash (CLDone  p  ) = p
+    firstCrash (CLDone  _  ) = Nothing
 
 
 day13b :: (World, Carts) :~> Point

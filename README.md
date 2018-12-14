@@ -30,6 +30,10 @@ Check out reflections and commentary at the [package haddocks][haddock]!
 *   **[Day 8 Reflections][d08r]** *[code][d08g]* / *[rendered][d08h]* / *[benchmarks][d08b]*
 *   **[Day 9 Reflections][d09r]** *[code][d09g]* / *[rendered][d09h]* / *[benchmarks][d09b]*
 *   **[Day 10 Reflections][d10r]** *[code][d10g]* / *[rendered][d10h]* / *[benchmarks][d10b]*
+*   **[Day 11 Reflections][d11r]** *[code][d11g]* / *[rendered][d11h]* / *[benchmarks][d11b]*
+*   **[Day 12 Reflections][d12r]** *[code][d12g]* / *[rendered][d12h]* / *[benchmarks][d12b]*
+*   **[Day 13 Reflections][d13r]** *[code][d13g]* / *[rendered][d13h]* / *[benchmarks][d13b]*
+*   **[Day 14 Reflections][d14r]** *[code][d14g]* / *[rendered][d14h]* / *[benchmarks][d14b]*
 
 "Rendered" links go to haddock source renders for code, with reflections in the
 documentation.  Haddock source renders have hyperlinked identifiers,
@@ -311,3 +315,23 @@ All networking features are powered by *[advent-of-code-api][]*.
 [d10h]: https://mstksg.github.io/advent-of-code-2018/src/AOC.Challenge.Day10.html
 [d10r]: https://github.com/mstksg/advent-of-code-2018/blob/master/reflections.md#day-10
 [d10b]: https://github.com/mstksg/advent-of-code-2018/blob/master/reflections.md#day-10-benchmarks
+
+[d11g]: https://github.com/mstksg/advent-of-code-2018/blob/master/src/AOC/Challenge/Day11.hs
+[d11h]: https://mstksg.github.io/advent-of-code-2018/src/AOC.Challenge.Day11.html
+[d11r]: https://github.com/mstksg/advent-of-code-2018/blob/master/reflections.md#day-11
+[d11b]: https://github.com/mstksg/advent-of-code-2018/blob/master/reflections.md#day-11-benchmarks
+
+[d12g]: https://github.com/mstksg/advent-of-code-2018/blob/master/src/AOC/Challenge/Day12.hs
+[d12h]: https://mstksg.github.io/advent-of-code-2018/src/AOC.Challenge.Day12.html
+[d12r]: https://github.com/mstksg/advent-of-code-2018/blob/master/reflections.md#day-12
+[d12b]: https://github.com/mstksg/advent-of-code-2018/blob/master/reflections.md#day-12-benchmarks
+
+[d13g]: https://github.com/mstksg/advent-of-code-2018/blob/master/src/AOC/Challenge/Day13.hs
+[d13h]: https://mstksg.github.io/advent-of-code-2018/src/AOC.Challenge.Day13.html
+[d13r]: https://github.com/mstksg/advent-of-code-2018/blob/master/reflections.md#day-13
+[d13b]: https://github.com/mstksg/advent-of-code-2018/blob/master/reflections.md#day-13-benchmarks
+
+[d14g]: https://github.com/mstksg/advent-of-code-2018/blob/master/src/AOC/Challenge/Day14.hs
+[d14h]: https://mstksg.github.io/advent-of-code-2018/src/AOC.Challenge.Day14.html
+[d14r]: https://github.com/mstksg/advent-of-code-2018/blob/master/reflections.md#day-14
+[d14b]: https://github.com/mstksg/advent-of-code-2018/blob/master/reflections.md#day-14-benchmarks
