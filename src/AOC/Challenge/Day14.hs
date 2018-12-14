@@ -4,7 +4,6 @@ module AOC.Challenge.Day14 (
   ) where
 
 import           AOC.Solver    ((:~>)(..))
-import           Data.Foldable (find)
 import           Data.List     (tails, isPrefixOf)
 import           Data.Maybe    (mapMaybe)
 import           Data.Sequence (Seq(..))
@@ -44,15 +43,14 @@ day14a = MkSol
     , sSolve = Just . take 10 . (`drop` chocolatePractice)
     }
 
-substrLoc :: [Int] -> [Int] -> Maybe Int
-substrLoc xs = fmap fst
-             . find ((xs `isPrefixOf`) . snd)
-             . zip [0..]
+substrLoc :: [Int] -> [Int] -> Int
+substrLoc xs = length
+             . takeWhile (not . (xs `isPrefixOf`))
              . tails
 
 day14b :: [Int] :~> Int
 day14b = MkSol
     { sParse = Just . mapMaybe (readMaybe . (:[]))
     , sShow  = show
-    , sSolve = (`substrLoc` chocolatePractice)
+    , sSolve = Just . (`substrLoc` chocolatePractice)
     }

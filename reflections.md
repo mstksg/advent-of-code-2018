@@ -1402,3 +1402,83 @@ mean                 26.78 ms   (26.39 ms .. 27.28 ms)
 std dev              995.5 μs   (671.4 μs .. 1.251 ms)
 variance introduced by outliers: 10% (moderately inflated)
 ```
+
+Day 14
+------
+
+*[Prompt][d14p]* / *[Code][d14g]* / *[Rendered][d14h]*
+
+[d14p]: https://adventofcode.com/2018/day/14
+[d14g]: https://github.com/mstksg/advent-of-code-2018/blob/master/src/AOC/Challenge/Day14.hs
+[d14h]: https://mstksg.github.io/advent-of-code-2018/src/AOC.Challenge.Day14.html
+
+This one feels complex at first (a generate-check-generate-check loop)...if you
+take a generate-check loop, you also have to be sure to make sure you check the
+case of 1 or 2 added digits.
+
+However, it becomes much simpler if you separate the act of generation and
+checking as two different things.  Luckily, with Haskell, this is fairly easy
+with lazily linked lists.
+
+First, a way to step our state:
+
+```haskell
+import qualified Data.Sequence as Seq
+
+data Tape = T { _tp1    :: !Int
+              , _tp2    :: !Int
+              , _tSeq   :: !(Seq Int)
+              }
+  deriving Show
+
+step :: Tape -> ([Int], Tape)      -- tape, and "new digits"
+step T{..} = (newDigits, T newTp1 newTp2 newSeq)
+  where
+    sc1 = _tSeq `Seq.index` _tp1
+    sc2 = _tSeq `Seq.index` _tp2
+    newDigits = digitize $ sc1 + sc2
+    newSeq = _tSeq Seq.>< Seq.fromList newDigits
+    newTp1 = (_tp1 + sc1 + 1) `mod` length newSeq
+    newTp2 = (_tp2 + sc2 + 1) `mod` length newSeq
+
+digitize :: Int -> [Int]
+digitize ((`divMod` 10)->(x,y))
+    | x == 0    = [y]
+    | otherwise = [x,y]
+```
+
+We use `Seq` from *Data.Sequence* for its O(1) appends and O(log) indexing --
+the two things we do the most.  We could also get away with pre-allocation with
+vectors for amortized O(1) suffix appends and O(1) indexing, as well.
+
+Now, for the actual magic: we *generate a list of infinite digits*
+corresponding to the outputs of our tape.  This list is demand-driven; if the
+user ever asks for a "new" items, then `step` will be run to just produce the
+next few digits, one (or two) cells at a time.
+
+```haskell
+chocolatePractice :: [Int]
+chocolatePractice = 3 : 7 : go (T 0 1 (Seq.fromList [3,7]))
+  where
+    go (step->(out,t)) = out ++ go t
+```
+
+Part 1 then is just a `drop` then a `take`:
+
+```haskell
+day14a :: Int -> [Int]
+day14a n = take 10 (drop n chocolatePractice)
+```
+
+Part 2, we can use `isPrefixOf` from *Data.List* and check every `tails` until
+we get one that *does* have our digit list as a prefix:
+
+```haskell
+substrLoc :: [Int] -> [Int] -> Maybe Int
+substrLoc xs = length
+             . takeWhile (not . (xs `isPrefixOf`))
+             . tails
+
+day14b :: [Int] -> [Int]
+day14b xs = xs `substrLoc` cholcatePractice
+```
