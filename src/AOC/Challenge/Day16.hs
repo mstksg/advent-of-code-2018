@@ -105,20 +105,24 @@ fromClues m = listToMaybe . flip evalStateT S.empty . V.generateM $ \i -> do
 
 day16b :: ([Trial], [Instr (Finite 16)]) :~> Int
 day16b = MkSol
-    { sParse = eitherToMaybe . P.parse ((,) <$> (trialParser `sepEndBy1` P.newline) <* P.some P.newline
-                                            <*> (instrParser `sepEndBy1` P.newline)
-                                       ) ""
+    { sParse = eitherToMaybe . P.parse
+         ((,) <$> (trialParser `sepEndBy1` P.newline) <* P.some P.newline
+              <*> (instrParser `sepEndBy1` P.newline)
+         ) ""
     , sShow  = show
     , sSolve = \(ts, is) -> do
-        opMap <- fromClues
-               . M.fromListWith S.intersection
-               . map (\t -> (_iOp (_tInstr t), plausible t))
-               $ ts
-        let reg = foldl' (\r i -> runOp ((\o -> opMap ^. V.ix o) <$> i) r)
-                    (V.replicate 0)
-                    is
-        pure $ V.head reg
+        opMap <- fromClues . M.fromListWith S.intersection
+               $ [ (_iOp (_tInstr t), plausible t)
+                 | t <- ts
+                 ]
+        pure . V.head
+             . foldl' (step opMap) (V.replicate 0)
+             $ is
     }
+  where
+    step opMap r i = runOp i' r
+      where
+        i' = (opMap `V.index`) <$> i
 
 
 
