@@ -97,6 +97,7 @@ library:
   - heredoc
   - hpack
   - lens
+  - psqueues
   - linear
   - megaparsec
   - microlens-th

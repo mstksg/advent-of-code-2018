@@ -64,11 +64,8 @@ dist (SP x) (SP y) = sum . abs $ x - y
 neighbs :: ScanPoint -> Set ScanPoint
 neighbs p = S.fromList . map ((+ p) . SP) $ [V2 (-1) 0, V2 0 (-1), V2 1 0, V2 0 1]
 
-inRange :: Set ScanPoint -> Set ScanPoint
-inRange = foldMap neighbs
-
-pickNearest :: ScanPoint -> Set ScanPoint -> Maybe ScanPoint
-pickNearest x = fmap snd . S.lookupMin . S.map (\y -> (dist x y, y))
+inRangeOf :: Set ScanPoint -> Set ScanPoint
+inRangeOf = foldMap neighbs
 
 type Path = [ScanPoint]
 
@@ -77,45 +74,33 @@ actualLiteralAStar
     -> ScanPoint
     -> ScanPoint
     -> Maybe Path
-actualLiteralAStar w p0 dest = go (M.singleton (costOf []) (S.singleton []))
-  where
-    go :: Map Int (Set Path) -> Maybe Path
-    go !queue = M.minView queue >>= \(!candidates, !queue') ->
-         (reverse <$> S.lookupMin (S.filter isGoal candidates))
-     <|> (go . M.unionsWith (<>) $ queue' : foldMap (map addBack . expand) candidates)
-    expand :: Path -> [Path]
-    expand ps = map (:ps)
-              . toList
-              . (`S.difference` S.fromList ps)
-              . (`S.intersection` w)
-              . neighbs
-              . fromMaybe p0
-              . listToMaybe $ ps
-    addBack :: Path -> Map Int (Set Path)
-    addBack p = M.singleton (costOf p) (S.singleton p)
-    costOf :: Path -> Int
-    costOf xs = dist (fromMaybe p0 (listToMaybe xs)) dest
-              + length xs
-    isGoal :: Path -> Bool
-    isGoal = (== Just dest) . listToMaybe
-
+actualLiteralAStar w p0 dest =
+      aStar (dist dest)
+            (M.fromSet (const 1) . (`S.intersection` w) . neighbs)
+            p0
+            dest
 
 -- | TODO: implement actual literal A star
 stepTo
-    :: World
-    -> Entities
+    :: Set ScanPoint      -- ^ legal points
     -> ScanPoint
     -> ScanPoint
-    -> Maybe ScanPoint
-stepTo w es x dest = fmap snd
-                   . listToMaybe
-                   . catMaybes
-                   . toList
-                   . S.map (\n -> (,n) . length <$> actualLiteralAStar w' n dest)
-                   . (`S.intersection` w')
-                   $ neighbs x
+    -> ScanPoint
+stepTo w x dest = snd
+                . head
+                . catMaybes
+                . toList
+                . S.map (\n -> (,n) . length <$> actualLiteralAStar w' n dest)
+                . (`S.intersection` w')
+                $ neighbs x
   where
-    w' = S.delete x $ w `S.difference` M.keysSet es
+    w' = S.delete x w
+
+pickNearest :: ScanPoint -> Set ScanPoint -> Maybe ScanPoint
+pickNearest x = fmap snd . S.lookupMin . S.map (\y -> (dist x y, y))
+
+isReachable :: Set ScanPoint -> ScanPoint -> ScanPoint -> Bool
+isReachable w x = isJust . actualLiteralAStar w x
 
 stepEntity
     :: World
@@ -125,16 +110,16 @@ stepEntity
     -> Maybe ScanPoint
 stepEntity w es sp e
     | sp `S.member` candidates = Just sp    -- we already here
-    | otherwise                = stepTo w es sp =<< destination
+    | otherwise                = stepTo w sp <$> destination
   where
-    -- Possible positions to move to
-    candidates = (`S.difference` M.keysSet es)
-               . (`S.intersection` w)
-               . inRange
+    candidates = S.filter (isReachable w' sp)
+               . (`S.intersection` w')
+               . inRangeOf
                . M.keysSet
                . M.filter ((/= _eType e) . _eType)
                $ es
     destination = pickNearest sp candidates
+    w' = w `S.difference` M.keysSet es
 
 makeAttack
     :: World
@@ -170,7 +155,7 @@ stepBattle
     -> (Entities, Entities)
     -> BattleLog (Entities, Entities)
 stepBattle w (waiting, done) = case M.minViewWithKey waiting of
-    Nothing                      -> trace "round is done" $ BLRound done (done, M.empty)
+    Nothing                      -> BLRound done (done, M.empty)
     Just ((p, toMove), waiting') ->
       let allEnts = waiting' <> done
       in  case stepEntity w allEnts p toMove of
@@ -192,7 +177,7 @@ stepBattle w (waiting, done) = case M.minViewWithKey waiting of
 
 getOutcome :: BattleLog (Int, Int) -> (Int, Int)
 getOutcome (BLTurn _ _ !x) = x
-getOutcome (BLRound _ !x) = first (+1) x
+getOutcome (BLRound e !x) = traceShow e $ first (+1) x
 getOutcome (BLOver e !i) = traceShow e (0, i)
 
 traceOutcome = \case

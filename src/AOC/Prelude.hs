@@ -18,6 +18,7 @@ module AOC.Prelude (
   ) where
 
 import           AOC.Common                            as P
+import           AOC.Common.Search                     as P
 import           AOC.Solver                            as P
 import           Control.Applicative                   as P
 import           Control.DeepSeq                       as P
