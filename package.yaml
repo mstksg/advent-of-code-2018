@@ -97,7 +97,6 @@ library:
   - heredoc
   - hpack
   - lens
-  - psqueues
   - linear
   - megaparsec
   - microlens-th
@@ -110,6 +109,7 @@ library:
   - pointedlist
   - primitive
   - profunctors
+  - psqueues
   - pure-fft
   - recursion-schemes
   - semigroupoids
@@ -124,6 +124,7 @@ library:
   - time
   - transformers
   - vector
+  - vector-sized
   - witherable
   - yaml
 
