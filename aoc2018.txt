@@ -12,6 +12,11 @@
 @package aoc2018
 @version 0.1.0.0
 
+module AOC.Common.Search
+
+-- | A Star Search algorithm.
+aStar :: forall n p. (Ord n, Ord p, Num p) => (n -> p) -> (n -> Map n p) -> n -> n -> Maybe [n]
+
 
 -- | Utilities for loading configuration file.
 module AOC.Run.Config
@@ -6331,6 +6336,9 @@ witherM :: (Witherable t, Monad m) => (a -> m (Maybe b)) -> t a -> m (t b)
 --   </pre>
 filterA :: (Witherable t, Applicative f) => (a -> f Bool) -> t a -> f (t a)
 
+-- | A Star Search algorithm.
+aStar :: forall n p. (Ord n, Ord p, Num p) => (n -> p) -> (n -> Map n p) -> n -> n -> Maybe [n]
+
 -- | Strip trailing and leading whitespace.
 strip :: String -> String
 
@@ -6688,6 +6696,20 @@ module AOC.Challenge.Day17
 --   will recommend what should go in place of the underscores.</li>
 --   </ul>
 module AOC.Challenge.Day16
+day16a :: [Trial] :~> Int
+day16b :: ([Trial], [Instr (Finite 16)]) :~> Int
+trialParser :: Parser Trial
+instance GHC.Show.Show AOC.Challenge.Day16.ClueSheet
+instance GHC.Base.Semigroup AOC.Challenge.Day16.ClueSheet
+instance GHC.Base.Monoid AOC.Challenge.Day16.ClueSheet
+instance GHC.Enum.Bounded AOC.Challenge.Day16.OpCode
+instance GHC.Enum.Enum AOC.Challenge.Day16.OpCode
+instance GHC.Classes.Ord AOC.Challenge.Day16.OpCode
+instance GHC.Classes.Eq AOC.Challenge.Day16.OpCode
+instance GHC.Show.Show AOC.Challenge.Day16.OpCode
+instance GHC.Show.Show AOC.Challenge.Day16.Trial
+instance GHC.Base.Functor AOC.Challenge.Day16.Instr
+instance GHC.Show.Show a => GHC.Show.Show (AOC.Challenge.Day16.Instr a)
 
 
 -- | Day 15. See <a>AOC.Solver</a> for the types used in this module!
@@ -6705,8 +6727,61 @@ module AOC.Challenge.Day16
 --   will recommend what should go in place of the underscores.</li>
 --   </ul>
 module AOC.Challenge.Day15
-day15a :: _ :~> _
+data EType
+EGob :: EType
+EElf :: EType
+data Entity
+E :: EType -> Int -> Entity
+[_eType] :: Entity -> EType
+[_eHP] :: Entity -> Int
+eType :: Lens' Entity EType
+eHP :: Lens' Entity Int
+type Point = V2 Int
+type World = Set ScanPoint
+type Entities = Map ScanPoint Entity
+
+-- | It's <a>Point</a>, but with a newtype wrapper so we have an <a>Ord</a>
+--   that sorts by y first, then x
+newtype ScanPoint
+SP :: Point -> ScanPoint
+[_gSP] :: ScanPoint -> Point
+dist :: ScanPoint -> ScanPoint -> Int
+neighbs :: ScanPoint -> Set ScanPoint
+inRangeOf :: Set ScanPoint -> Set ScanPoint
+type Path = [ScanPoint]
+actualLiteralAStar :: World -> ScanPoint -> ScanPoint -> Maybe Path
+
+-- | TODO: implement actual literal A star
+stepTo :: Set ScanPoint -> ScanPoint -> ScanPoint -> ScanPoint
+pickNearest :: ScanPoint -> Set ScanPoint -> Maybe ScanPoint
+isReachable :: Set ScanPoint -> ScanPoint -> ScanPoint -> Bool
+stepEntity :: World -> Entities -> ScanPoint -> Entity -> Maybe ScanPoint
+makeAttack :: World -> Entities -> ScanPoint -> Entity -> Maybe ScanPoint
+data BattleLog a
+BLTurn :: (ScanPoint, ScanPoint, Entity) -> Entities -> a -> BattleLog a
+BLRound :: Entities -> a -> BattleLog a
+BLOver :: Entities -> Int -> BattleLog a
+damage :: Maybe Entity -> Maybe Entity
+stepBattle :: World -> (Entities, Entities) -> BattleLog (Entities, Entities)
+getOutcome :: BattleLog (Int, Int) -> (Int, Int)
+traceOutcome :: BattleLog [Either Entities Entities] -> [Either Entities Entities]
+day15a :: (World, Entities) :~> _
 day15b :: _ :~> _
+parseWorld :: String -> (World, Entities)
+instance GHC.Base.Functor AOC.Challenge.Day15.BattleLog
+instance GHC.Classes.Eq a => GHC.Classes.Eq (AOC.Challenge.Day15.BattleLog a)
+instance GHC.Show.Show a => GHC.Show.Show (AOC.Challenge.Day15.BattleLog a)
+instance GHC.Num.Num AOC.Challenge.Day15.ScanPoint
+instance GHC.Show.Show AOC.Challenge.Day15.ScanPoint
+instance GHC.Classes.Eq AOC.Challenge.Day15.ScanPoint
+instance GHC.Classes.Ord AOC.Challenge.Day15.ScanPoint
+instance GHC.Classes.Eq AOC.Challenge.Day15.Entity
+instance GHC.Show.Show AOC.Challenge.Day15.Entity
+instance GHC.Enum.Bounded AOC.Challenge.Day15.EType
+instance GHC.Enum.Enum AOC.Challenge.Day15.EType
+instance GHC.Classes.Ord AOC.Challenge.Day15.EType
+instance GHC.Classes.Eq AOC.Challenge.Day15.EType
+instance GHC.Show.Show AOC.Challenge.Day15.EType
 
 
 -- | Template Haskell for discovering all named challenges in a given
@@ -7034,13 +7109,13 @@ MRO :: !TestSpec -> !Bool -> !Bool -> !Bool -> !Finite 25 -> Part -> IO (Maybe S
 
 -- | Manually supply input (Default: always return Nothing)
 [_mroInput] :: MainRunOpts -> !Finite 25 -> Part -> IO (Maybe String)
-class HasMainRunOpts c_a1Mck
-mainRunOpts :: HasMainRunOpts c_a1Mck => Lens' c_a1Mck MainRunOpts
-mroBench :: HasMainRunOpts c_a1Mck => Lens' c_a1Mck Bool
-mroInput :: HasMainRunOpts c_a1Mck => Lens' c_a1Mck (Finite 25 -> Part -> IO (Maybe String))
-mroLock :: HasMainRunOpts c_a1Mck => Lens' c_a1Mck Bool
-mroSpec :: HasMainRunOpts c_a1Mck => Lens' c_a1Mck TestSpec
-mroTest :: HasMainRunOpts c_a1Mck => Lens' c_a1Mck Bool
+class HasMainRunOpts c_a1Whd
+mainRunOpts :: HasMainRunOpts c_a1Whd => Lens' c_a1Whd MainRunOpts
+mroBench :: HasMainRunOpts c_a1Whd => Lens' c_a1Whd Bool
+mroInput :: HasMainRunOpts c_a1Whd => Lens' c_a1Whd (Finite 25 -> Part -> IO (Maybe String))
+mroLock :: HasMainRunOpts c_a1Whd => Lens' c_a1Whd Bool
+mroSpec :: HasMainRunOpts c_a1Whd => Lens' c_a1Whd TestSpec
+mroTest :: HasMainRunOpts c_a1Whd => Lens' c_a1Whd Bool
 
 -- | Run, test, bench.
 mainRun :: (MonadIO m, MonadError [String] m) => Config -> MainRunOpts -> m (Map (Finite 25) (Map Part (Maybe Bool, Either [String] String)))
@@ -7053,10 +7128,10 @@ data MainViewOpts
 MVO :: !TestSpec -> !Bool -> MainViewOpts
 [_mvoSpec] :: MainViewOpts -> !TestSpec
 [_mvoWait] :: MainViewOpts -> !Bool
-class HasMainViewOpts c_a1Mjm
-mainViewOpts :: HasMainViewOpts c_a1Mjm => Lens' c_a1Mjm MainViewOpts
-mvoSpec :: HasMainViewOpts c_a1Mjm => Lens' c_a1Mjm TestSpec
-mvoWait :: HasMainViewOpts c_a1Mjm => Lens' c_a1Mjm Bool
+class HasMainViewOpts c_a1Wof
+mainViewOpts :: HasMainViewOpts c_a1Wof => Lens' c_a1Wof MainViewOpts
+mvoSpec :: HasMainViewOpts c_a1Wof => Lens' c_a1Wof TestSpec
+mvoWait :: HasMainViewOpts c_a1Wof => Lens' c_a1Wof Bool
 
 -- | View prompt
 mainView :: (MonadIO m, MonadError [String] m) => Config -> MainViewOpts -> m (Map (Finite 25) (Map Part Text))
@@ -7077,12 +7152,12 @@ MSO :: !ChallengeSpec -> !Bool -> !Bool -> !Bool -> MainSubmitOpts
 
 -- | Lock answer if submission succeeded? (Default: True)
 [_msoLock] :: MainSubmitOpts -> !Bool
-class HasMainSubmitOpts c_a1MnF
-mainSubmitOpts :: HasMainSubmitOpts c_a1MnF => Lens' c_a1MnF MainSubmitOpts
-msoForce :: HasMainSubmitOpts c_a1MnF => Lens' c_a1MnF Bool
-msoLock :: HasMainSubmitOpts c_a1MnF => Lens' c_a1MnF Bool
-msoSpec :: HasMainSubmitOpts c_a1MnF => Lens' c_a1MnF ChallengeSpec
-msoTest :: HasMainSubmitOpts c_a1MnF => Lens' c_a1MnF Bool
+class HasMainSubmitOpts c_a1Wsy
+mainSubmitOpts :: HasMainSubmitOpts c_a1Wsy => Lens' c_a1Wsy MainSubmitOpts
+msoForce :: HasMainSubmitOpts c_a1Wsy => Lens' c_a1Wsy Bool
+msoLock :: HasMainSubmitOpts c_a1Wsy => Lens' c_a1Wsy Bool
+msoSpec :: HasMainSubmitOpts c_a1Wsy => Lens' c_a1Wsy ChallengeSpec
+msoTest :: HasMainSubmitOpts c_a1Wsy => Lens' c_a1Wsy Bool
 
 -- | Submit and analyze result
 mainSubmit :: (MonadIO m, MonadError [String] m) => Config -> MainSubmitOpts -> m (Text, SubmitRes)
