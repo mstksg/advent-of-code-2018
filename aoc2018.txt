@@ -6681,37 +6681,6 @@ module AOC.Challenge.Day18
 module AOC.Challenge.Day17
 
 
--- | Day 16. See <a>AOC.Solver</a> for the types used in this module!
---   
---   After completing the challenge, it is recommended to:
---   
---   <ul>
---   <li>Replace <a>AOC.Prelude</a> imports to specific modules (with
---   explicit imports) for readability.</li>
---   <li>Remove the <tt>-Wno-unused-imports</tt> and
---   <tt>-Wno-unused-top-binds</tt> pragmas.</li>
---   <li>Replace the partial type signatures underscores in the solution
---   types <tt>_ :~&gt; _</tt> with the actual types of inputs and outputs
---   of the solution. You can delete the type signatures completely and GHC
---   will recommend what should go in place of the underscores.</li>
---   </ul>
-module AOC.Challenge.Day16
-day16a :: [Trial] :~> Int
-day16b :: ([Trial], [Instr (Finite 16)]) :~> Int
-trialParser :: Parser Trial
-instance GHC.Show.Show AOC.Challenge.Day16.ClueSheet
-instance GHC.Base.Semigroup AOC.Challenge.Day16.ClueSheet
-instance GHC.Base.Monoid AOC.Challenge.Day16.ClueSheet
-instance GHC.Enum.Bounded AOC.Challenge.Day16.OpCode
-instance GHC.Enum.Enum AOC.Challenge.Day16.OpCode
-instance GHC.Classes.Ord AOC.Challenge.Day16.OpCode
-instance GHC.Classes.Eq AOC.Challenge.Day16.OpCode
-instance GHC.Show.Show AOC.Challenge.Day16.OpCode
-instance GHC.Show.Show AOC.Challenge.Day16.Trial
-instance GHC.Base.Functor AOC.Challenge.Day16.Instr
-instance GHC.Show.Show a => GHC.Show.Show (AOC.Challenge.Day16.Instr a)
-
-
 -- | Day 15. See <a>AOC.Solver</a> for the types used in this module!
 --   
 --   After completing the challenge, it is recommended to:
@@ -6830,6 +6799,21 @@ charPart :: Char -> Maybe Part
 instance GHC.Classes.Ord AOC.Discover.ChallengeSpec
 instance GHC.Classes.Eq AOC.Discover.ChallengeSpec
 instance GHC.Show.Show AOC.Discover.ChallengeSpec
+
+
+-- | Day 16. See <a>AOC.Solver</a> for the types used in this module!
+module AOC.Challenge.Day16
+day16a :: [Trial] :~> Int
+day16b :: ([Trial], [Instr (Finite 16)]) :~> Int
+trialParser :: Parser Trial
+instance GHC.Enum.Bounded AOC.Challenge.Day16.OpCode
+instance GHC.Enum.Enum AOC.Challenge.Day16.OpCode
+instance GHC.Classes.Ord AOC.Challenge.Day16.OpCode
+instance GHC.Classes.Eq AOC.Challenge.Day16.OpCode
+instance GHC.Show.Show AOC.Challenge.Day16.OpCode
+instance GHC.Show.Show AOC.Challenge.Day16.Trial
+instance GHC.Base.Functor AOC.Challenge.Day16.Instr
+instance GHC.Show.Show a => GHC.Show.Show (AOC.Challenge.Day16.Instr a)
 
 module AOC.Challenge.Day14
 day14a :: Int :~> [Int]
@@ -7109,13 +7093,13 @@ MRO :: !TestSpec -> !Bool -> !Bool -> !Bool -> !Finite 25 -> Part -> IO (Maybe S
 
 -- | Manually supply input (Default: always return Nothing)
 [_mroInput] :: MainRunOpts -> !Finite 25 -> Part -> IO (Maybe String)
-class HasMainRunOpts c_a1Whd
-mainRunOpts :: HasMainRunOpts c_a1Whd => Lens' c_a1Whd MainRunOpts
-mroBench :: HasMainRunOpts c_a1Whd => Lens' c_a1Whd Bool
-mroInput :: HasMainRunOpts c_a1Whd => Lens' c_a1Whd (Finite 25 -> Part -> IO (Maybe String))
-mroLock :: HasMainRunOpts c_a1Whd => Lens' c_a1Whd Bool
-mroSpec :: HasMainRunOpts c_a1Whd => Lens' c_a1Whd TestSpec
-mroTest :: HasMainRunOpts c_a1Whd => Lens' c_a1Whd Bool
+class HasMainRunOpts c_a1VWs
+mainRunOpts :: HasMainRunOpts c_a1VWs => Lens' c_a1VWs MainRunOpts
+mroBench :: HasMainRunOpts c_a1VWs => Lens' c_a1VWs Bool
+mroInput :: HasMainRunOpts c_a1VWs => Lens' c_a1VWs (Finite 25 -> Part -> IO (Maybe String))
+mroLock :: HasMainRunOpts c_a1VWs => Lens' c_a1VWs Bool
+mroSpec :: HasMainRunOpts c_a1VWs => Lens' c_a1VWs TestSpec
+mroTest :: HasMainRunOpts c_a1VWs => Lens' c_a1VWs Bool
 
 -- | Run, test, bench.
 mainRun :: (MonadIO m, MonadError [String] m) => Config -> MainRunOpts -> m (Map (Finite 25) (Map Part (Maybe Bool, Either [String] String)))
@@ -7128,10 +7112,10 @@ data MainViewOpts
 MVO :: !TestSpec -> !Bool -> MainViewOpts
 [_mvoSpec] :: MainViewOpts -> !TestSpec
 [_mvoWait] :: MainViewOpts -> !Bool
-class HasMainViewOpts c_a1Wof
-mainViewOpts :: HasMainViewOpts c_a1Wof => Lens' c_a1Wof MainViewOpts
-mvoSpec :: HasMainViewOpts c_a1Wof => Lens' c_a1Wof TestSpec
-mvoWait :: HasMainViewOpts c_a1Wof => Lens' c_a1Wof Bool
+class HasMainViewOpts c_a1W3u
+mainViewOpts :: HasMainViewOpts c_a1W3u => Lens' c_a1W3u MainViewOpts
+mvoSpec :: HasMainViewOpts c_a1W3u => Lens' c_a1W3u TestSpec
+mvoWait :: HasMainViewOpts c_a1W3u => Lens' c_a1W3u Bool
 
 -- | View prompt
 mainView :: (MonadIO m, MonadError [String] m) => Config -> MainViewOpts -> m (Map (Finite 25) (Map Part Text))
@@ -7152,12 +7136,12 @@ MSO :: !ChallengeSpec -> !Bool -> !Bool -> !Bool -> MainSubmitOpts
 
 -- | Lock answer if submission succeeded? (Default: True)
 [_msoLock] :: MainSubmitOpts -> !Bool
-class HasMainSubmitOpts c_a1Wsy
-mainSubmitOpts :: HasMainSubmitOpts c_a1Wsy => Lens' c_a1Wsy MainSubmitOpts
-msoForce :: HasMainSubmitOpts c_a1Wsy => Lens' c_a1Wsy Bool
-msoLock :: HasMainSubmitOpts c_a1Wsy => Lens' c_a1Wsy Bool
-msoSpec :: HasMainSubmitOpts c_a1Wsy => Lens' c_a1Wsy ChallengeSpec
-msoTest :: HasMainSubmitOpts c_a1Wsy => Lens' c_a1Wsy Bool
+class HasMainSubmitOpts c_a1W7N
+mainSubmitOpts :: HasMainSubmitOpts c_a1W7N => Lens' c_a1W7N MainSubmitOpts
+msoForce :: HasMainSubmitOpts c_a1W7N => Lens' c_a1W7N Bool
+msoLock :: HasMainSubmitOpts c_a1W7N => Lens' c_a1W7N Bool
+msoSpec :: HasMainSubmitOpts c_a1W7N => Lens' c_a1W7N ChallengeSpec
+msoTest :: HasMainSubmitOpts c_a1W7N => Lens' c_a1W7N Bool
 
 -- | Submit and analyze result
 mainSubmit :: (MonadIO m, MonadError [String] m) => Config -> MainSubmitOpts -> m (Text, SubmitRes)
