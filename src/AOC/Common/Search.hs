@@ -3,16 +3,11 @@ module AOC.Common.Search (
     aStar
   ) where
 
-import           Control.Lens
-import           Data.Foldable
 import           Data.Map      (Map)
 import           Data.OrdPSQ   (OrdPSQ)
-import           Data.Sequence (Seq(..))
-import           Data.Set      (Set)
 import qualified Data.Map      as M
 import qualified Data.OrdPSQ   as Q
 import qualified Data.Sequence as Seq
-import qualified Data.Set      as S
 
 data AStarState n p = AS { _asClosed  :: !(Map n (Maybe n))         -- ^ map of item to "parent"
                          , _asOpen    :: !(OrdPSQ n p (p, Maybe n))    -- ^ map of item to "parent", and cost-so-far
