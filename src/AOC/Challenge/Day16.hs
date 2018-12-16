@@ -1,6 +1,3 @@
-{-# OPTIONS_GHC -Wno-unused-imports   #-}
-{-# OPTIONS_GHC -Wno-unused-top-binds #-}
-
 -- |
 -- Module      : AOC.Challenge.Day16
 -- Copyright   : (c) Justin Le 2018
@@ -11,17 +8,6 @@
 -- Portability : non-portable
 --
 -- Day 16.  See "AOC.Solver" for the types used in this module!
---
--- After completing the challenge, it is recommended to:
---
--- *   Replace "AOC.Prelude" imports to specific modules (with explicit
---     imports) for readability.
--- *   Remove the @-Wno-unused-imports@ and @-Wno-unused-top-binds@
---     pragmas.
--- *   Replace the partial type signatures underscores in the solution
---     types @_ :~> _@ with the actual types of inputs and outputs of the
---     solution.  You can delete the type signatures completely and GHC
---     will recommend what should go in place of the underscores.
 
 module AOC.Challenge.Day16 (
     day16a
@@ -29,12 +15,22 @@ module AOC.Challenge.Day16 (
   , trialParser
   ) where
 
-import           AOC.Prelude
-import           Control.Lens
-import           Control.Monad.Combinators
-import           Data.Bits
+import           AOC.Common                 (eitherToMaybe)
+import           AOC.Solver                 ((:~>)(..))
+import           Control.Lens               ((^.), (.~), enum)
+import           Control.Monad              ((<=<))
+import           Control.Monad.Combinators  (between, sepBy1, sepEndBy1)
+import           Control.Monad.State        (evalStateT, modify, gets, lift)
+import           Data.Bits                  ((.&.), (.|.))
+import           Data.Finite                (Finite, packFinite)
+import           Data.Foldable              (toList, foldl')
+import           Data.Function              ((&))
+import           Data.Map                   (Map)
+import           Data.Maybe                 (listToMaybe)
+import           Data.Set                   (Set)
 import           Data.Vector.Sized          (Vector)
-import           GHC.TypeNats
+import           Data.Void                  (Void)
+import           GHC.TypeNats               (KnownNat)
 import qualified Data.Map                   as M
 import qualified Data.Set                   as S
 import qualified Data.Vector.Sized          as V
@@ -65,9 +61,6 @@ data OpCode = OAddR | OAddI
             | OGtIR | OGtRI | OGtRR
             | OEqIR | OEqRI | OEqRR
   deriving (Show, Eq, Ord, Enum, Bounded)
-
-makeLenses ''Instr
-makeLenses ''Trial
 
 runOp :: Instr OpCode -> Reg -> Reg
 runOp I{..} = case _iOp of
@@ -101,19 +94,12 @@ day16a = MkSol
     , sSolve = Just . length . filter ((>= 3) . S.size . plausible)
     }
 
-newtype ClueSheet = CS { _runCS :: Map (Finite 16) (Set OpCode) }
-  deriving (Show)
-
-instance Semigroup ClueSheet where
-    CS m1 <> CS m2 = CS $ M.unionWith S.intersection m1 m2
-instance Monoid ClueSheet where
-    mempty = CS mempty
-
-fromClues :: ClueSheet -> [Vector 16 OpCode]
-fromClues (CS m) = flip evalStateT S.empty . V.generateM $ \i -> do
-    let poss = M.findWithDefault S.empty i m
-    unseen <- gets (poss `S.difference`)
-    pick   <- lift $ toList unseen
+-- | Our search for a unique configuration of op codes.
+fromClues :: Map (Finite 16) (Set OpCode) -> Maybe (Vector 16 OpCode)
+fromClues m = listToMaybe . flip evalStateT S.empty . V.generateM $ \i -> do
+    Just poss <- pure $ M.lookup i m
+    unseen    <- gets (poss `S.difference`)
+    pick      <- lift $ toList unseen
     modify $ S.insert pick
     pure pick
 
@@ -124,7 +110,10 @@ day16b = MkSol
                                        ) ""
     , sShow  = show
     , sSolve = \(ts, is) -> do
-        opMap:_ <- pure . traceShowId . fromClues . foldMap (\t -> CS $ M.singleton (_iOp (_tInstr t)) (plausible t)) $ ts
+        opMap <- fromClues
+               . M.fromListWith S.intersection
+               . map (\t -> (_iOp (_tInstr t), plausible t))
+               $ ts
         let reg = foldl' (\r i -> runOp ((\o -> opMap ^. V.ix o) <$> i) r)
                     (V.replicate 0)
                     is
@@ -133,6 +122,11 @@ day16b = MkSol
 
 
 
+
+
+-- ---------
+-- | Parsing
+-- ---------
 
 type Parser = P.Parsec Void String
 
