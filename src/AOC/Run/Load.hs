@@ -282,8 +282,8 @@ parseMeta = do
   where
     parseAnswer = MP.string ">>>"
                *> MP.space1
-               *> MP.many (MP.try (asum [MP.alphaNumChar, MP.punctuationChar, MP.symbolChar]))
-               <* MP.space
+               *> MP.some (MP.try (asum [MP.alphaNumChar, MP.punctuationChar, MP.symbolChar]))
+               <* MP.newline
     parseData = do
       MP.string ">>>"
       sym <- MP.manyTill (MP.try MP.letterChar)   (MP.try (MP.char ':'))

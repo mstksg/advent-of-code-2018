@@ -96,8 +96,8 @@ stepTo w x dest = snd
   where
     w' = S.delete x w
 
-pickNearest :: ScanPoint -> Set ScanPoint -> Maybe ScanPoint
-pickNearest x = fmap snd . S.lookupMin . S.map (\y -> (dist x y, y))
+-- pickNearest :: ScanPoint -> Set ScanPoint -> Maybe ScanPoint
+-- pickNearest x = fmap snd . S.lookupMin . S.map (\y -> (dist x y, y))
 
 isReachable :: Set ScanPoint -> ScanPoint -> ScanPoint -> Bool
 isReachable w x = isJust . actualLiteralAStar w x
@@ -109,16 +109,22 @@ stepEntity
     -> Entity
     -> Maybe ScanPoint
 stepEntity w es sp e
-    | sp `S.member` candidates = Just sp    -- we already here
-    | otherwise                = stepTo w sp <$> destination
+    | sp `M.member` candidates = Just sp    -- we already here
+    | otherwise                = stepTo w' sp <$> destination
   where
-    candidates = S.filter (isReachable w' sp)
+    candidates = M.mapMaybe (fmap length)
+               . M.fromSet (actualLiteralAStar w' sp)
                . (`S.intersection` w')
                . inRangeOf
                . M.keysSet
                . M.filter ((/= _eType e) . _eType)
                $ es
-    destination = pickNearest sp candidates
+    destination = fmap snd
+                . S.lookupMin
+                . S.fromList
+                . map swap
+                . M.toList
+                $ candidates
     w' = w `S.difference` M.keysSet es
 
 makeAttack
@@ -177,21 +183,24 @@ stepBattle w (waiting, done) = case M.minViewWithKey waiting of
 
 getOutcome :: BattleLog (Int, Int) -> (Int, Int)
 getOutcome (BLTurn _ _ !x) = x
-getOutcome (BLRound e !x) = traceShow e $ first (+1) x
-getOutcome (BLOver e !i) = traceShow e (0, i)
+getOutcome (BLRound e !x) = first (+1) x
+getOutcome (BLOver e !i) = (0, i)
 
 traceOutcome = \case
     BLTurn p e es -> es
-    BLRound e es -> Left e : es
-    BLOver e _ -> [Right e]
+    BLRound e es -> e : es
+    BLOver e _ -> [e]
 
 day15a :: (World, Entities) :~> _
 day15a = MkSol
     { sParse = Just . parseWorld
-    -- , sShow  = unlines . map show . take 100 . zip [1..]
-    -- , sSolve = \(w, e) -> Just . hylo traceOutcome (stepBattle w) $ (e, M.empty)
+    -- , sShow  = \(w, lg) -> unlines
+    --                      . take 25
+    --                      . zipWith (\i e -> show i ++ "\n" ++ displayWorld w e) [1..]
+    --                      $ lg
+    -- , sSolve = \(w, e) -> Just . (w,) . hylo traceOutcome (stepBattle w) $ (e, M.empty)
     , sShow  = show
-    , sSolve = \(w, e) -> Just . uncurry (*) . traceShowId . hylo getOutcome (stepBattle w) $ (e, M.empty)
+    , sSolve = \(w, e) -> Just . uncurry (*) . hylo getOutcome (stepBattle w) $ (e, M.empty)
     }
 
 day15b :: _ :~> _
@@ -212,3 +221,31 @@ parseWorld = ifoldMapOf (lined <.> folded) (uncurry classify)
         _   -> mempty
       where
         p = SP $ V2 x y
+
+displayWorld :: World -> Entities -> String
+displayWorld w es = unlines
+    [ row ++ " " ++ intercalate ", " rEs
+    | y <- [yMin - 1 .. yMax + 1]
+    , let (row, rEs) = makeRow y
+    ]
+  where
+    V2 xMin yMin `V2` V2 xMax yMax = boundingBox . map _gSP . S.toList $ w
+    makeRow y = flip foldMap [xMin - 1 .. xMax + 1] $ \x ->
+      let p = SP (V2 x y)
+          inWorld = p `S.member` w
+      in  case M.lookup p es of
+            Nothing
+              | inWorld   -> (".", [])
+              | otherwise -> ("#", [])
+            Just E{..} -> ( [entChar _eType]
+                          , [printf "%c(%d)" (entChar _eType) _eHP]
+                          )
+    entChar EGob = 'G'
+    entChar EElf = 'E'
+
+boundingBox :: [Point] -> V2 Point
+boundingBox ps = V2 xMin yMin `V2` V2 xMax yMax
+  where
+    (Min xMin, Min yMin, Max xMax, Max yMax) = flip foldMap ps $ \(V2 x y) ->
+        (Min x, Min y, Max x, Max y)
+
