@@ -30,7 +30,7 @@ module AOC.Challenge.Day15 where
 --   , day15b
 --   ) where
 
-import           AOC.Prelude hiding    (inRange)
+import           AOC.Prelude
 import           Control.Lens
 import           Data.Functor.Foldable
 import qualified Data.Map              as M
@@ -39,7 +39,10 @@ import qualified Data.Set              as S
 data EType = EGob | EElf
   deriving (Show, Eq, Ord, Enum, Bounded)
 
-data Entity = E { _eType :: EType, _eHP :: Int }
+data Entity = E { _eType :: EType
+                , _eHP   :: Int
+                , _eAtk  :: Int
+                }
   deriving (Show, Eq)
 
 makeLenses ''Entity
@@ -69,6 +72,7 @@ inRangeOf = foldMap neighbs
 
 type Path = [ScanPoint]
 
+-- | Yes, it's actual literal A*.
 actualLiteralAStar
     :: World
     -> ScanPoint
@@ -80,7 +84,6 @@ actualLiteralAStar w p0 dest =
             p0
             dest
 
--- | TODO: implement actual literal A star
 stepTo
     :: Set ScanPoint      -- ^ legal points
     -> ScanPoint
@@ -95,9 +98,6 @@ stepTo w x dest = snd
                 $ neighbs x
   where
     w' = S.delete x w
-
--- pickNearest :: ScanPoint -> Set ScanPoint -> Maybe ScanPoint
--- pickNearest x = fmap snd . S.lookupMin . S.map (\y -> (dist x y, y))
 
 isReachable :: Set ScanPoint -> ScanPoint -> ScanPoint -> Bool
 isReachable w x = isJust . actualLiteralAStar w x
@@ -144,24 +144,25 @@ makeAttack w es sp e = fmap snd
                . M.filter ((/= _eType e) . _eType)
                $ es
 
-data BattleLog a = BLTurn  (ScanPoint, ScanPoint, Entity) Entities a
-                 | BLRound Entities a
-                 | BLOver  Entities Int      -- sum of remaining HPs
+data BattleLog a = BLTurn  (Maybe EType) a    -- whether or not there was a kill
+                 | BLRound a
+                 | BLOver  Int      -- sum of remaining HPs
   deriving (Show, Eq, Functor)
 
-damage :: Maybe Entity
+damage :: Int
        -> Maybe Entity
-damage Nothing = Nothing
-damage (Just e)
-    | _eHP e > 3 = Just (e & eHP -~ 3)
-    | otherwise  = Nothing
+       -> (Maybe (First EType), Maybe Entity)  -- if was killed, and new entity
+damage _ Nothing = (Nothing, Nothing)
+damage d (Just e)
+    | _eHP e > d = (Nothing                , Just (e & eHP -~ d))
+    | otherwise  = (Just (First (_eType e)), Nothing            )
 
 stepBattle
     :: World
     -> (Entities, Entities)
     -> BattleLog (Entities, Entities)
 stepBattle w (waiting, done) = case M.minViewWithKey waiting of
-    Nothing                      -> BLRound done (done, M.empty)
+    Nothing                      -> BLRound (done, M.empty)
     Just ((p, toMove), waiting') ->
       let allEnts = waiting' <> done
       in  case stepEntity w allEnts p toMove of
@@ -171,44 +172,56 @@ stepBattle w (waiting, done) = case M.minViewWithKey waiting of
                       then Left (_eHP e)
                       else Right ()
               in  if M.null allEnemies
-                    then BLOver (waiting <> done) $ sum allFriends
-                    else BLTurn (p, p, toMove) (waiting <> done) (waiting', M.insert p toMove done)
+                    then BLOver $ sum allFriends
+                    else BLTurn Nothing (waiting', M.insert p toMove done)
             Just p' -> case makeAttack w allEnts p' toMove of
-              Nothing -> BLTurn (p, p', toMove) allEnts (waiting', M.insert p' toMove done)
+              Nothing -> BLTurn Nothing (waiting', M.insert p' toMove done)
               Just toAtk ->
-                BLTurn  (p, p', toMove) (M.insert p' toMove $ M.alter damage toAtk allEnts)
-                        ( M.alter damage toAtk waiting'
-                        , M.insert p' toMove $ M.alter damage toAtk done
-                        )
+                let (killed, (waiting'', done')) =
+                      attackBoth (_eAtk toMove) toAtk waiting'
+                in  BLTurn (getFirst <$> killed) (waiting'', M.insert p' toMove done')
+  where
+    attackBoth d k wt = (,) <$> M.alterF (damage d) k wt
+                            <*> M.alterF (damage d) k done
 
 getOutcome :: BattleLog (Int, Int) -> (Int, Int)
-getOutcome (BLTurn _ _ !x) = x
-getOutcome (BLRound e !x) = first (+1) x
-getOutcome (BLOver e !i) = (0, i)
+getOutcome (BLTurn _ !x)       = x
+getOutcome (BLRound  (!n, !s)) = (n + 1, s)
+getOutcome (BLOver   !s)       = (0, s)
 
-traceOutcome = \case
-    BLTurn p e es -> es
-    BLRound e es -> e : es
-    BLOver e _ -> [e]
-
-day15a :: (World, Entities) :~> _
+day15a :: (World, Entities) :~> Int
 day15a = MkSol
     { sParse = Just . parseWorld
-    -- , sShow  = \(w, lg) -> unlines
-    --                      . take 25
-    --                      . zipWith (\i e -> show i ++ "\n" ++ displayWorld w e) [1..]
-    --                      $ lg
-    -- , sSolve = \(w, e) -> Just . (w,) . hylo traceOutcome (stepBattle w) $ (e, M.empty)
     , sShow  = show
-    , sSolve = \(w, e) -> Just . uncurry (*) . hylo getOutcome (stepBattle w) $ (e, M.empty)
+    , sSolve = \(w, e) -> Just
+                        . uncurry (*)
+                        . hylo getOutcome (stepBattle w)
+                        $ (e, M.empty)
     }
 
-day15b :: _ :~> _
+elfKilled :: BattleLog Bool -> Bool
+elfKilled (BLTurn  (Just EElf) _ ) = True
+elfKilled (BLTurn  _           !k) = k
+elfKilled (BLRound             !k) = k
+elfKilled (BLOver  _             ) = False
+
+day15b :: (World, Entities) :~> Int
 day15b = MkSol
-    { sParse = Just
-    , sShow  = id
-    , sSolve = Just
+    { sParse = Just . parseWorld
+    , sShow  = show
+    , sSolve = \(w, es) ->
+        let goodEnough i = not . hylo elfKilled (stepBattle w) $ (es', M.empty)
+              where
+                es' = es <&> \e -> case _eType e of
+                  EElf -> e & eAtk .~ i
+                  EGob -> e
+        in  exponentialMinSearch goodEnough 4
     }
+
+
+
+
+
 
 
 parseWorld :: String -> (World, Entities)
@@ -216,8 +229,8 @@ parseWorld = ifoldMapOf (lined <.> folded) (uncurry classify)
   where
     classify y x = \case
         '.' -> (S.singleton p, mempty)
-        'G' -> (S.singleton p, M.singleton p (E EGob 200))
-        'E' -> (S.singleton p, M.singleton p (E EElf 200))
+        'G' -> (S.singleton p, M.singleton p (E EGob 200 3))
+        'E' -> (S.singleton p, M.singleton p (E EElf 200 3))
         _   -> mempty
       where
         p = SP $ V2 x y
