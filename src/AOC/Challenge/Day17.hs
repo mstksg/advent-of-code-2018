@@ -128,174 +128,120 @@ makeLenses ''Terrain
 --               | GBack
 --               | GCons Point a
 
-growWater'
-    :: Set Point    -- ^ clay
-    -> Int          -- ^ max y
-    -> Point        -- ^ place to start adding from
-    -> [Point]      -- ^ new item, if there is room
-growWater' cl ylim = goDown
-  where
-    goDown p
-      | p ^. _y > ylim = []
-      | otherwise      = p
-                       : case goDown <$> addP p (V2 0 1) of
-                           Just [] -> []
-                           ds      -> fold ds
-                                   ++ foldMap goLeft  (addP p (V2 (-1) 0))
-                                   ++ foldMap goRight (addP p (V2   1  0))
-    goLeft p = p
-             : case goDown <$> addP p (V2 0 1) of
-                 Just [] -> []
-                 ds      -> fold ds
-                         ++ foldMap goLeft  (addP p (V2 (-1) 0))
-    goRight p = p
-              : case goDown <$> addP p (V2 0 1) of
-                  Just [] -> []
-                  ds      -> fold ds
-                          ++ foldMap goRight (addP p (V2   1  0))
-    addP :: Point -> Point -> Maybe Point
-    addP x y = mfilter (`S.notMember` cl) . Just $ x + y
-
-growWater''
-    :: Set Point    -- ^ clay
-    -> Int          -- ^ max y
-    -> Int          -- ^ min x
-    -> Int          -- ^ max x
-    -> Point        -- ^ place to start adding from
-    -> [Point]    -- ^ new item, if there is room
-growWater'' cl ylim xmin xmax = fold . flip evalStateT S.empty . goDown
-  where
-    goDown :: Point -> StateT (Set Point) Maybe [Point]
-    goDown (traceShowId->p)
-      | p ^. _y > ylim = throwError ()
-      | otherwise      = gets (p `S.member`) >>= \case
-          True  -> pure []
-          False -> do
-            modify $ S.insert p
-            fmap ((p:) . concat) . sequence $
-              [ fmap fold . mapM goDown  $ addP p (V2 0    1)
-              , fmap fold . mapM goLeft  $ addP p (V2 (-1) 0)
-              -- , fmap fold . mapM goRight $ addP p (V2 1    0)
-              ]
-            -- fmap ((p:) . concat) . flip catchError (trace "cut" $ const (pure [])) . sequence $
-            --   [ fmap fold . mapM goDown  $ addP p (V2 0    1)
-            --   , fmap fold . mapM goLeft  $ addP p (V2 (-1) 0)
-            --   -- , fmap fold . mapM goRight $ addP p (V2 1    0)
-            --   ]
-    goLeft :: Point -> StateT (Set Point) Maybe [Point]
-    goLeft (traceShowId.trace"left"->p)
-      | p ^. _x < xmin = throwError ()
-      | otherwise = gets (p `S.member`) >>= \case
-        True  -> pure []
-        False -> do
-          modify $ S.insert p
-          fmap ((p:) . concat) . sequence $
-            [ fmap fold . mapM goDown  $ addP p (V2 0    1)
-            , fmap fold . mapM goLeft  $ addP p (V2 (-1) 0)
-            ]
-          -- fmap ((p:) . concat) . flip catchError (const (pure [])) . sequence $
-          --   [ fmap fold . mapM goDown  $ addP p (V2 0    1)
-          --   , fmap fold . mapM goLeft  $ addP p (V2 (-1) 0)
-          --   ]
-    -- goRight :: Point -> StateT (Set Point) Maybe [Point]
-    -- goRight p
-    --   | p ^. _x > xmax = throwError ()
-    --   | otherwise = gets (p `S.member`) >>= \case
-    --       True  -> pure []
-    --       False -> do
-    --         modify $ S.insert p
-    --         fmap ((p:) . concat) . flip catchError (const (pure [])) . sequence $
-    --           [ fmap fold . mapM goDown  $ addP p (V2 0    1)
-    --           , fmap fold . mapM goRight $ addP p (V2 1    0)
-    --           ]
-    addP x y = mfilter (`S.notMember` cl) . Just $ x + y
-
-          -- ( do goDown =
-          -- )
-          
-                       -- : case goDown <$> addP p (V2 0 1) of
-                       --     Just [] -> []
-                       --     ds      -> fold ds
-                       --             ++ foldMap goLeft  (addP p (V2 (-1) 0))
-                       --             ++ foldMap goRight (addP p (V2   1  0))
-  -- --   goLeft p = p
-  -- --            : case goDown <$> addP p (V2 0 1) of
-  -- --                Just [] -> []
-  -- --                ds      -> fold ds
-  -- --                        ++ foldMap goLeft  (addP p (V2 (-1) 0))
-  -- --   goRight p = p
-  -- --             : case goDown <$> addP p (V2 0 1) of
-  -- --                 Just [] -> []
-  -- --                 ds      -> fold ds
-  -- --                         ++ foldMap goRight (addP p (V2   1  0))
-
-
-data StopReason = SRBacktrack
-                | SRCut
-
-
 growWater
     :: Set Point    -- ^ clay
     -> Int          -- ^ max y
-    -> Set Point    -- ^ current water
     -> Point        -- ^ place to start adding from
-    -> Maybe Point  -- ^ new item, if there is room
-growWater cl ylim w0 = eitherToMaybe . go
+    -> Set Point    -- ^ new item, if there is room
+growWater cl ylim = flip execState S.empty . goDown
   where
-    go !p
-      | p ^. _y > ylim  = Left SRCut
-      | otherwise       =
-            (p <$ guard' (p `S.notMember` w0))
-        <!> (go =<< addP p (V2 0 1)) `catchError` \case
-              SRCut       -> Left SRCut
-              SRBacktrack -> (growLeft  =<< addP p (V2 (-1) 0))
-                         <!> (growRight =<< addP p (V2 1 0))
-    growLeft !p =
-            (p <$ guard' (p `S.notMember` w0))
-        <!> (go =<< addP p (V2 0 1)) `catchError` \case
-              SRCut       -> Left SRCut
-              SRBacktrack -> (growLeft  =<< addP p (V2 (-1) 0))
-    growRight !p =
-            (p <$ guard' (p `S.notMember` w0))
-        <!> (go =<< addP p (V2 0 1)) `catchError` \case
-              SRCut       -> Left SRCut
-              SRBacktrack -> (growRight =<< addP p (V2 1 0))
-    addP :: Point -> Point -> Either StopReason Point
-    addP x y
-        | z `S.notMember` cl = Right z
-        | otherwise          = Left SRBacktrack
-      where
-        z = x + y
-    guard' :: Bool -> Either StopReason ()
-    guard' True  = Right ()
-    guard' False = Left SRBacktrack
+    goDown :: Point -> State (Set Point) StopReason
+    goDown p
+      | p ^. _y > ylim = pure SRCut
+      | otherwise      = gets (p `S.member`) >>= \case
+          True  -> pure SRBacktrack
+          False -> do
+            modify $ S.insert p
+            onMayb goDown (addP p (V2 0 1))
+                `cutting` liftA2 max (onMayb goLeft  (addP p (V2 (-1) 0)))
+                                     (onMayb goRight (addP p (V2   1  0)))
+    goLeft :: Point -> State (Set Point) StopReason
+    goLeft p = gets (p `S.member`) >>= \case
+      True  -> pure SRBacktrack
+      False -> do
+        modify $ S.insert p
+        onMayb goDown (addP p (V2 0 1))
+          `cutting` onMayb goLeft  (addP p (V2 (-1) 0))
+    goRight :: Point -> State (Set Point) StopReason
+    goRight p = gets (p `S.member`) >>= \case
+      True  -> pure SRBacktrack
+      False -> do
+        modify $ S.insert p
+        onMayb goDown (addP p (V2 0 1))
+            `cutting` onMayb goRight (addP p (V2   1  0))
+    addP x y = mfilter (`S.notMember` cl) . Just $ x + y
+    onMayb = maybe (pure SRBacktrack)
 
-growForever
-    :: Set Point        -- ^ clay
-    -> Set Point        -- ^ water
-growForever cl = go S.empty
+cutting :: State (Set Point) StopReason
+        -> State (Set Point) StopReason
+        -> State (Set Point) StopReason
+cutting x y = x >>= \case
+    SRCut       -> pure SRCut
+    SRBacktrack -> y
+
+    
+data StopReason = SRBacktrack
+                | SRCut
+  deriving (Eq, Ord)
+
+
+-- growWater
+--     :: Set Point    -- ^ clay
+--     -> Int          -- ^ max y
+--     -> Set Point    -- ^ current water
+--     -> Point        -- ^ place to start adding from
+--     -> Maybe Point  -- ^ new item, if there is room
+-- growWater cl ylim w0 = eitherToMaybe . go
+--   where
+--     go !p
+--       | p ^. _y > ylim  = Left SRCut
+--       | otherwise       =
+--             (p <$ guard' (p `S.notMember` w0))
+--         <!> (go =<< addP p (V2 0 1)) `catchError` \case
+--               SRCut       -> Left SRCut
+--               SRBacktrack -> (growLeft  =<< addP p (V2 (-1) 0))
+--                          <!> (growRight =<< addP p (V2 1 0))
+--     growLeft !p =
+--             (p <$ guard' (p `S.notMember` w0))
+--         <!> (go =<< addP p (V2 0 1)) `catchError` \case
+--               SRCut       -> Left SRCut
+--               SRBacktrack -> (growLeft  =<< addP p (V2 (-1) 0))
+--     growRight !p =
+--             (p <$ guard' (p `S.notMember` w0))
+--         <!> (go =<< addP p (V2 0 1)) `catchError` \case
+--               SRCut       -> Left SRCut
+--               SRBacktrack -> (growRight =<< addP p (V2 1 0))
+--     addP :: Point -> Point -> Either StopReason Point
+--     addP x y
+--         | z `S.notMember` cl = Right z
+--         | otherwise          = Left SRBacktrack
+--       where
+--         z = x + y
+--     guard' :: Bool -> Either StopReason ()
+--     guard' True  = Right ()
+--     guard' False = Left SRBacktrack
+
+-- growForever
+--     :: Set Point        -- ^ clay
+--     -> Set Point        -- ^ water
+-- growForever cl = go S.empty
+--   where
+--     -- go !(tracey->w0)
+--     go w0
+--         | w0 == w1  = S.filter (inBounds bb) w0
+--         | otherwise = go w1
+--       where
+--         p = mfilter (inBounds bb') . growWater cl (bb ^. _y . _y) w0 $ V2 500 0
+--         w1 = maybe id S.insert p w0
+--     tracey w0 = trace (displayClay ( M.fromSet (const TClay) cl
+--                                   <> M.fromSet (const (TWater WFlow)) w0
+--                                    )
+--                       )
+--                       w0
+--     bb' = bb & _x . _y .~ 0
+--     bb = boundingBox $ toList cl
+
+fillWater :: Set Point -> Set Point
+fillWater cl = S.filter (inBounds bb)
+             $ growWater cl (bb ^. _y . _y) (V2 500 0)
   where
-    -- go !(tracey->w0)
-    go w0
-        | w0 == w1  = S.filter (inBounds bb) w0
-        | otherwise = go w1
-      where
-        p = mfilter (inBounds bb') . growWater cl (bb ^. _y . _y) w0 $ V2 500 0
-        w1 = maybe id S.insert p w0
-    tracey w0 = trace (displayClay ( M.fromSet (const TClay) cl
-                                  <> M.fromSet (const (TWater WFlow)) w0
-                                   )
-                      )
-                      w0
-    bb' = bb & _x . _y .~ 0
     bb = boundingBox $ toList cl
-
 
 day17a :: Set Point :~> _
 day17a = MkSol
     { sParse = Just . foldMap parseVein . lines
     , sShow  = show
-    , sSolve = Just . S.size . growForever
+    , sSolve = Just . S.size . fillWater
     }
 
 day17b :: _ :~> _
@@ -318,17 +264,16 @@ boundingBox ps = V2 xMin yMin `V2` V2 xMax yMax
     (Min xMin, Min yMin, Max xMax, Max yMax) = flip foldMap ps $ \(V2 x y) ->
         (Min x, Min y, Max x, Max y)
 
-displayClay :: Map Point Terrain -> String
-displayClay mp = unlines
-    [ [ maybe '.' label $ M.lookup (V2 x y) mp
+displayClay :: Set Point -> Set Point -> String
+displayClay cl w = unlines
+    [ [ maybe '.' label $ M.lookup (V2 x y) terrain
       | x <- [xMin .. xMax]
       ]
     | y <- [yMin .. yMax]
     ]
   where
-    label TClay = '#'
-    label (TWater WFlow) = 'v'
-    label (TWater WFlat) = '*'
-    label (TWater WRise) = '^'
-    label (TWater WSource) = '+'
-    V2 xMin yMin `V2` V2 xMax yMax  = boundingBox . toList . M.keysSet $ mp
+    terrain = M.fromSet (const False) cl
+           <> M.fromSet (const True) w
+    label False = '#'
+    label True  = '*'
+    V2 xMin yMin `V2` V2 xMax yMax  = boundingBox . toList . M.keysSet $ terrain
