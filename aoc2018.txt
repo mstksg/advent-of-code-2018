@@ -27,6 +27,14 @@ binaryMinSearch :: (Int -> Bool) -> Int -> Int -> Maybe Int
 --   bound.
 exponentialMinSearch :: (Int -> Bool) -> Int -> Maybe Int
 
+-- | Find the lowest value where the predicate is <a>Just</a> within the
+--   given bounds.
+binaryFindMin :: (Int -> Maybe a) -> Int -> Int -> Maybe a
+
+-- | Find the lowest value where the predicate is <a>Just</a> above a given
+--   bound.
+exponentialFindMin :: (Int -> Maybe a) -> Int -> Maybe a
+
 
 -- | Utilities for loading configuration file.
 module AOC.Run.Config
@@ -6359,6 +6367,14 @@ binaryMinSearch :: (Int -> Bool) -> Int -> Int -> Maybe Int
 --   bound.
 exponentialMinSearch :: (Int -> Bool) -> Int -> Maybe Int
 
+-- | Find the lowest value where the predicate is <a>Just</a> within the
+--   given bounds.
+binaryFindMin :: (Int -> Maybe a) -> Int -> Int -> Maybe a
+
+-- | Find the lowest value where the predicate is <a>Just</a> above a given
+--   bound.
+exponentialFindMin :: (Int -> Maybe a) -> Int -> Maybe a
+
 -- | Strip trailing and leading whitespace.
 strip :: String -> String
 
@@ -7063,13 +7079,13 @@ MRO :: !TestSpec -> !Bool -> !Bool -> !Bool -> !Finite 25 -> Part -> IO (Maybe S
 
 -- | Manually supply input (Default: always return Nothing)
 [_mroInput] :: MainRunOpts -> !Finite 25 -> Part -> IO (Maybe String)
-class HasMainRunOpts c_a1Wwv
-mainRunOpts :: HasMainRunOpts c_a1Wwv => Lens' c_a1Wwv MainRunOpts
-mroBench :: HasMainRunOpts c_a1Wwv => Lens' c_a1Wwv Bool
-mroInput :: HasMainRunOpts c_a1Wwv => Lens' c_a1Wwv (Finite 25 -> Part -> IO (Maybe String))
-mroLock :: HasMainRunOpts c_a1Wwv => Lens' c_a1Wwv Bool
-mroSpec :: HasMainRunOpts c_a1Wwv => Lens' c_a1Wwv TestSpec
-mroTest :: HasMainRunOpts c_a1Wwv => Lens' c_a1Wwv Bool
+class HasMainRunOpts c_a1WNo
+mainRunOpts :: HasMainRunOpts c_a1WNo => Lens' c_a1WNo MainRunOpts
+mroBench :: HasMainRunOpts c_a1WNo => Lens' c_a1WNo Bool
+mroInput :: HasMainRunOpts c_a1WNo => Lens' c_a1WNo (Finite 25 -> Part -> IO (Maybe String))
+mroLock :: HasMainRunOpts c_a1WNo => Lens' c_a1WNo Bool
+mroSpec :: HasMainRunOpts c_a1WNo => Lens' c_a1WNo TestSpec
+mroTest :: HasMainRunOpts c_a1WNo => Lens' c_a1WNo Bool
 
 -- | Run, test, bench.
 mainRun :: (MonadIO m, MonadError [String] m) => Config -> MainRunOpts -> m (Map (Finite 25) (Map Part (Maybe Bool, Either [String] String)))
@@ -7082,10 +7098,10 @@ data MainViewOpts
 MVO :: !TestSpec -> !Bool -> MainViewOpts
 [_mvoSpec] :: MainViewOpts -> !TestSpec
 [_mvoWait] :: MainViewOpts -> !Bool
-class HasMainViewOpts c_a1WDx
-mainViewOpts :: HasMainViewOpts c_a1WDx => Lens' c_a1WDx MainViewOpts
-mvoSpec :: HasMainViewOpts c_a1WDx => Lens' c_a1WDx TestSpec
-mvoWait :: HasMainViewOpts c_a1WDx => Lens' c_a1WDx Bool
+class HasMainViewOpts c_a1WUq
+mainViewOpts :: HasMainViewOpts c_a1WUq => Lens' c_a1WUq MainViewOpts
+mvoSpec :: HasMainViewOpts c_a1WUq => Lens' c_a1WUq TestSpec
+mvoWait :: HasMainViewOpts c_a1WUq => Lens' c_a1WUq Bool
 
 -- | View prompt
 mainView :: (MonadIO m, MonadError [String] m) => Config -> MainViewOpts -> m (Map (Finite 25) (Map Part Text))
@@ -7106,12 +7122,12 @@ MSO :: !ChallengeSpec -> !Bool -> !Bool -> !Bool -> MainSubmitOpts
 
 -- | Lock answer if submission succeeded? (Default: True)
 [_msoLock] :: MainSubmitOpts -> !Bool
-class HasMainSubmitOpts c_a1WHQ
-mainSubmitOpts :: HasMainSubmitOpts c_a1WHQ => Lens' c_a1WHQ MainSubmitOpts
-msoForce :: HasMainSubmitOpts c_a1WHQ => Lens' c_a1WHQ Bool
-msoLock :: HasMainSubmitOpts c_a1WHQ => Lens' c_a1WHQ Bool
-msoSpec :: HasMainSubmitOpts c_a1WHQ => Lens' c_a1WHQ ChallengeSpec
-msoTest :: HasMainSubmitOpts c_a1WHQ => Lens' c_a1WHQ Bool
+class HasMainSubmitOpts c_a1WYJ
+mainSubmitOpts :: HasMainSubmitOpts c_a1WYJ => Lens' c_a1WYJ MainSubmitOpts
+msoForce :: HasMainSubmitOpts c_a1WYJ => Lens' c_a1WYJ Bool
+msoLock :: HasMainSubmitOpts c_a1WYJ => Lens' c_a1WYJ Bool
+msoSpec :: HasMainSubmitOpts c_a1WYJ => Lens' c_a1WYJ ChallengeSpec
+msoTest :: HasMainSubmitOpts c_a1WYJ => Lens' c_a1WYJ Bool
 
 -- | Submit and analyze result
 mainSubmit :: (MonadIO m, MonadError [String] m) => Config -> MainSubmitOpts -> m (Text, SubmitRes)
