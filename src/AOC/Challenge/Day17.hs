@@ -136,31 +136,29 @@ growWater
 growWater cl ylim = flip execState S.empty . goDown
   where
     goDown :: Point -> State (Set Point) StopReason
+    -- goDown (traceShowId->p)
     goDown p
       | p ^. _y > ylim = pure SRCut
-      | otherwise      = gets (p `S.member`) >>= \case
-          True  -> pure SRBacktrack
-          False -> do
+      | otherwise      = do
             modify $ S.insert p
             onMayb goDown (addP p (V2 0 1))
                 `cutting` liftA2 max (onMayb goLeft  (addP p (V2 (-1) 0)))
                                      (onMayb goRight (addP p (V2   1  0)))
     goLeft :: Point -> State (Set Point) StopReason
-    goLeft p = gets (p `S.member`) >>= \case
-      True  -> pure SRBacktrack
-      False -> do
+    -- goLeft (traceShowId.trace "left"->p) = do
+    goLeft p = do
         modify $ S.insert p
         onMayb goDown (addP p (V2 0 1))
           `cutting` onMayb goLeft  (addP p (V2 (-1) 0))
     goRight :: Point -> State (Set Point) StopReason
-    goRight p = gets (p `S.member`) >>= \case
-      True  -> pure SRBacktrack
-      False -> do
+    -- goRight (traceShowId.trace "right"->p) = do
+    goRight p = do
         modify $ S.insert p
         onMayb goDown (addP p (V2 0 1))
             `cutting` onMayb goRight (addP p (V2   1  0))
     addP x y = mfilter (`S.notMember` cl) . Just $ x + y
     onMayb = maybe (pure SRBacktrack)
+
 
 cutting :: State (Set Point) StopReason
         -> State (Set Point) StopReason
@@ -169,7 +167,7 @@ cutting x y = x >>= \case
     SRCut       -> pure SRCut
     SRBacktrack -> y
 
-    
+
 data StopReason = SRBacktrack
                 | SRCut
   deriving (Eq, Ord)
@@ -232,10 +230,10 @@ data StopReason = SRBacktrack
 --     bb = boundingBox $ toList cl
 
 fillWater :: Set Point -> Set Point
-fillWater cl = S.filter (inBounds bb)
-             $ growWater cl (bb ^. _y . _y) (V2 500 0)
+fillWater cl = S.filter (\p -> p ^. _y >= yMin && p ^. _y <= yMax)
+             $ growWater cl yMax (V2 500 0)
   where
-    bb = boundingBox $ toList cl
+    V2 _ yMin `V2` V2 _ yMax  = boundingBox $ toList cl
 
 day17a :: Set Point :~> _
 day17a = MkSol
