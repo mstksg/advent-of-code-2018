@@ -1,6 +1,3 @@
-{-# OPTIONS_GHC -Wno-unused-imports   #-}
-{-# OPTIONS_GHC -Wno-unused-top-binds #-}
-
 -- |
 -- Module      : AOC.Challenge.Day15
 -- Copyright   : (c) Justin Le 2018
@@ -11,28 +8,28 @@
 -- Portability : non-portable
 --
 -- Day 15.  See "AOC.Solver" for the types used in this module!
---
--- After completing the challenge, it is recommended to:
---
--- *   Replace "AOC.Prelude" imports to specific modules (with explicit
---     imports) for readability.
--- *   Remove the @-Wno-unused-imports@ and @-Wno-unused-top-binds@
---     pragmas.
--- *   Replace the partial type signatures underscores in the solution
---     types @_ :~> _@ with the actual types of inputs and outputs of the
---     solution.  You can delete the type signatures completely and GHC
---     will recommend what should go in place of the underscores.
 
-module AOC.Challenge.Day15 where
+module AOC.Challenge.Day15 (
+    day15a
+  , day15b
+  ) where
 
--- module AOC.Challenge.Day15 (
---     day15a
---   , day15b
---   ) where
-
-import           AOC.Prelude
-import           Control.Lens
-import           Data.Functor.Foldable
+import           AOC.Common.Search     (aStar, exponentialMinSearch)
+import           AOC.Solver            ((:~>)(..))
+import           Control.Lens          (makeLenses, folded, lined, (<.>), ifoldMapOf, (.~), (-~), view)
+import           Data.Foldable         (toList)
+import           Data.Function         ((&))
+import           Data.Functor          ((<&>))
+import           Data.Functor.Foldable (hylo)
+import           Data.List             (intercalate)
+import           Data.Map              (Map)
+import           Data.Maybe            (catMaybes)
+import           Data.Ord              (comparing)
+import           Data.Semigroup        (Min(..), Max(..), First(..))
+import           Data.Set              (Set)
+import           Data.Tuple            (swap)
+import           Linear                (V2(..), _x, _y)
+import           Text.Printf           (printf)
 import qualified Data.Map              as M
 import qualified Data.Set              as S
 
@@ -99,9 +96,6 @@ stepTo w x dest = snd
   where
     w' = S.delete x w
 
-isReachable :: Set ScanPoint -> ScanPoint -> ScanPoint -> Bool
-isReachable w x = isJust . actualLiteralAStar w x
-
 stepEntity
     :: World
     -> Entities
@@ -161,7 +155,7 @@ stepBattle
     :: World
     -> (Entities, Entities)
     -> BattleLog (Entities, Entities)
-stepBattle w (waiting, done) = case M.minViewWithKey waiting of
+stepBattle w (!waiting, !done) = case M.minViewWithKey waiting of
     Nothing                      -> BLRound (done, M.empty)
     Just ((p, toMove), waiting') ->
       let allEnts = waiting' <> done
@@ -199,24 +193,29 @@ day15a = MkSol
                         $ (e, M.empty)
     }
 
-elfKilled :: BattleLog Bool -> Bool
-elfKilled (BLTurn  (Just EElf) _ ) = True
-elfKilled (BLTurn  _           !k) = k
-elfKilled (BLRound             !k) = k
-elfKilled (BLOver  _             ) = False
+totalVictory :: BattleLog Bool -> Bool
+totalVictory (BLTurn  (Just EElf) _ ) = False
+totalVictory (BLTurn  _           !k) = k
+totalVictory (BLRound             !k) = k
+totalVictory (BLOver  _             ) = True
 
 day15b :: (World, Entities) :~> Int
 day15b = MkSol
     { sParse = Just . parseWorld
     , sShow  = show
     , sSolve = \(w, es) ->
-        let goodEnough i = not . hylo elfKilled (stepBattle w) $ (es', M.empty)
-              where
-                es' = es <&> \e -> case _eType e of
-                  EElf -> e & eAtk .~ i
-                  EGob -> e
-        in  exponentialMinSearch goodEnough 4
+        let goodEnough i = hylo totalVictory (stepBattle w) (powerUp i es, M.empty)
+        in  exponentialMinSearch goodEnough 4 <&> \i ->
+                uncurry (*)
+              . hylo getOutcome (stepBattle w)
+              $ (powerUp i es, M.empty)
     }
+  where
+    powerUp :: Int -> Entities -> Entities
+    powerUp i = fmap $ \e ->
+      case _eType e of
+        EElf -> e & eAtk .~ i
+        EGob -> e
 
 
 
@@ -235,8 +234,8 @@ parseWorld = ifoldMapOf (lined <.> folded) (uncurry classify)
       where
         p = SP $ V2 x y
 
-displayWorld :: World -> Entities -> String
-displayWorld w es = unlines
+_displayWorld :: World -> Entities -> String
+_displayWorld w es = unlines
     [ row ++ " " ++ intercalate ", " rEs
     | y <- [yMin - 1 .. yMax + 1]
     , let (row, rEs) = makeRow y
@@ -262,3 +261,5 @@ boundingBox ps = V2 xMin yMin `V2` V2 xMax yMax
     (Min xMin, Min yMin, Max xMax, Max yMax) = flip foldMap ps $ \(V2 x y) ->
         (Min x, Min y, Max x, Max y)
 
+_unused :: ()
+_unused = (eType .~) `seq` ()
