@@ -14,8 +14,18 @@
 
 module AOC.Common.Search
 
--- | A Star Search algorithm.
+-- | A* Search
 aStar :: forall n p. (Ord n, Ord p, Num p) => (n -> p) -> (n -> Map n p) -> n -> n -> Maybe [n]
+binarySearch :: (Int -> Ordering) -> Int -> Int -> Maybe Int
+exponentialSearch :: (Int -> Ordering) -> Int -> Maybe Int
+
+-- | Find the lowest value where the predicate is satisfied within the
+--   given bounds.
+binaryMinSearch :: (Int -> Bool) -> Int -> Int -> Maybe Int
+
+-- | Find the lowest value where the predicate is satisfied above a given
+--   bound.
+exponentialMinSearch :: (Int -> Bool) -> Int -> Maybe Int
 
 
 -- | Utilities for loading configuration file.
@@ -6336,8 +6346,18 @@ witherM :: (Witherable t, Monad m) => (a -> m (Maybe b)) -> t a -> m (t b)
 --   </pre>
 filterA :: (Witherable t, Applicative f) => (a -> f Bool) -> t a -> f (t a)
 
--- | A Star Search algorithm.
+-- | A* Search
 aStar :: forall n p. (Ord n, Ord p, Num p) => (n -> p) -> (n -> Map n p) -> n -> n -> Maybe [n]
+binarySearch :: (Int -> Ordering) -> Int -> Int -> Maybe Int
+exponentialSearch :: (Int -> Ordering) -> Int -> Maybe Int
+
+-- | Find the lowest value where the predicate is satisfied within the
+--   given bounds.
+binaryMinSearch :: (Int -> Bool) -> Int -> Int -> Maybe Int
+
+-- | Find the lowest value where the predicate is satisfied above a given
+--   bound.
+exponentialMinSearch :: (Int -> Bool) -> Int -> Maybe Int
 
 -- | Strip trailing and leading whitespace.
 strip :: String -> String
@@ -6700,11 +6720,13 @@ data EType
 EGob :: EType
 EElf :: EType
 data Entity
-E :: EType -> Int -> Entity
+E :: EType -> Int -> Int -> Entity
 [_eType] :: Entity -> EType
 [_eHP] :: Entity -> Int
+[_eAtk] :: Entity -> Int
 eType :: Lens' Entity EType
 eHP :: Lens' Entity Int
+eAtk :: Lens' Entity Int
 type Point = V2 Int
 type World = Set ScanPoint
 type Entities = Map ScanPoint Entity
@@ -6718,25 +6740,26 @@ dist :: ScanPoint -> ScanPoint -> Int
 neighbs :: ScanPoint -> Set ScanPoint
 inRangeOf :: Set ScanPoint -> Set ScanPoint
 type Path = [ScanPoint]
-actualLiteralAStar :: World -> ScanPoint -> ScanPoint -> Maybe Path
 
--- | TODO: implement actual literal A star
+-- | Yes, it's actual literal A*.
+actualLiteralAStar :: World -> ScanPoint -> ScanPoint -> Maybe Path
 stepTo :: Set ScanPoint -> ScanPoint -> ScanPoint -> ScanPoint
-pickNearest :: ScanPoint -> Set ScanPoint -> Maybe ScanPoint
 isReachable :: Set ScanPoint -> ScanPoint -> ScanPoint -> Bool
 stepEntity :: World -> Entities -> ScanPoint -> Entity -> Maybe ScanPoint
 makeAttack :: World -> Entities -> ScanPoint -> Entity -> Maybe ScanPoint
 data BattleLog a
-BLTurn :: (ScanPoint, ScanPoint, Entity) -> Entities -> a -> BattleLog a
-BLRound :: Entities -> a -> BattleLog a
-BLOver :: Entities -> Int -> BattleLog a
-damage :: Maybe Entity -> Maybe Entity
+BLTurn :: Maybe EType -> a -> BattleLog a
+BLRound :: a -> BattleLog a
+BLOver :: Int -> BattleLog a
+damage :: Int -> Maybe Entity -> (Maybe (First EType), Maybe Entity)
 stepBattle :: World -> (Entities, Entities) -> BattleLog (Entities, Entities)
 getOutcome :: BattleLog (Int, Int) -> (Int, Int)
-traceOutcome :: BattleLog [Either Entities Entities] -> [Either Entities Entities]
-day15a :: (World, Entities) :~> _
-day15b :: _ :~> _
+day15a :: (World, Entities) :~> Int
+elfKilled :: BattleLog Bool -> Bool
+day15b :: (World, Entities) :~> Int
 parseWorld :: String -> (World, Entities)
+displayWorld :: World -> Entities -> String
+boundingBox :: [Point] -> V2 Point
 instance GHC.Base.Functor AOC.Challenge.Day15.BattleLog
 instance GHC.Classes.Eq a => GHC.Classes.Eq (AOC.Challenge.Day15.BattleLog a)
 instance GHC.Show.Show a => GHC.Show.Show (AOC.Challenge.Day15.BattleLog a)
@@ -7093,13 +7116,13 @@ MRO :: !TestSpec -> !Bool -> !Bool -> !Bool -> !Finite 25 -> Part -> IO (Maybe S
 
 -- | Manually supply input (Default: always return Nothing)
 [_mroInput] :: MainRunOpts -> !Finite 25 -> Part -> IO (Maybe String)
-class HasMainRunOpts c_a1VWt
-mainRunOpts :: HasMainRunOpts c_a1VWt => Lens' c_a1VWt MainRunOpts
-mroBench :: HasMainRunOpts c_a1VWt => Lens' c_a1VWt Bool
-mroInput :: HasMainRunOpts c_a1VWt => Lens' c_a1VWt (Finite 25 -> Part -> IO (Maybe String))
-mroLock :: HasMainRunOpts c_a1VWt => Lens' c_a1VWt Bool
-mroSpec :: HasMainRunOpts c_a1VWt => Lens' c_a1VWt TestSpec
-mroTest :: HasMainRunOpts c_a1VWt => Lens' c_a1VWt Bool
+class HasMainRunOpts c_a1WWH
+mainRunOpts :: HasMainRunOpts c_a1WWH => Lens' c_a1WWH MainRunOpts
+mroBench :: HasMainRunOpts c_a1WWH => Lens' c_a1WWH Bool
+mroInput :: HasMainRunOpts c_a1WWH => Lens' c_a1WWH (Finite 25 -> Part -> IO (Maybe String))
+mroLock :: HasMainRunOpts c_a1WWH => Lens' c_a1WWH Bool
+mroSpec :: HasMainRunOpts c_a1WWH => Lens' c_a1WWH TestSpec
+mroTest :: HasMainRunOpts c_a1WWH => Lens' c_a1WWH Bool
 
 -- | Run, test, bench.
 mainRun :: (MonadIO m, MonadError [String] m) => Config -> MainRunOpts -> m (Map (Finite 25) (Map Part (Maybe Bool, Either [String] String)))
@@ -7112,10 +7135,10 @@ data MainViewOpts
 MVO :: !TestSpec -> !Bool -> MainViewOpts
 [_mvoSpec] :: MainViewOpts -> !TestSpec
 [_mvoWait] :: MainViewOpts -> !Bool
-class HasMainViewOpts c_a1W3v
-mainViewOpts :: HasMainViewOpts c_a1W3v => Lens' c_a1W3v MainViewOpts
-mvoSpec :: HasMainViewOpts c_a1W3v => Lens' c_a1W3v TestSpec
-mvoWait :: HasMainViewOpts c_a1W3v => Lens' c_a1W3v Bool
+class HasMainViewOpts c_a1X3J
+mainViewOpts :: HasMainViewOpts c_a1X3J => Lens' c_a1X3J MainViewOpts
+mvoSpec :: HasMainViewOpts c_a1X3J => Lens' c_a1X3J TestSpec
+mvoWait :: HasMainViewOpts c_a1X3J => Lens' c_a1X3J Bool
 
 -- | View prompt
 mainView :: (MonadIO m, MonadError [String] m) => Config -> MainViewOpts -> m (Map (Finite 25) (Map Part Text))
@@ -7136,12 +7159,12 @@ MSO :: !ChallengeSpec -> !Bool -> !Bool -> !Bool -> MainSubmitOpts
 
 -- | Lock answer if submission succeeded? (Default: True)
 [_msoLock] :: MainSubmitOpts -> !Bool
-class HasMainSubmitOpts c_a1W7O
-mainSubmitOpts :: HasMainSubmitOpts c_a1W7O => Lens' c_a1W7O MainSubmitOpts
-msoForce :: HasMainSubmitOpts c_a1W7O => Lens' c_a1W7O Bool
-msoLock :: HasMainSubmitOpts c_a1W7O => Lens' c_a1W7O Bool
-msoSpec :: HasMainSubmitOpts c_a1W7O => Lens' c_a1W7O ChallengeSpec
-msoTest :: HasMainSubmitOpts c_a1W7O => Lens' c_a1W7O Bool
+class HasMainSubmitOpts c_a1X82
+mainSubmitOpts :: HasMainSubmitOpts c_a1X82 => Lens' c_a1X82 MainSubmitOpts
+msoForce :: HasMainSubmitOpts c_a1X82 => Lens' c_a1X82 Bool
+msoLock :: HasMainSubmitOpts c_a1X82 => Lens' c_a1X82 Bool
+msoSpec :: HasMainSubmitOpts c_a1X82 => Lens' c_a1X82 ChallengeSpec
+msoTest :: HasMainSubmitOpts c_a1X82 => Lens' c_a1X82 Bool
 
 -- | Submit and analyze result
 mainSubmit :: (MonadIO m, MonadError [String] m) => Config -> MainSubmitOpts -> m (Text, SubmitRes)
