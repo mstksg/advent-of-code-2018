@@ -14,13 +14,13 @@ module AOC.Challenge.Day15 (
   , day15b
   ) where
 
-import           AOC.Common.Search     (aStar, exponentialMinSearch)
+import           AOC.Common.Search     (aStar, exponentialFindMin)
 import           AOC.Solver            ((:~>)(..))
 import           Control.Lens          (makeLenses, folded, lined, (<.>), ifoldMapOf, (.~), (-~), view)
+import           Control.Monad         (guard)
 import           Data.Foldable         (toList)
 import           Data.Function         ((&))
-import           Data.Functor          ((<&>))
-import           Data.Functor.Foldable (hylo)
+import           Data.Functor.Foldable (Fix, cata, ana, hylo)
 import           Data.List             (intercalate)
 import           Data.Map              (Map)
 import           Data.Maybe            (catMaybes)
@@ -204,11 +204,11 @@ day15b = MkSol
     { sParse = Just . parseWorld
     , sShow  = show
     , sSolve = \(w, es) ->
-        let goodEnough i = hylo totalVictory (stepBattle w) (powerUp i es, M.empty)
-        in  exponentialMinSearch goodEnough 4 <&> \i ->
-                uncurry (*)
-              . hylo getOutcome (stepBattle w)
-              $ (powerUp i es, M.empty)
+        let goodEnough i = blog <$ guard (cata totalVictory blog)
+              where
+                blog :: Fix BattleLog
+                blog = ana (stepBattle w) (powerUp i es, M.empty)
+        in  uncurry (*) . cata getOutcome <$> exponentialFindMin goodEnough 4
     }
   where
     powerUp :: Int -> Entities -> Entities

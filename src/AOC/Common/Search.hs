@@ -5,6 +5,8 @@ module AOC.Common.Search (
   , exponentialSearch
   , binaryMinSearch
   , exponentialMinSearch
+  , binaryFindMin
+  , exponentialFindMin
   ) where
 
 import           Data.Map      (Map)
@@ -98,3 +100,41 @@ exponentialMinSearch p = go
     go !x
       | p x       = binaryMinSearch p (x `div` 2) x
       | otherwise = go (x * 2)
+
+-- | Find the lowest value where the predicate is 'Just' within the
+-- given bounds.
+binaryFindMin
+    :: (Int -> Maybe a)
+    -> Int
+    -> Int
+    -> Maybe a
+binaryFindMin p x0 y0 = binaryFindMin_ p (p y0) x0 y0
+
+binaryFindMin_
+    :: (Int -> Maybe a)
+    -> Maybe a          -- p y0
+    -> Int
+    -> Int
+    -> Maybe a
+binaryFindMin_ p = go
+  where
+    go found !x !y
+      | x == mid || y == mid = found
+      | otherwise            = case p mid of
+          Nothing    -> go found mid y
+          f@(Just _) -> go f     x   mid
+      where
+        mid = ((y - x) `div` 2) + x
+
+-- | Find the lowest value where the predicate is 'Just' above a given
+-- bound.
+exponentialFindMin
+    :: (Int -> Maybe a)
+    -> Int
+    -> Maybe a
+exponentialFindMin p = go
+  where
+    go !x = case p x of
+      Nothing -> go (x * 2)
+      f@(Just _) -> binaryFindMin_ p f (x `div` 2) x
+
