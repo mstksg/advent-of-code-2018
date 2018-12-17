@@ -127,111 +127,56 @@ makeLenses ''Terrain
 -- data Growth a = GCut
 --               | GBack
 --               | GCons Point a
+--
 
-growWater
-    :: Set Point    -- ^ clay
-    -> Int          -- ^ max y
-    -> Point        -- ^ place to start adding from
-    -> Set Point    -- ^ new item, if there is room
-growWater cl ylim = flip execState S.empty . goDown
+-- #..YYYYYYYYY...
+-- #..Y#NNNNN#Y...
+-- ...Y#NNNNN#Y...
+-- ...Y#######Y...
+-- ...Y.......Y...
+-- YYYYYYYYYYYYYYY
+-- Y#NNNNNNNNNNN#Y
+-- Y#NNNNNNNNNNN#Y
+-- Y#############Y
+
+drainMap
+    :: Set Point            -- ^ clay
+    -> Int                  -- ^ max y
+    -> Point                -- ^ starting point
+    -> Map Point Bool       -- ^ map of water, and whether it is draining
+drainMap cl ylim = flip execState M.empty . goDown
   where
-    goDown :: Point -> State (Set Point) StopReason
-    -- goDown (traceShowId->p)
     goDown p
-      | p ^. _y > ylim = pure SRCut
-      | otherwise      = do
-            modify $ S.insert p
-            onMayb goDown (addP p (V2 0 1))
-                `cutting` liftA2 max (onMayb goLeft  (addP p (V2 (-1) 0)))
-                                     (onMayb goRight (addP p (V2   1  0)))
-    goLeft :: Point -> State (Set Point) StopReason
-    -- goLeft (traceShowId.trace "left"->p) = do
-    goLeft p = do
-        modify $ S.insert p
-        onMayb goDown (addP p (V2 0 1))
-          `cutting` onMayb goLeft  (addP p (V2 (-1) 0))
-    goRight :: Point -> State (Set Point) StopReason
-    -- goRight (traceShowId.trace "right"->p) = do
-    goRight p = do
-        modify $ S.insert p
-        onMayb goDown (addP p (V2 0 1))
-            `cutting` onMayb goRight (addP p (V2   1  0))
-    addP x y = mfilter (`S.notMember` cl) . Just $ x + y
-    onMayb = maybe (pure SRBacktrack)
+      | p ^. _y > ylim = cache p $ pure True
+      | otherwise      = cache p $
+          goIfPossible p goDown (V2 0 1) >>= \case
+            True  -> pure True
+            False -> (||) <$> goIfPossible p goLeft  (V2 (-1) 0)
+                          <*> goIfPossible p goRight (V2   1  0)
+    goLeft  p = cache p $
+      goIfPossible p goDown (V2 0 1) >>= \case
+        True  -> pure True
+        False -> goIfPossible p goLeft  (V2 (-1) 0)
+    goRight p = cache p $
+      goIfPossible p goDown (V2 0 1) >>= \case
+        True  -> pure True
+        False -> goIfPossible p goRight (V2   1  0)
+    goIfPossible p f d
+        | z `S.member` cl = cache p $ pure False
+        | otherwise       = f z
+      where
+        z = p + d
+    cache p act = gets (p `M.lookup`) >>= \case
+      Just t  -> pure t
+      Nothing -> do
+        res <- act
+        res <$ modify (M.insert p res)
 
-
-cutting :: State (Set Point) StopReason
-        -> State (Set Point) StopReason
-        -> State (Set Point) StopReason
-cutting x y = x >>= \case
-    SRCut       -> pure SRCut
-    SRBacktrack -> y
-
-
-data StopReason = SRBacktrack
-                | SRCut
-  deriving (Eq, Ord)
-
-
--- growWater
---     :: Set Point    -- ^ clay
---     -> Int          -- ^ max y
---     -> Set Point    -- ^ current water
---     -> Point        -- ^ place to start adding from
---     -> Maybe Point  -- ^ new item, if there is room
--- growWater cl ylim w0 = eitherToMaybe . go
---   where
---     go !p
---       | p ^. _y > ylim  = Left SRCut
---       | otherwise       =
---             (p <$ guard' (p `S.notMember` w0))
---         <!> (go =<< addP p (V2 0 1)) `catchError` \case
---               SRCut       -> Left SRCut
---               SRBacktrack -> (growLeft  =<< addP p (V2 (-1) 0))
---                          <!> (growRight =<< addP p (V2 1 0))
---     growLeft !p =
---             (p <$ guard' (p `S.notMember` w0))
---         <!> (go =<< addP p (V2 0 1)) `catchError` \case
---               SRCut       -> Left SRCut
---               SRBacktrack -> (growLeft  =<< addP p (V2 (-1) 0))
---     growRight !p =
---             (p <$ guard' (p `S.notMember` w0))
---         <!> (go =<< addP p (V2 0 1)) `catchError` \case
---               SRCut       -> Left SRCut
---               SRBacktrack -> (growRight =<< addP p (V2 1 0))
---     addP :: Point -> Point -> Either StopReason Point
---     addP x y
---         | z `S.notMember` cl = Right z
---         | otherwise          = Left SRBacktrack
---       where
---         z = x + y
---     guard' :: Bool -> Either StopReason ()
---     guard' True  = Right ()
---     guard' False = Left SRBacktrack
-
--- growForever
---     :: Set Point        -- ^ clay
---     -> Set Point        -- ^ water
--- growForever cl = go S.empty
---   where
---     -- go !(tracey->w0)
---     go w0
---         | w0 == w1  = S.filter (inBounds bb) w0
---         | otherwise = go w1
---       where
---         p = mfilter (inBounds bb') . growWater cl (bb ^. _y . _y) w0 $ V2 500 0
---         w1 = maybe id S.insert p w0
---     tracey w0 = trace (displayClay ( M.fromSet (const TClay) cl
---                                   <> M.fromSet (const (TWater WFlow)) w0
---                                    )
---                       )
---                       w0
---     bb' = bb & _x . _y .~ 0
---     bb = boundingBox $ toList cl
 
 fillWater :: Set Point -> Set Point
 fillWater cl = S.filter (\p -> p ^. _y >= yMin && p ^. _y <= yMax)
-             $ growWater cl yMax (V2 500 0)
+             . M.keysSet
+             $ drainMap cl yMax (V2 500 0)
   where
     V2 _ yMin `V2` V2 _ yMax  = boundingBox $ toList cl
 
