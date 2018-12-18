@@ -10,36 +10,34 @@
 -- Portability : non-portable
 --
 -- Day 17.  See "AOC.Solver" for the types used in this module!
---
--- After completing the challenge, it is recommended to:
---
--- *   Replace "AOC.Prelude" imports to specific modules (with explicit
---     imports) for readability.
--- *   Remove the @-Wno-unused-imports@ and @-Wno-unused-top-binds@
---     pragmas.
--- *   Replace the partial type signatures underscores in the solution
---     types @_ :~> _@ with the actual types of inputs and outputs of the
---     solution.  You can delete the type signatures completely and GHC
---     will recommend what should go in place of the underscores.
 
-module AOC.Challenge.Day17 where
--- module AOC.Challenge.Day17 (
---     day17a
---   , day17b
---   ) where
+module AOC.Challenge.Day17 (
+    day17a
+  , day17b
+  ) where
 
-import           AOC.Prelude
-import           Control.Lens
-import           Data.Ix
-import           Data.Functor.Alt
-import qualified Data.Map               as M
-import qualified Data.Set               as S
+import           AOC.Common          (clearOut)
+import           AOC.Solver          ((:~>)(..))
+import           Control.Lens        ((^.))
+import           Control.Monad       (void, when)
+import           Control.Monad.State (gets, modify, execState)
+import           Data.Char           (isDigit)
+import           Data.Foldable       (toList)
+import           Data.Ix             (range)
+import           Data.Map            (Map)
+import           Data.Semigroup      (Min(..), Max(..))
+import           Data.Set            (Set)
+import           Linear              (V2(..), _y)
+import qualified Data.Map            as M
+import qualified Data.Set            as S
 
 type Point = V2 Int
 
-inBounds :: V2 Point -> Point -> Bool
-inBounds (V2 xMin yMin `V2` V2 xMax yMax) (V2 x y) =
-        x >= xMin && x <= xMax && y >= yMin && y <= yMax
+boundingBox :: [Point] -> V2 Point
+boundingBox ps = V2 xMin yMin `V2` V2 xMax yMax
+  where
+    (Min xMin, Min yMin, Max xMax, Max yMax) = flip foldMap ps $ \(V2 x y) ->
+        (Min x, Min y, Max x, Max y)
 
 drainMap
     :: Set Point            -- ^ clay
@@ -121,14 +119,8 @@ parseVein ('y':(map read.words.clearOut(not.isDigit)->(y:x0:x1:_)))
     = S.fromList . map (`V2` y) $ range (x0,x1)
 parseVein _ = S.empty
 
-boundingBox :: [Point] -> V2 Point
-boundingBox ps = V2 xMin yMin `V2` V2 xMax yMax
-  where
-    (Min xMin, Min yMin, Max xMax, Max yMax) = flip foldMap ps $ \(V2 x y) ->
-        (Min x, Min y, Max x, Max y)
-
-displayClay :: Set Point -> Set Point -> String
-displayClay cl w = unlines
+_displayClay :: Set Point -> Set Point -> String
+_displayClay cl w = unlines
     [ [ maybe '.' label $ M.lookup (V2 x y) terrain
       | x <- [xMin .. xMax]
       ]
