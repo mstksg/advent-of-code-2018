@@ -83,9 +83,7 @@ stepN
     :: Int
     -> World
     -> World
-stepN n m0 = goN extra
-           . goN ttl
-           $ m0
+stepN n m0 = goN extra . goN ttl $ m0
   where
     goN i = (!!! i) . iterate stepMap
     (ttl, loopSize) = findLoop m0

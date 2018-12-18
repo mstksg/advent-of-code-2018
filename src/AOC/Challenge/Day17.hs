@@ -1,5 +1,4 @@
 {-# OPTIONS_GHC -Wno-unused-imports   #-}
-{-# OPTIONS_GHC -Wno-unused-top-binds #-}
 
 -- |
 -- Module      : AOC.Challenge.Day17
@@ -38,139 +37,48 @@ import qualified Data.Set               as S
 
 type Point = V2 Int
 
-neighbs :: Point -> Set Point
-neighbs p = S.fromList . map (+ p) $ [V2 (-1) 0, V2 0 (-1), V2 1 0, V2 0 1]
-
 inBounds :: V2 Point -> Point -> Bool
 inBounds (V2 xMin yMin `V2` V2 xMax yMax) (V2 x y) =
         x >= xMin && x <= xMax && y >= yMin && y <= yMax
-
-data Water = WFlow
-           | WFlat
-           | WRise
-           | WSource
-  deriving (Show, Eq, Ord)
-
-data Terrain = TWater { _tWater :: Water }
-             | TClay
-  deriving (Show, Eq, Ord)
-
-makeLenses ''Terrain
-
--- promote
---     :: Map Point Terrain
---     -> Point
---     -> Water
---     -> Water
--- promote mp p = \case
---     WFlow
---       | M.lookup down mp >= Just (TWater WRise)
---           && any ((>= Just (TWater WFlat)) . (`M.lookup` mp)) leftRight
---                                     -> WFlat
---       | otherwise                   -> WFlow
---     WFlat
---       | all ((>= Just (TWater WFlat)) . (`M.lookup` mp)) leftRight
---                                     -> WRise
---       | otherwise                   -> WFlat
---     WRise                           -> WRise
---     WSource                         -> WSource
---   where
---     down      = p + V2 0 1
---     leftRight = [p - V2 1 0, p + V2 1 0]
-
--- growWater
---     :: Point
---     -> Water
---     -> [Point]
--- growWater p = \case
---     WFlow   -> [p + V2 0 1]
---     WFlat   -> [p - V2 1 0, p + V2 1 0]
---     WRise   -> []
---     WSource -> [p + V2 0 1]
-
--- growWater
---     :: Set Point    -- ^ clay
---     -> Int          -- ^ max y
---     -> Set Point    -- ^ current water
---     -> Point        -- ^ place to start adding from
---     -> [Point]      -- ^ new item, if there is room
--- growWater cl ylim w0 = go
---   where
---     go !p
---       | p ^. _y > ylim  = Left SRCut
---       | otherwise       =
---             (p <$ guard' (p `S.notMember` w0))
---         <!> (go =<< addP p (V2 0 1)) `catchError` \case
---               SRCut       -> Left SRCut
---               SRBacktrack -> (growLeft  =<< addP p (V2 (-1) 0))
---                          <!> (growRight =<< addP p (V2 1 0))
---     growLeft !p =
---             (p <$ guard' (p `S.notMember` w0))
---         <!> (go =<< addP p (V2 0 1)) `catchError` \case
---               SRCut       -> Left SRCut
---               SRBacktrack -> (growLeft  =<< addP p (V2 (-1) 0))
---     growRight !p =
---             (p <$ guard' (p `S.notMember` w0))
---         <!> (go =<< addP p (V2 0 1)) `catchError` \case
---               SRCut       -> Left SRCut
---               SRBacktrack -> (growRight =<< addP p (V2 1 0))
---     addP :: Point -> Point -> Either StopReason Point
---     addP x y
---         | z `S.notMember` cl = Right z
---         | otherwise          = Left SRBacktrack
---       where
---         z = x + y
---     guard' :: Bool -> Either StopReason ()
---     guard' True  = Right ()
---     guard' False = Left SRBacktrack
-
--- data Growth a = GCut
---               | GBack
---               | GCons Point a
---
-
--- #..YYYYYYYYY...
--- #..Y#NNNNN#Y...
--- ...Y#NNNNN#Y...
--- ...Y#######Y...
--- ...Y.......Y...
--- YYYYYYYYYYYYYYY
--- Y#NNNNNNNNNNN#Y
--- Y#NNNNNNNNNNN#Y
--- Y#############Y
 
 drainMap
     :: Set Point            -- ^ clay
     -> Int                  -- ^ max y
     -> Point                -- ^ starting point
     -> Map Point Bool       -- ^ map of water, and whether it is draining
-drainMap cl ylim = flip execState M.empty . goDown
+drainMap cl ylim = flip execState M.empty . pourDown
   where
-    goDown p
+    pourDown p
       | p ^. _y > ylim = cache p $ pure True
       | otherwise      = cache p $
-          goIfPossible p goDown (V2 0 1) >>= \case
+          goIfPossible p pourDown (V2 0 1) >>= \case
             True  -> pure True
-            False -> (||) <$> goIfPossible p goLeft  (V2 (-1) 0)
-                          <*> goIfPossible p goRight (V2   1  0)
-    goLeft  p = cache p $
-      goIfPossible p goDown (V2 0 1) >>= \case
+            False -> do
+              isDrain <- (||) <$> goIfPossible p (pourSide (-1)) (V2 (-1) 0)
+                              <*> goIfPossible p (pourSide   1 ) (V2   1  0)
+              when isDrain $ do
+                void $ goIfPossible p (clearSide (-1)) (V2 (-1) 0)
+                void $ goIfPossible p (clearSide   1 ) (V2   1  0)
+              pure isDrain
+    pourSide dx p = cache p $
+      goIfPossible p pourDown (V2 0 1) >>= \case
         True  -> pure True
-        False -> goIfPossible p goLeft  (V2 (-1) 0)
-    goRight p = cache p $
-      goIfPossible p goDown (V2 0 1) >>= \case
-        True  -> pure True
-        False -> goIfPossible p goRight (V2   1  0)
+        False -> goIfPossible p (pourSide dx) (V2 dx 0)
+    clearSide dx p = overrideCache p $ gets (p `M.lookup`) >>= \case
+        Nothing    -> pure True
+        Just True  -> pure True
+        Just False -> True <$ goIfPossible p (clearSide dx) (V2 dx 0)
     goIfPossible p f d
-        | z `S.member` cl = cache p $ pure False
+        | z `S.member` cl = pure False
         | otherwise       = f z
       where
         z = p + d
     cache p act = gets (p `M.lookup`) >>= \case
       Just t  -> pure t
-      Nothing -> do
-        res <- act
-        res <$ modify (M.insert p res)
+      Nothing -> overrideCache p act
+    overrideCache p act = do
+      res <- act
+      res <$ modify (M.insert p res)
 
 
 fillWater :: Set Point -> Set Point
@@ -180,16 +88,6 @@ fillWater cl = S.filter (\p -> p ^. _y >= yMin && p ^. _y <= yMax)
   where
     V2 _ yMin `V2` V2 _ yMax  = boundingBox $ toList cl
 
--- #..TTTTTTTTT...
--- #..T#FFFFF#T...
--- ...T#FFFFF#T...
--- ...T#######T...
--- ...T.......T...
--- ...T.......T...
--- TTTTTTTTTTTTF#.
--- T#FFFFFFFFFFF#.
--- T#############.
-
 day17a :: Set Point :~> _
 day17a = MkSol
     { sParse = Just . foldMap parseVein . lines
@@ -197,12 +95,24 @@ day17a = MkSol
     , sSolve = Just . S.size . fillWater
     }
 
-day17b :: _ :~> _
+drainWater :: Set Point -> Set Point
+drainWater cl = S.filter (\p -> p ^. _y >= yMin && p ^. _y <= yMax)
+              . M.keysSet
+              . M.filter not
+              $ drainMap cl yMax (V2 500 0)
+  where
+    V2 _ yMin `V2` V2 _ yMax  = boundingBox $ toList cl
+
+
+day17b :: Set Point :~> _
 day17b = MkSol
-    { sParse = Just
-    , sShow  = id
-    , sSolve = Just
+    { sParse = Just . foldMap parseVein . lines
+    , sShow  = show
+    , sSolve = Just . S.size . drainWater
     }
+
+
+
 
 parseVein :: String -> Set Point
 parseVein ('x':(map read.words.clearOut(not.isDigit)->(x:y0:y1:_)))
