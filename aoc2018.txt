@@ -6699,31 +6699,15 @@ module AOC.Challenge.Day19
 --   </ul>
 module AOC.Challenge.Day17
 type Point = V2 Int
-neighbs :: Point -> Set Point
 inBounds :: V2 Point -> Point -> Bool
-data Water
-WFlow :: Water
-WFlat :: Water
-WRise :: Water
-WSource :: Water
-data Terrain
-TWater :: Water -> Terrain
-[_tWater] :: Terrain -> Water
-TClay :: Terrain
-tWater :: Traversal' Terrain Water
 drainMap :: Set Point -> Int -> Point -> Map Point Bool
 fillWater :: Set Point -> Set Point
 day17a :: Set Point :~> _
-day17b :: _ :~> _
+drainWater :: Set Point -> Set Point
+day17b :: Set Point :~> _
 parseVein :: String -> Set Point
 boundingBox :: [Point] -> V2 Point
 displayClay :: Set Point -> Set Point -> String
-instance GHC.Classes.Ord AOC.Challenge.Day17.Terrain
-instance GHC.Classes.Eq AOC.Challenge.Day17.Terrain
-instance GHC.Show.Show AOC.Challenge.Day17.Terrain
-instance GHC.Classes.Ord AOC.Challenge.Day17.Water
-instance GHC.Classes.Eq AOC.Challenge.Day17.Water
-instance GHC.Show.Show AOC.Challenge.Day17.Water
 
 
 -- | Template Haskell for discovering all named challenges in a given
@@ -7095,13 +7079,13 @@ MRO :: !TestSpec -> !Bool -> !Bool -> !Bool -> !Finite 25 -> Part -> IO (Maybe S
 
 -- | Manually supply input (Default: always return Nothing)
 [_mroInput] :: MainRunOpts -> !Finite 25 -> Part -> IO (Maybe String)
-class HasMainRunOpts c_a20Jo
-mainRunOpts :: HasMainRunOpts c_a20Jo => Lens' c_a20Jo MainRunOpts
-mroBench :: HasMainRunOpts c_a20Jo => Lens' c_a20Jo Bool
-mroInput :: HasMainRunOpts c_a20Jo => Lens' c_a20Jo (Finite 25 -> Part -> IO (Maybe String))
-mroLock :: HasMainRunOpts c_a20Jo => Lens' c_a20Jo Bool
-mroSpec :: HasMainRunOpts c_a20Jo => Lens' c_a20Jo TestSpec
-mroTest :: HasMainRunOpts c_a20Jo => Lens' c_a20Jo Bool
+class HasMainRunOpts c_a20jQ
+mainRunOpts :: HasMainRunOpts c_a20jQ => Lens' c_a20jQ MainRunOpts
+mroBench :: HasMainRunOpts c_a20jQ => Lens' c_a20jQ Bool
+mroInput :: HasMainRunOpts c_a20jQ => Lens' c_a20jQ (Finite 25 -> Part -> IO (Maybe String))
+mroLock :: HasMainRunOpts c_a20jQ => Lens' c_a20jQ Bool
+mroSpec :: HasMainRunOpts c_a20jQ => Lens' c_a20jQ TestSpec
+mroTest :: HasMainRunOpts c_a20jQ => Lens' c_a20jQ Bool
 
 -- | Run, test, bench.
 mainRun :: (MonadIO m, MonadError [String] m) => Config -> MainRunOpts -> m (Map (Finite 25) (Map Part (Maybe Bool, Either [String] String)))
@@ -7114,10 +7098,10 @@ data MainViewOpts
 MVO :: !TestSpec -> !Bool -> MainViewOpts
 [_mvoSpec] :: MainViewOpts -> !TestSpec
 [_mvoWait] :: MainViewOpts -> !Bool
-class HasMainViewOpts c_a20Qq
-mainViewOpts :: HasMainViewOpts c_a20Qq => Lens' c_a20Qq MainViewOpts
-mvoSpec :: HasMainViewOpts c_a20Qq => Lens' c_a20Qq TestSpec
-mvoWait :: HasMainViewOpts c_a20Qq => Lens' c_a20Qq Bool
+class HasMainViewOpts c_a20qS
+mainViewOpts :: HasMainViewOpts c_a20qS => Lens' c_a20qS MainViewOpts
+mvoSpec :: HasMainViewOpts c_a20qS => Lens' c_a20qS TestSpec
+mvoWait :: HasMainViewOpts c_a20qS => Lens' c_a20qS Bool
 
 -- | View prompt
 mainView :: (MonadIO m, MonadError [String] m) => Config -> MainViewOpts -> m (Map (Finite 25) (Map Part Text))
@@ -7138,12 +7122,12 @@ MSO :: !ChallengeSpec -> !Bool -> !Bool -> !Bool -> MainSubmitOpts
 
 -- | Lock answer if submission succeeded? (Default: True)
 [_msoLock] :: MainSubmitOpts -> !Bool
-class HasMainSubmitOpts c_a20UJ
-mainSubmitOpts :: HasMainSubmitOpts c_a20UJ => Lens' c_a20UJ MainSubmitOpts
-msoForce :: HasMainSubmitOpts c_a20UJ => Lens' c_a20UJ Bool
-msoLock :: HasMainSubmitOpts c_a20UJ => Lens' c_a20UJ Bool
-msoSpec :: HasMainSubmitOpts c_a20UJ => Lens' c_a20UJ ChallengeSpec
-msoTest :: HasMainSubmitOpts c_a20UJ => Lens' c_a20UJ Bool
+class HasMainSubmitOpts c_a20vb
+mainSubmitOpts :: HasMainSubmitOpts c_a20vb => Lens' c_a20vb MainSubmitOpts
+msoForce :: HasMainSubmitOpts c_a20vb => Lens' c_a20vb Bool
+msoLock :: HasMainSubmitOpts c_a20vb => Lens' c_a20vb Bool
+msoSpec :: HasMainSubmitOpts c_a20vb => Lens' c_a20vb ChallengeSpec
+msoTest :: HasMainSubmitOpts c_a20vb => Lens' c_a20vb Bool
 
 -- | Submit and analyze result
 mainSubmit :: (MonadIO m, MonadError [String] m) => Config -> MainSubmitOpts -> m (Text, SubmitRes)
