@@ -6683,23 +6683,6 @@ module AOC.Challenge.Day20
 module AOC.Challenge.Day19
 
 
--- | Day 18. See <a>AOC.Solver</a> for the types used in this module!
---   
---   After completing the challenge, it is recommended to:
---   
---   <ul>
---   <li>Replace <a>AOC.Prelude</a> imports to specific modules (with
---   explicit imports) for readability.</li>
---   <li>Remove the <tt>-Wno-unused-imports</tt> and
---   <tt>-Wno-unused-top-binds</tt> pragmas.</li>
---   <li>Replace the partial type signatures underscores in the solution
---   types <tt>_ :~&gt; _</tt> with the actual types of inputs and outputs
---   of the solution. You can delete the type signatures completely and GHC
---   will recommend what should go in place of the underscores.</li>
---   </ul>
-module AOC.Challenge.Day18
-
-
 -- | Day 17. See <a>AOC.Solver</a> for the types used in this module!
 --   
 --   After completing the challenge, it is recommended to:
@@ -6715,8 +6698,32 @@ module AOC.Challenge.Day18
 --   will recommend what should go in place of the underscores.</li>
 --   </ul>
 module AOC.Challenge.Day17
-day17a :: _ :~> _
+type Point = V2 Int
+neighbs :: Point -> Set Point
+inBounds :: V2 Point -> Point -> Bool
+data Water
+WFlow :: Water
+WFlat :: Water
+WRise :: Water
+WSource :: Water
+data Terrain
+TWater :: Water -> Terrain
+[_tWater] :: Terrain -> Water
+TClay :: Terrain
+tWater :: Traversal' Terrain Water
+drainMap :: Set Point -> Int -> Point -> Map Point Bool
+fillWater :: Set Point -> Set Point
+day17a :: Set Point :~> _
 day17b :: _ :~> _
+parseVein :: String -> Set Point
+boundingBox :: [Point] -> V2 Point
+displayClay :: Set Point -> Set Point -> String
+instance GHC.Classes.Ord AOC.Challenge.Day17.Terrain
+instance GHC.Classes.Eq AOC.Challenge.Day17.Terrain
+instance GHC.Show.Show AOC.Challenge.Day17.Terrain
+instance GHC.Classes.Ord AOC.Challenge.Day17.Water
+instance GHC.Classes.Eq AOC.Challenge.Day17.Water
+instance GHC.Show.Show AOC.Challenge.Day17.Water
 
 
 -- | Template Haskell for discovering all named challenges in a given
@@ -6765,6 +6772,15 @@ charPart :: Char -> Maybe Part
 instance GHC.Classes.Ord AOC.Discover.ChallengeSpec
 instance GHC.Classes.Eq AOC.Discover.ChallengeSpec
 instance GHC.Show.Show AOC.Discover.ChallengeSpec
+
+
+-- | Day 18. See <a>AOC.Solver</a> for the types used in this module!
+module AOC.Challenge.Day18
+day18a :: World :~> Int
+day18b :: World :~> Int
+instance GHC.Classes.Ord AOC.Challenge.Day18.Terrain
+instance GHC.Classes.Eq AOC.Challenge.Day18.Terrain
+instance GHC.Show.Show AOC.Challenge.Day18.Terrain
 
 
 -- | Day 16. See <a>AOC.Solver</a> for the types used in this module!
@@ -7079,13 +7095,13 @@ MRO :: !TestSpec -> !Bool -> !Bool -> !Bool -> !Finite 25 -> Part -> IO (Maybe S
 
 -- | Manually supply input (Default: always return Nothing)
 [_mroInput] :: MainRunOpts -> !Finite 25 -> Part -> IO (Maybe String)
-class HasMainRunOpts c_a1WNo
-mainRunOpts :: HasMainRunOpts c_a1WNo => Lens' c_a1WNo MainRunOpts
-mroBench :: HasMainRunOpts c_a1WNo => Lens' c_a1WNo Bool
-mroInput :: HasMainRunOpts c_a1WNo => Lens' c_a1WNo (Finite 25 -> Part -> IO (Maybe String))
-mroLock :: HasMainRunOpts c_a1WNo => Lens' c_a1WNo Bool
-mroSpec :: HasMainRunOpts c_a1WNo => Lens' c_a1WNo TestSpec
-mroTest :: HasMainRunOpts c_a1WNo => Lens' c_a1WNo Bool
+class HasMainRunOpts c_a20IE
+mainRunOpts :: HasMainRunOpts c_a20IE => Lens' c_a20IE MainRunOpts
+mroBench :: HasMainRunOpts c_a20IE => Lens' c_a20IE Bool
+mroInput :: HasMainRunOpts c_a20IE => Lens' c_a20IE (Finite 25 -> Part -> IO (Maybe String))
+mroLock :: HasMainRunOpts c_a20IE => Lens' c_a20IE Bool
+mroSpec :: HasMainRunOpts c_a20IE => Lens' c_a20IE TestSpec
+mroTest :: HasMainRunOpts c_a20IE => Lens' c_a20IE Bool
 
 -- | Run, test, bench.
 mainRun :: (MonadIO m, MonadError [String] m) => Config -> MainRunOpts -> m (Map (Finite 25) (Map Part (Maybe Bool, Either [String] String)))
@@ -7098,10 +7114,10 @@ data MainViewOpts
 MVO :: !TestSpec -> !Bool -> MainViewOpts
 [_mvoSpec] :: MainViewOpts -> !TestSpec
 [_mvoWait] :: MainViewOpts -> !Bool
-class HasMainViewOpts c_a1WUq
-mainViewOpts :: HasMainViewOpts c_a1WUq => Lens' c_a1WUq MainViewOpts
-mvoSpec :: HasMainViewOpts c_a1WUq => Lens' c_a1WUq TestSpec
-mvoWait :: HasMainViewOpts c_a1WUq => Lens' c_a1WUq Bool
+class HasMainViewOpts c_a20PG
+mainViewOpts :: HasMainViewOpts c_a20PG => Lens' c_a20PG MainViewOpts
+mvoSpec :: HasMainViewOpts c_a20PG => Lens' c_a20PG TestSpec
+mvoWait :: HasMainViewOpts c_a20PG => Lens' c_a20PG Bool
 
 -- | View prompt
 mainView :: (MonadIO m, MonadError [String] m) => Config -> MainViewOpts -> m (Map (Finite 25) (Map Part Text))
@@ -7122,12 +7138,12 @@ MSO :: !ChallengeSpec -> !Bool -> !Bool -> !Bool -> MainSubmitOpts
 
 -- | Lock answer if submission succeeded? (Default: True)
 [_msoLock] :: MainSubmitOpts -> !Bool
-class HasMainSubmitOpts c_a1WYJ
-mainSubmitOpts :: HasMainSubmitOpts c_a1WYJ => Lens' c_a1WYJ MainSubmitOpts
-msoForce :: HasMainSubmitOpts c_a1WYJ => Lens' c_a1WYJ Bool
-msoLock :: HasMainSubmitOpts c_a1WYJ => Lens' c_a1WYJ Bool
-msoSpec :: HasMainSubmitOpts c_a1WYJ => Lens' c_a1WYJ ChallengeSpec
-msoTest :: HasMainSubmitOpts c_a1WYJ => Lens' c_a1WYJ Bool
+class HasMainSubmitOpts c_a20TZ
+mainSubmitOpts :: HasMainSubmitOpts c_a20TZ => Lens' c_a20TZ MainSubmitOpts
+msoForce :: HasMainSubmitOpts c_a20TZ => Lens' c_a20TZ Bool
+msoLock :: HasMainSubmitOpts c_a20TZ => Lens' c_a20TZ Bool
+msoSpec :: HasMainSubmitOpts c_a20TZ => Lens' c_a20TZ ChallengeSpec
+msoTest :: HasMainSubmitOpts c_a20TZ => Lens' c_a20TZ Bool
 
 -- | Submit and analyze result
 mainSubmit :: (MonadIO m, MonadError [String] m) => Config -> MainSubmitOpts -> m (Text, SubmitRes)
