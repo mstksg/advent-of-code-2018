@@ -97,8 +97,8 @@ day18b = MkSol
     , sShow  = show
     , sSolve = \m0 -> Just $
         let mp = stepN 1000000000 m0
-        in  M.size (M.filter (== TTree) mp)
-             * M.size (M.filter (== TYard) mp)
+        in  lengthOf (folded . only TTree) mp
+              * lengthOf (folded . only TYard) mp
     }
 
 parseForest :: String -> World
