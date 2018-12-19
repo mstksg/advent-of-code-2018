@@ -6763,8 +6763,8 @@ instance GHC.Show.Show AOC.Discover.ChallengeSpec
 
 -- | Day 19. See <a>AOC.Solver</a> for the types used in this module!
 module AOC.Challenge.Day19
-day19a :: (Finite 6, Memory) :~> Int
-day19b :: (Finite 6, Memory) :~> Int
+day19a :: (Finite 6, Program) :~> Int
+day19b :: (Finite 6, Program) :~> Int
 instance GHC.Classes.Ord AOC.Challenge.Day19.Instr
 instance GHC.Classes.Eq AOC.Challenge.Day19.Instr
 instance GHC.Show.Show AOC.Challenge.Day19.Instr
