@@ -1,6 +1,3 @@
-{-# OPTIONS_GHC -Wno-unused-imports   #-}
-{-# OPTIONS_GHC -Wno-unused-top-binds #-}
-
 -- |
 -- Module      : AOC.Challenge.Day19
 -- Copyright   : (c) Justin Le 2018
@@ -11,27 +8,24 @@
 -- Portability : non-portable
 --
 -- Day 19.  See "AOC.Solver" for the types used in this module!
---
--- After completing the challenge, it is recommended to:
---
--- *   Replace "AOC.Prelude" imports to specific modules (with explicit
---     imports) for readability.
--- *   Remove the @-Wno-unused-imports@ and @-Wno-unused-top-binds@
---     pragmas.
--- *   Replace the partial type signatures underscores in the solution
---     types @_ :~> _@ with the actual types of inputs and outputs of the
---     solution.  You can delete the type signatures completely and GHC
---     will recommend what should go in place of the underscores.
 
 module AOC.Challenge.Day19 (
     day19a
   , day19b
   ) where
 
-import           AOC.Prelude
-import           Control.Lens
-import           Data.Bitraversable
-import           Data.Bits
+import           AOC.Common                 (iterateMaybe)
+import           AOC.Solver                 ((:~>)(..))
+import           Control.Applicative        ((<|>))
+import           Control.Lens               ((^.), (.~), (+~), (^?), (^?!), set, ix, enum)
+import           Control.Monad              (mfilter)
+import           Data.Bits                  ((.&.), (.|.))
+import           Data.Char                  (toLower)
+import           Data.Finite                (Finite, packFinite)
+import           Data.Foldable              (toList)
+import           Data.Function              ((&))
+import           Data.Functor               ((<&>))
+import           Data.Void                  (Void)
 import qualified Data.List.NonEmpty         as NE
 import qualified Data.Map                   as M
 import qualified Data.Vector                as UV
@@ -93,7 +87,7 @@ stepMemory iPtr mem r0 = (mem ^? ix i) <&> \instr ->
   where
     i = r0 ^. V.ix iPtr
 
-day19a :: _ :~> _
+day19a :: (Finite 6, Memory) :~> Int
 day19a = MkSol
     { sParse = P.parseMaybe memParser
     , sShow  = show
@@ -102,7 +96,7 @@ day19a = MkSol
                         $ V.replicate 0
     }
 
-day19b :: _ :~> _
+day19b :: (Finite 6, Memory) :~> Int
 day19b = MkSol
     { sParse = P.parseMaybe memParser
     , sShow  = show
@@ -165,7 +159,7 @@ addIfIsFactor i = do
     i' = fromIntegral i
 
 optimize :: Finite 6 -> Peephole [Instr]
-optimize i = concat <$> many (Pa.try (addIfIsFactor i) <|> ((:[]) <$> peep))
+optimize i = concat <$> P.many (Pa.try (addIfIsFactor i) <|> ((:[]) <$> peep))
 
 
 
