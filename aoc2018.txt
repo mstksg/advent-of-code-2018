@@ -163,11 +163,34 @@ deleteFinite :: KnownNat n => Finite (n + 1) -> Finite (n + 1) -> Maybe (Finite 
 -- | <a>foldMap</a>, but in parallel.
 foldMapPar :: Monoid b => (a -> b) -> [a] -> b
 
--- | <tt>foldMap1</tt>, but in parallel.
+-- | <a>foldMap1</a>, but in parallel.
 foldMapPar1 :: Semigroup b => (a -> b) -> NonEmpty a -> b
 
 -- | <a>Fold</a> for computing mean and variance
 meanVar :: Fractional a => Fold a (a, a)
+
+-- | 2D Coordinate
+type Point = V2 Int
+
+-- | Find the minimum and maximum x and y from a collection of points.
+--   
+--   Returns <tt><a>V2</a> (V2 xMin yMin) (V2 xMax yMax)</tt>.
+boundingBox :: Foldable1 f => f Point -> V2 Point
+
+-- | A version of <a>boundingBox</a> that works for normal possibly-empty
+--   lists.
+boundingBox' :: Foldable f => f Point -> Maybe (V2 Point)
+parseAsciiMap :: (Char -> Maybe a) -> String -> Map Point a
+
+-- | It's <a>Point</a>, but with a newtype wrapper so we have an <a>Ord</a>
+--   that sorts by y first, then x
+newtype ScanPoint
+SP :: Point -> ScanPoint
+[_getSP] :: ScanPoint -> Point
+instance GHC.Num.Num AOC.Common.ScanPoint
+instance GHC.Show.Show AOC.Common.ScanPoint
+instance GHC.Classes.Eq AOC.Common.ScanPoint
+instance GHC.Classes.Ord AOC.Common.ScanPoint
 
 module AOC.Util.DynoMap
 newtype DynoMap
@@ -6391,6 +6414,15 @@ maybeToEither :: MonadError e m => e -> Maybe a -> m a
 --   takes an <tt>a -&gt; Maybe b</tt> and returns the first success.
 findMaybe :: Foldable t => (a -> Maybe b) -> t a -> Maybe b
 
+-- | It's <a>Point</a>, but with a newtype wrapper so we have an <a>Ord</a>
+--   that sorts by y first, then x
+newtype ScanPoint
+SP :: Point -> ScanPoint
+[_getSP] :: ScanPoint -> Point
+
+-- | 2D Coordinate
+type Point = V2 Int
+
 -- | Strict (!!)
 (!!!) :: [a] -> Int -> a
 
@@ -6468,11 +6500,21 @@ deleteFinite :: KnownNat n => Finite (n + 1) -> Finite (n + 1) -> Maybe (Finite 
 -- | <a>foldMap</a>, but in parallel.
 foldMapPar :: Monoid b => (a -> b) -> [a] -> b
 
--- | <tt>foldMap1</tt>, but in parallel.
+-- | <a>foldMap1</a>, but in parallel.
 foldMapPar1 :: Semigroup b => (a -> b) -> NonEmpty a -> b
 
 -- | <a>Fold</a> for computing mean and variance
 meanVar :: Fractional a => Fold a (a, a)
+
+-- | Find the minimum and maximum x and y from a collection of points.
+--   
+--   Returns <tt><a>V2</a> (V2 xMin yMin) (V2 xMax yMax)</tt>.
+boundingBox :: Foldable1 f => f Point -> V2 Point
+
+-- | A version of <a>boundingBox</a> that works for normal possibly-empty
+--   lists.
+boundingBox' :: Foldable f => f Point -> Maybe (V2 Point)
+parseAsciiMap :: (Char -> Maybe a) -> String -> Map Point a
 
 -- | Errors that might happen when running a <a>:~&gt;</a> on some input.
 data SolutionError
@@ -6681,6 +6723,16 @@ module AOC.Challenge.Day20
 --   will recommend what should go in place of the underscores.</li>
 --   </ul>
 module AOC.Challenge.Day19
+day19a :: _ :~> _
+day19b :: _ :~> _
+instance GHC.Classes.Ord AOC.Challenge.Day19.Instr
+instance GHC.Classes.Eq AOC.Challenge.Day19.Instr
+instance GHC.Show.Show AOC.Challenge.Day19.Instr
+instance GHC.Enum.Bounded AOC.Challenge.Day19.OpCode
+instance GHC.Enum.Enum AOC.Challenge.Day19.OpCode
+instance GHC.Classes.Ord AOC.Challenge.Day19.OpCode
+instance GHC.Classes.Eq AOC.Challenge.Day19.OpCode
+instance GHC.Show.Show AOC.Challenge.Day19.OpCode
 
 
 -- | Template Haskell for discovering all named challenges in a given
@@ -6742,8 +6794,8 @@ instance GHC.Show.Show AOC.Challenge.Day18.Terrain
 
 -- | Day 17. See <a>AOC.Solver</a> for the types used in this module!
 module AOC.Challenge.Day17
-day17a :: Set Point :~> _
-day17b :: Set Point :~> _
+day17a :: NESet Point :~> Int
+day17b :: NESet Point :~> Int
 
 
 -- | Day 16. See <a>AOC.Solver</a> for the types used in this module!
@@ -6768,10 +6820,6 @@ day15b :: (World, Entities) :~> Int
 instance GHC.Base.Functor AOC.Challenge.Day15.BattleLog
 instance GHC.Classes.Eq a => GHC.Classes.Eq (AOC.Challenge.Day15.BattleLog a)
 instance GHC.Show.Show a => GHC.Show.Show (AOC.Challenge.Day15.BattleLog a)
-instance GHC.Num.Num AOC.Challenge.Day15.ScanPoint
-instance GHC.Show.Show AOC.Challenge.Day15.ScanPoint
-instance GHC.Classes.Eq AOC.Challenge.Day15.ScanPoint
-instance GHC.Classes.Ord AOC.Challenge.Day15.ScanPoint
 instance GHC.Classes.Eq AOC.Challenge.Day15.Entity
 instance GHC.Show.Show AOC.Challenge.Day15.Entity
 instance GHC.Enum.Bounded AOC.Challenge.Day15.EType
@@ -6791,10 +6839,6 @@ day13a :: (World, Carts) :~> Point
 day13b :: (World, Carts) :~> Point
 instance GHC.Base.Functor AOC.Challenge.Day13.CartLog
 instance GHC.Show.Show a => GHC.Show.Show (AOC.Challenge.Day13.CartLog a)
-instance GHC.Num.Num AOC.Challenge.Day13.ScanPoint
-instance GHC.Show.Show AOC.Challenge.Day13.ScanPoint
-instance GHC.Classes.Eq AOC.Challenge.Day13.ScanPoint
-instance GHC.Classes.Ord AOC.Challenge.Day13.ScanPoint
 instance GHC.Show.Show AOC.Challenge.Day13.Cart
 instance GHC.Classes.Eq AOC.Challenge.Day13.Cart
 instance GHC.Enum.Bounded AOC.Challenge.Day13.Dir
@@ -7058,13 +7102,13 @@ MRO :: !TestSpec -> !Bool -> !Bool -> !Bool -> !Finite 25 -> Part -> IO (Maybe S
 
 -- | Manually supply input (Default: always return Nothing)
 [_mroInput] :: MainRunOpts -> !Finite 25 -> Part -> IO (Maybe String)
-class HasMainRunOpts c_a200B
-mainRunOpts :: HasMainRunOpts c_a200B => Lens' c_a200B MainRunOpts
-mroBench :: HasMainRunOpts c_a200B => Lens' c_a200B Bool
-mroInput :: HasMainRunOpts c_a200B => Lens' c_a200B (Finite 25 -> Part -> IO (Maybe String))
-mroLock :: HasMainRunOpts c_a200B => Lens' c_a200B Bool
-mroSpec :: HasMainRunOpts c_a200B => Lens' c_a200B TestSpec
-mroTest :: HasMainRunOpts c_a200B => Lens' c_a200B Bool
+class HasMainRunOpts c_a22PA
+mainRunOpts :: HasMainRunOpts c_a22PA => Lens' c_a22PA MainRunOpts
+mroBench :: HasMainRunOpts c_a22PA => Lens' c_a22PA Bool
+mroInput :: HasMainRunOpts c_a22PA => Lens' c_a22PA (Finite 25 -> Part -> IO (Maybe String))
+mroLock :: HasMainRunOpts c_a22PA => Lens' c_a22PA Bool
+mroSpec :: HasMainRunOpts c_a22PA => Lens' c_a22PA TestSpec
+mroTest :: HasMainRunOpts c_a22PA => Lens' c_a22PA Bool
 
 -- | Run, test, bench.
 mainRun :: (MonadIO m, MonadError [String] m) => Config -> MainRunOpts -> m (Map (Finite 25) (Map Part (Maybe Bool, Either [String] String)))
@@ -7077,10 +7121,10 @@ data MainViewOpts
 MVO :: !TestSpec -> !Bool -> MainViewOpts
 [_mvoSpec] :: MainViewOpts -> !TestSpec
 [_mvoWait] :: MainViewOpts -> !Bool
-class HasMainViewOpts c_a207D
-mainViewOpts :: HasMainViewOpts c_a207D => Lens' c_a207D MainViewOpts
-mvoSpec :: HasMainViewOpts c_a207D => Lens' c_a207D TestSpec
-mvoWait :: HasMainViewOpts c_a207D => Lens' c_a207D Bool
+class HasMainViewOpts c_a22WC
+mainViewOpts :: HasMainViewOpts c_a22WC => Lens' c_a22WC MainViewOpts
+mvoSpec :: HasMainViewOpts c_a22WC => Lens' c_a22WC TestSpec
+mvoWait :: HasMainViewOpts c_a22WC => Lens' c_a22WC Bool
 
 -- | View prompt
 mainView :: (MonadIO m, MonadError [String] m) => Config -> MainViewOpts -> m (Map (Finite 25) (Map Part Text))
@@ -7101,12 +7145,12 @@ MSO :: !ChallengeSpec -> !Bool -> !Bool -> !Bool -> MainSubmitOpts
 
 -- | Lock answer if submission succeeded? (Default: True)
 [_msoLock] :: MainSubmitOpts -> !Bool
-class HasMainSubmitOpts c_a20bW
-mainSubmitOpts :: HasMainSubmitOpts c_a20bW => Lens' c_a20bW MainSubmitOpts
-msoForce :: HasMainSubmitOpts c_a20bW => Lens' c_a20bW Bool
-msoLock :: HasMainSubmitOpts c_a20bW => Lens' c_a20bW Bool
-msoSpec :: HasMainSubmitOpts c_a20bW => Lens' c_a20bW ChallengeSpec
-msoTest :: HasMainSubmitOpts c_a20bW => Lens' c_a20bW Bool
+class HasMainSubmitOpts c_a230V
+mainSubmitOpts :: HasMainSubmitOpts c_a230V => Lens' c_a230V MainSubmitOpts
+msoForce :: HasMainSubmitOpts c_a230V => Lens' c_a230V Bool
+msoLock :: HasMainSubmitOpts c_a230V => Lens' c_a230V Bool
+msoSpec :: HasMainSubmitOpts c_a230V => Lens' c_a230V ChallengeSpec
+msoTest :: HasMainSubmitOpts c_a230V => Lens' c_a230V Bool
 
 -- | Submit and analyze result
 mainSubmit :: (MonadIO m, MonadError [String] m) => Config -> MainSubmitOpts -> m (Text, SubmitRes)

@@ -17,22 +17,23 @@ module AOC.Challenge.Day10 (
   , centralize
   ) where
 
-import           AOC.Common     (clearOut)
-import           AOC.Solver     ((:~&gt;)(..))
-import           Control.Monad  (guard)
-import           Data.Bifunctor (second)
-import           Data.Char      (isDigit)
-import           Data.Foldable  (toList, foldMap)
-import           Data.List      (unfoldr, uncons)
-import           Data.Map       (Map)
-import           Data.Maybe     (catMaybes)
-import           Data.Semigroup (Min(..), Max(..), Sum(..))
-import           Data.Set       (Set)
-import           Linear         (V2(..))
-import           Text.Heredoc   (here)
-import qualified Data.Map       as M
-import qualified Data.Set       as S
-import qualified Linear         as L
+import           AOC.Common        (clearOut, boundingBox)
+import           AOC.Solver        ((:~&gt;)(..))
+import           Control.Monad     (guard)
+import           Data.Bifunctor    (second)
+import           Data.Char         (isDigit)
+import           Data.Foldable     (toList, foldMap)
+import           Data.List         (unfoldr, uncons)
+import           Data.Map          (Map)
+import           Data.Maybe        (catMaybes)
+import           Data.Semigroup    (Min(..), Max(..), Sum(..))
+import           Data.Set          (Set)
+import           Linear            (V2(..))
+import           Text.Heredoc      (here)
+import qualified Data.Map          as M
+import qualified Data.Set          as S
+import qualified Data.Set.NonEmpty as NES
+import qualified Linear            as L
 
 type Point   = V2 Double
 type Lattice = V2 Int
@@ -72,12 +73,6 @@ day10b = MkSol
     , sSolve = Just . snd . uncurry findWord
     }
 
-boundingBox :: [Lattice] -&gt; V2 Lattice
-boundingBox ps = V2 xMin yMin `V2` V2 xMax yMax
-  where
-    (Min xMin, Min yMin, Max xMax, Max yMax) = flip foldMap ps $ \(V2 x y) -&gt;
-        (Min x, Min y, Max x, Max y)
-
 -- | New solution: Parse the set of points into a string, based on
 -- 'letterforms'.
 parseResult :: Set Lattice -&gt; String
@@ -85,7 +80,7 @@ parseResult ps = case M.lookup letter letterMap of
     Nothing -&gt; []
     Just c  -&gt; c : parseResult rest
   where
-    origin `V2` _  = boundingBox (toList ps)
+    origin `V2` _  = boundingBox . NES.unsafeFromSet $ ps
     shiftedPs      = subtract origin `S.map` ps
     (letter, rest) = S.partition (\(V2 x y) -&gt; x &lt; 6 &amp;&amp; y &lt; 10) shiftedPs
 
@@ -133,4 +128,4 @@ letterforms = (&quot;ABCEFGHJKLNPRXZ&quot;,[here|
 #....##....##....##.....#.....#...###....##...#.#...#.#.....#...###.....#....##....##.....
 #....######..####.#######......###.##....#.###..#....########....##.....#....##....#######
 </span><span class="hs-special">|]</span><span class="hs-special">)</span><span>
-</span><a name="line-136"></a></pre></body></html>
+</span><a name="line-131"></a></pre></body></html>
