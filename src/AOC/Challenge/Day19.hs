@@ -18,16 +18,15 @@ import           AOC.Common                 (iterateMaybe)
 import           AOC.Solver                 ((:~>)(..))
 import           Control.Applicative        ((<|>))
 import           Control.Lens               ((^.), (.~), (+~), (^?), (^?!), set, ix, enum)
-import           Control.Monad              (mfilter)
+import           Control.Monad              (mfilter, guard)
 import           Data.Bits                  ((.&.), (.|.))
 import           Data.Char                  (toLower)
 import           Data.Finite                (Finite, packFinite)
-import           Data.Foldable              (toList)
+import           Data.Foldable              (toList, forM_)
 import           Data.Function              ((&))
 import           Data.Functor               ((<&>))
 import           Data.Void                  (Void)
 import qualified Data.List.NonEmpty         as NE
-import qualified Data.Map                   as M
 import qualified Data.Vector                as UV
 import qualified Data.Vector.Unboxed.Sized  as V
 import qualified Text.Megaparsec            as P
@@ -40,7 +39,7 @@ type Reg = V.Vector 6 Int
 type Memory = UV.Vector Instr
 
 data Instr = I { _iOp  :: OpCode
-               , _iInA :: Finite 6
+               , _iInA :: Int
                , _iInB :: Int
                , _iOut :: Finite 6
                }
@@ -58,23 +57,23 @@ data OpCode = OAddR | OAddI
 
 runOp :: Instr -> Reg -> Reg
 runOp I{..} = case _iOp of
-    OAddR -> \r -> r & V.ix _iOut .~ r ^. V.ix _iInA  +  r ^?! ix _iInB
-    OAddI -> \r -> r & V.ix _iOut .~ r ^. V.ix _iInA  +  _iInB
-    OMulR -> \r -> r & V.ix _iOut .~ r ^. V.ix _iInA  *  r ^?! ix _iInB
-    OMulI -> \r -> r & V.ix _iOut .~ r ^. V.ix _iInA  *  _iInB
-    OBanR -> \r -> r & V.ix _iOut .~ r ^. V.ix _iInA .&. r ^?! ix _iInB
-    OBanI -> \r -> r & V.ix _iOut .~ r ^. V.ix _iInA .&. _iInB
-    OBorR -> \r -> r & V.ix _iOut .~ r ^. V.ix _iInA .|. r ^?! ix _iInB
-    OBorI -> \r -> r & V.ix _iOut .~ r ^. V.ix _iInA .|. _iInB
-    OSetR -> \r -> r & V.ix _iOut .~ r ^. V.ix _iInA
-    OSetI -> \r -> r & V.ix _iOut .~                     fromIntegral _iInA
-    OGtIR -> \r -> r & V.ix _iOut . enum .~ (fromIntegral _iInA  > r ^?! ix _iInB)
-    OGtRI -> \r -> r & V.ix _iOut . enum .~ (r ^. V.ix _iInA     > _iInB)
-    OGtRR -> \r -> r & V.ix _iOut . enum .~ (r ^. V.ix _iInA     > r ^?! ix _iInB)
-    OEqIR -> \r -> r & V.ix _iOut . enum .~ (fromIntegral _iInA == r ^?! ix _iInB)
-    OEqRI -> \r -> r & V.ix _iOut . enum .~ (r ^. V.ix _iInA    == _iInB)
-    OEqRR -> \r -> r & V.ix _iOut . enum .~ (r ^. V.ix _iInA    == r ^?! ix _iInB)
-    OModR -> \r -> r & V.ix _iOut .~ r ^. V.ix _iInA `mod` r ^?! ix _iInB
+    OAddR -> \r -> r & V.ix _iOut .~ r ^?! ix _iInA  +  r ^?! ix _iInB
+    OAddI -> \r -> r & V.ix _iOut .~ r ^?! ix _iInA  +  _iInB
+    OMulR -> \r -> r & V.ix _iOut .~ r ^?! ix _iInA  *  r ^?! ix _iInB
+    OMulI -> \r -> r & V.ix _iOut .~ r ^?! ix _iInA  *  _iInB
+    OBanR -> \r -> r & V.ix _iOut .~ r ^?! ix _iInA .&. r ^?! ix _iInB
+    OBanI -> \r -> r & V.ix _iOut .~ r ^?! ix _iInA .&. _iInB
+    OBorR -> \r -> r & V.ix _iOut .~ r ^?! ix _iInA .|. r ^?! ix _iInB
+    OBorI -> \r -> r & V.ix _iOut .~ r ^?! ix _iInA .|. _iInB
+    OSetR -> \r -> r & V.ix _iOut .~ r ^?! ix _iInA
+    OSetI -> \r -> r & V.ix _iOut .~          _iInA
+    OGtIR -> \r -> r & V.ix _iOut . enum .~ (         _iInA  > r ^?! ix _iInB)
+    OGtRI -> \r -> r & V.ix _iOut . enum .~ (r ^?! ix _iInA  >          _iInB)
+    OGtRR -> \r -> r & V.ix _iOut . enum .~ (r ^?! ix _iInA  > r ^?! ix _iInB)
+    OEqIR -> \r -> r & V.ix _iOut . enum .~ (         _iInA == r ^?! ix _iInB)
+    OEqRI -> \r -> r & V.ix _iOut . enum .~ (r ^?! ix _iInA ==          _iInB)
+    OEqRR -> \r -> r & V.ix _iOut . enum .~ (r ^?! ix _iInA == r ^?! ix _iInB)
+    OModR -> \r -> r & V.ix _iOut .~ r ^?! ix _iInA `mod` r ^?! ix _iInB
     ONoOp -> id
 
 stepMemory
@@ -122,44 +121,55 @@ runOptimizer i m0 = checkSize
       | length m == length m0 = m
       | otherwise             = errorWithoutStackTrace "optimization should preserve length"
 
-peep :: Peephole Instr
-peep = Pa.tokenPrim show (\p _ _ -> Pa.incSourceLine p 1) Just
 currPos :: Peephole Int
 currPos = subtract 1 . Pa.sourceLine <$> Pa.getPosition
+
+peep
+    :: Maybe Int                -- ^ expected A
+    -> Maybe Int                -- ^ expected B
+    -> Maybe (Finite 6)         -- ^ expected C
+    -> Peephole Instr
+peep eA eB eC = Pa.tokenPrim show (\p _ _ -> Pa.incSourceLine p 1) $ \i@I{..} -> do
+    forM_ eA $ guard . (== _iInA)
+    forM_ eB $ guard . (== _iInB)
+    forM_ eC $ guard . (== _iOut)
+    pure i
+
 
 addIfIsFactor
     :: Finite 6      -- ^ instruction register
     -> Peephole [Instr]
 addIfIsFactor i = do
     a <- currPos
-    I OSetI 1             _              n             <- peep
-    I OMulR m             ((==n)
-                    .fromIntegral->True) z             <- peep         -- this can be cleaner with GADT OpCode
-    I OEqRR ((==z)->True) t              ((==z)->True) <- peep
-    I OAddR ((==z)->True) ((==i')->True) ((==i)->True) <- peep
-    I OAddI ((==i)->True) 1              ((==i)->True) <- peep
-    I OAddR ((==m)->True) o              _             <- mfilter (\I{..} -> fromIntegral _iInB == _iOut) peep
-    I OAddI ((==n)->True) 1              ((==n)->True) <- peep
-    I OGtRR ((==n)->True) ((==t )->True) ((==z)->True) <- peep
-    I OAddR ((==i)->True) ((==z)
-                    .fromIntegral->True) ((==i)->True) <- peep
-    I OSetI _             _              ((==i)->True) <- mfilter (\I{..} -> fromIntegral _iInA == a) peep
+    let a' = fromIntegral a
+    I OSetI _ _ n <- peep (Just 1 ) Nothing   Nothing
+    let n' = fromIntegral n
+    I OMulR m _ z <- peep Nothing   (Just n') Nothing
+    let z' = fromIntegral z
+    I OEqRR _ t _ <- peep (Just z') Nothing   (Just z )
+    I OAddR _ _ _ <- peep (Just z') (Just i') (Just i )
+    I OAddI _ _ _ <- peep (Just i') (Just 1 ) (Just i )
+    I OAddR _ o _ <- mfilter (\I{..} -> fromIntegral _iInB == _iOut)
+                   $ peep (Just m ) Nothing   Nothing
+    I OAddI _ _ _ <- peep (Just n') (Just 1 ) (Just n )
+    I OGtRR _ _ _ <- peep (Just n') (Just t ) (Just z )
+    I OAddR _ _ _ <- peep (Just i') (Just z') (Just i )
+    I OSetI _ _ _ <- peep (Just a') Nothing   (Just i )
     b <- currPos
     let t' = fromIntegral t
         o' = fromIntegral o
-        m' = fromIntegral m
     pure . take (b - a) $
-        [ I OModR t' m' z           -- store (t `mod` m) to z
-        , I OEqRI z  0  z           -- is z zero?
-        , I OAddR z  i' i           -- if yes, jump down
-        , I OAddI i  1  i           -- otherwise, jump down even more
+        [ I OModR t' m  z           -- store (t `mod` m) to z
+        , I OEqRI z' 0  z           -- is z zero?
+        , I OAddR z' i' i           -- if yes, jump down
+        , I OAddI i' 1  i           -- otherwise, jump down even more
         , I OAddR m  o  o'          -- increment the thing
         ] ++ repeat (I ONoOp 0 0 0)
   where
     i' = fromIntegral i
 
 optimize :: Finite 6 -> Peephole [Instr]
-optimize i = concat <$> P.many (Pa.try (addIfIsFactor i) <|> ((:[]) <$> peep))
+optimize i = concat <$> P.many (Pa.try (addIfIsFactor i) <|> ((:[]) <$> peep Nothing Nothing Nothing))
 
 
 
@@ -173,7 +183,7 @@ memParser = (,) <$> (P.string "#ip " `P.between` P.newline) parseFinite
 
 instrParser :: Parser Instr
 instrParser = I <$> parseOpCode <* P.char ' '
-                <*> parseFinite <* P.char ' '
+                <*> P.decimal   <* P.char ' '
                 <*> P.decimal   <* P.char ' '
                 <*> parseFinite <* P.skipMany (P.satisfy (/= '\n'))
   where
