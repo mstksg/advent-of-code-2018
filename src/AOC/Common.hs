@@ -1,3 +1,6 @@
+{-# LANGUAGE TypeFamilies    #-}
+{-# OPTIONS_GHC -Wno-orphans #-}
+
 -- |
 -- Module      : AOC.Common
 -- Copyright   : (c) Justin Le 2018
@@ -40,6 +43,7 @@ module AOC.Common (
   , parseAsciiMap
   , asciiGrid
   , ScanPoint(..)
+  , displayAsciiMap
   ) where
 
 import           AOC.Util
@@ -49,19 +53,20 @@ import           Data.Finite
 import           Data.Foldable
 import           Data.Function
 import           Data.List
-import           Data.List.NonEmpty          (NonEmpty)
-import           Data.Map                    (Map)
-import           Data.Map.NonEmpty           (NEMap)
+import           Data.List.NonEmpty                 (NonEmpty)
+import           Data.Map                           (Map)
+import           Data.Map.NonEmpty                  (NEMap)
 import           Data.Ord
 import           Data.Semigroup
 import           Data.Semigroup.Foldable
 import           GHC.TypeNats
-import           Linear                      (V2(..), _x, _y)
-import qualified Control.Foldl               as F
-import qualified Data.List.NonEmpty          as NE
-import qualified Data.Map                    as M
-import qualified Data.Map.NonEmpty           as NEM
-import qualified Data.Set                    as S
+import           Linear                             (V2(..), _x, _y)
+import qualified Control.Foldl                      as F
+import qualified Data.List.NonEmpty                 as NE
+import qualified Data.Map                           as M
+import qualified Data.Map.NonEmpty                  as NEM
+import qualified Data.Set                           as S
+import qualified Data.Vector.Generic.Sized.Internal as SVG
 
 -- | Strict (!!)
 (!!!) :: [a] -> Int -> a
@@ -228,3 +233,26 @@ parseAsciiMap f = ifoldMapOf (asciiGrid <. folding f) M.singleton
 
 asciiGrid :: IndexedFold Point String Char
 asciiGrid = reindexed (uncurry (flip V2)) (lined <.> folded)
+
+displayAsciiMap
+    :: Char             -- ^ default tile
+    -> Map Point Char   -- ^ tile map
+    -> String
+displayAsciiMap d (NEM.IsNonEmpty mp) = unlines
+    [ [ NEM.findWithDefault d (V2 x y) mp
+      | x <- [xMin .. xMax]
+      ]
+    | y <- [yMin .. yMax]
+    ]
+  where
+    V2 xMin yMin `V2` V2 xMax yMax = boundingBox $ NEM.keysSet mp
+displayAsciiMap _ _ = ""
+
+
+
+
+type instance Index   (SVG.Vector v n a) = Int
+type instance IxValue (SVG.Vector v n a) = a
+
+instance (Ixed (v a), Index (v a) ~ Int, IxValue (v a) ~ a) => Ixed (SVG.Vector v n a) where
+    ix i f (SVG.Vector v) = SVG.Vector <$> ix i f v

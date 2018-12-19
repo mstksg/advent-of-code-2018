@@ -16,7 +16,7 @@ module AOC.Challenge.Day17 (
   , day17b
   ) where
 
-import           AOC.Common              (clearOut, Point, boundingBox)
+import           AOC.Common              (clearOut, Point, boundingBox, displayAsciiMap)
 import           AOC.Solver              ((:~>)(..))
 import           Control.Lens            ((^.))
 import           Control.Monad           (void, when)
@@ -116,16 +116,7 @@ parseVein ('y':(map read.words.clearOut(not.isDigit)->(y:x0:x1:_)))
 parseVein _ = S.empty
 
 _displayClay :: Set Point -> Set Point -> String
-_displayClay cl w = unlines
-    [ [ maybe '.' label $ M.lookup (V2 x y) terrain
-      | x <- [xMin .. xMax]
-      ]
-    | y <- [yMin .. yMax]
-    ]
+_displayClay cl w = displayAsciiMap '.' terrain
   where
-    terrain = M.fromSet (const False) cl
-           <> M.fromSet (const True) w
-    label False = '#'
-    label True  = '*'
-    V2 xMin yMin `V2` V2 xMax yMax = boundingBox . NE.fromList . M.keys
-                                   $ terrain
+    terrain = M.fromSet (const '#') cl
+           <> M.fromSet (const '*') w
