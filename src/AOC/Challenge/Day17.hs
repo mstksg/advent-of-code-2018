@@ -16,28 +16,24 @@ module AOC.Challenge.Day17 (
   , day17b
   ) where
 
-import           AOC.Common          (clearOut)
-import           AOC.Solver          ((:~>)(..))
-import           Control.Lens        ((^.))
-import           Control.Monad       (void, when)
-import           Control.Monad.State (gets, modify, execState)
-import           Data.Char           (isDigit)
-import           Data.Foldable       (toList)
-import           Data.Ix             (range)
-import           Data.Map            (Map)
-import           Data.Semigroup      (Min(..), Max(..))
-import           Data.Set            (Set)
-import           Linear              (V2(..), _y)
-import qualified Data.Map            as M
-import qualified Data.Set            as S
-
-type Point = V2 Int
-
-boundingBox :: [Point] -> V2 Point
-boundingBox ps = V2 xMin yMin `V2` V2 xMax yMax
-  where
-    (Min xMin, Min yMin, Max xMax, Max yMax) = flip foldMap ps $ \(V2 x y) ->
-        (Min x, Min y, Max x, Max y)
+import           AOC.Common              (clearOut, Point, boundingBox)
+import           AOC.Solver              ((:~>)(..))
+import           Control.Lens            ((^.))
+import           Control.Monad           (void, when)
+import           Control.Monad.State     (gets, modify, execState)
+import           Data.Char               (isDigit)
+import           Data.Foldable           (toList)
+import           Data.Ix                 (range)
+import           Data.Map                (Map)
+import           Data.Semigroup          (Min(..), Max(..))
+import           Data.Semigroup.Foldable (toNonEmpty)
+import           Data.Set                (Set)
+import           Data.Set.NonEmpty       (NESet)
+import           Linear                  (V2(..), _y)
+import qualified Data.List.NonEmpty      as NE
+import qualified Data.Map                as M
+import qualified Data.Set                as S
+import qualified Data.Set.NonEmpty       as NES
 
 drainMap
     :: Set Point            -- ^ clay
@@ -79,32 +75,32 @@ drainMap cl ylim = flip execState M.empty . pourDown
       res <$ modify (M.insert p res)
 
 
-fillWater :: Set Point -> Set Point
+fillWater :: NESet Point -> Set Point
 fillWater cl = S.filter (\p -> p ^. _y >= yMin && p ^. _y <= yMax)
              . M.keysSet
-             $ drainMap cl yMax (V2 500 0)
+             $ drainMap (NES.toSet cl) yMax (V2 500 0)
   where
-    V2 _ yMin `V2` V2 _ yMax  = boundingBox $ toList cl
+    V2 _ yMin `V2` V2 _ yMax  = boundingBox $ toNonEmpty cl
 
-day17a :: Set Point :~> _
+day17a :: NESet Point :~> Int
 day17a = MkSol
-    { sParse = Just . foldMap parseVein . lines
+    { sParse = NES.nonEmptySet . foldMap parseVein . lines
     , sShow  = show
     , sSolve = Just . S.size . fillWater
     }
 
-drainWater :: Set Point -> Set Point
+drainWater :: NESet Point -> Set Point
 drainWater cl = S.filter (\p -> p ^. _y >= yMin && p ^. _y <= yMax)
               . M.keysSet
               . M.filter not
-              $ drainMap cl yMax (V2 500 0)
+              $ drainMap (NES.toSet cl) yMax (V2 500 0)
   where
-    V2 _ yMin `V2` V2 _ yMax  = boundingBox $ toList cl
+    V2 _ yMin `V2` V2 _ yMax  = boundingBox $ toNonEmpty cl
 
 
-day17b :: Set Point :~> _
+day17b :: NESet Point :~> Int
 day17b = MkSol
-    { sParse = Just . foldMap parseVein . lines
+    { sParse = NES.nonEmptySet . foldMap parseVein . lines
     , sShow  = show
     , sSolve = Just . S.size . drainWater
     }
@@ -131,4 +127,5 @@ _displayClay cl w = unlines
            <> M.fromSet (const True) w
     label False = '#'
     label True  = '*'
-    V2 xMin yMin `V2` V2 xMax yMax  = boundingBox . toList . M.keysSet $ terrain
+    V2 xMin yMin `V2` V2 xMax yMax = boundingBox . NE.fromList . M.keys
+                                   $ terrain

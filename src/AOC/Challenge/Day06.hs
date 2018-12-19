@@ -15,7 +15,7 @@ module AOC.Challenge.Day06 (
   ) where
 
 import           AOC.Solver              ((:~>)(..), dyno_)
-import           AOC.Common              (freqs, clearOut)
+import           AOC.Common              (freqs, clearOut, Point, boundingBox)
 import           Control.Monad           (guard, (<=<))
 import           Data.Char               (isDigit)
 import           Data.Functor            ((<&>))
@@ -30,17 +30,10 @@ import qualified Data.List.NonEmpty      as NE
 import qualified Data.Map                as M
 import qualified Data.Set                as S
 
-type Point = V2 Int
 type Box   = V2 Point
 
 distance :: Point -> Point -> Int
 distance x = sum . abs . subtract x
-
-boundingBox :: NonEmpty Point -> Box
-boundingBox ps = V2 xMin yMin `V2` V2 xMax yMax
-  where
-    (Min xMin, Min yMin, Max xMax, Max yMax) = flip foldMap1 ps $ \(V2 x y) ->
-        (Min x, Min y, Max x, Max y)
 
 bbPoints :: Box -> [Point]
 bbPoints (V2 mins maxs) = range (mins, maxs)

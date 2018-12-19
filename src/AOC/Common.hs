@@ -33,6 +33,10 @@ module AOC.Common (
   , foldMapPar
   , foldMapPar1
   , meanVar
+  -- * 2D Maps
+  , Point
+  , boundingBox
+  , boundingBox'
   ) where
 
 import           AOC.Util
@@ -46,7 +50,9 @@ import           Data.List.NonEmpty          (NonEmpty)
 import           Data.Map                    (Map)
 import           Data.Map.NonEmpty           (NEMap)
 import           Data.Semigroup
+import           Data.Semigroup.Foldable
 import           GHC.TypeNats
+import           Linear                      (V2(..))
 import qualified Control.Foldl               as F
 import qualified Data.List.NonEmpty          as NE
 import qualified Data.Map                    as M
@@ -184,3 +190,19 @@ meanVar = do
     pure $ let μ  = x / n
                σ2 = x2 / n - μ * μ
            in  (μ, σ2)
+
+-- | 2D Coordinate
+type Point = V2 Int
+
+-- | Find the minimum and maximum x and y from a collection of points.
+--
+-- Returns @'V2' (V2 xMin yMin) (V2 xMax yMax)@.
+boundingBox :: Foldable1 f => f Point -> V2 Point
+boundingBox ps = V2 xMin yMin `V2` V2 xMax yMax
+  where
+    (Min xMin, Min yMin, Max xMax, Max yMax) = flip foldMap1 ps $ \(V2 x y) ->
+        (Min x, Min y, Max x, Max y)
+
+-- | A version of 'boundingBox' that works for normal possibly-empty lists.
+boundingBox' :: Foldable f => f Point -> Maybe (V2 Point)
+boundingBox' = fmap boundingBox . NE.nonEmpty . toList

@@ -14,6 +14,7 @@ module AOC.Challenge.Day15 (
   , day15b
   ) where
 
+import           AOC.Common            (Point, boundingBox)
 import           AOC.Common.Search     (aStar, exponentialFindMin)
 import           AOC.Solver            ((:~>)(..))
 import           Control.Lens          (makeLenses, folded, lined, (<.>), ifoldMapOf, (.~), (-~), view)
@@ -30,8 +31,10 @@ import           Data.Set              (Set)
 import           Data.Tuple            (swap)
 import           Linear                (V2(..), _x, _y)
 import           Text.Printf           (printf)
+import qualified Data.List.NonEmpty    as NE
 import qualified Data.Map              as M
 import qualified Data.Set              as S
+import qualified Data.Set.NonEmpty     as NES
 
 data EType = EGob | EElf
   deriving (Show, Eq, Ord, Enum, Bounded)
@@ -43,8 +46,6 @@ data Entity = E { _eType :: EType
   deriving (Show, Eq)
 
 makeLenses ''Entity
-
-type Point = V2 Int
 
 type World = Set ScanPoint
 type Entities = Map ScanPoint Entity
@@ -241,7 +242,8 @@ _displayWorld w es = unlines
     , let (row, rEs) = makeRow y
     ]
   where
-    V2 xMin yMin `V2` V2 xMax yMax = boundingBox . map _gSP . S.toList $ w
+    V2 xMin yMin `V2` V2 xMax yMax
+        = boundingBox . NES.unsafeFromSet . S.map _gSP $ w
     makeRow y = flip foldMap [xMin - 1 .. xMax + 1] $ \x ->
       let p = SP (V2 x y)
           inWorld = p `S.member` w
@@ -254,12 +256,6 @@ _displayWorld w es = unlines
                           )
     entChar EGob = 'G'
     entChar EElf = 'E'
-
-boundingBox :: [Point] -> V2 Point
-boundingBox ps = V2 xMin yMin `V2` V2 xMax yMax
-  where
-    (Min xMin, Min yMin, Max xMax, Max yMax) = flip foldMap ps $ \(V2 x y) ->
-        (Min x, Min y, Max x, Max y)
 
 _unused :: ()
 _unused = (eType .~) `seq` ()
