@@ -34,9 +34,9 @@ import qualified Text.Megaparsec.Char       as P
 import qualified Text.Megaparsec.Char.Lexer as P
 import qualified Text.Parsec                as Pa
 
-type Reg = V.Vector 6 Int
+type Mem = V.Vector 6 Int
 
-type Memory = UV.Vector Instr
+type Program = UV.Vector Instr
 
 data Instr = I { _iOp  :: OpCode
                , _iInA :: Int
@@ -55,52 +55,52 @@ data OpCode = OAddR | OAddI
             | OModR | ONoOp
   deriving (Show, Eq, Ord, Enum, Bounded)
 
-runOp :: Instr -> Reg -> Reg
+runOp :: Instr -> Mem -> Mem
 runOp I{..} = case _iOp of
-    OAddR -> \r -> r & V.ix _iOut .~ r ^?! ix _iInA  +  r ^?! ix _iInB
-    OAddI -> \r -> r & V.ix _iOut .~ r ^?! ix _iInA  +  _iInB
-    OMulR -> \r -> r & V.ix _iOut .~ r ^?! ix _iInA  *  r ^?! ix _iInB
-    OMulI -> \r -> r & V.ix _iOut .~ r ^?! ix _iInA  *  _iInB
-    OBanR -> \r -> r & V.ix _iOut .~ r ^?! ix _iInA .&. r ^?! ix _iInB
-    OBanI -> \r -> r & V.ix _iOut .~ r ^?! ix _iInA .&. _iInB
-    OBorR -> \r -> r & V.ix _iOut .~ r ^?! ix _iInA .|. r ^?! ix _iInB
-    OBorI -> \r -> r & V.ix _iOut .~ r ^?! ix _iInA .|. _iInB
-    OSetR -> \r -> r & V.ix _iOut .~ r ^?! ix _iInA
-    OSetI -> \r -> r & V.ix _iOut .~          _iInA
-    OGtIR -> \r -> r & V.ix _iOut . enum .~ (         _iInA  > r ^?! ix _iInB)
-    OGtRI -> \r -> r & V.ix _iOut . enum .~ (r ^?! ix _iInA  >          _iInB)
-    OGtRR -> \r -> r & V.ix _iOut . enum .~ (r ^?! ix _iInA  > r ^?! ix _iInB)
-    OEqIR -> \r -> r & V.ix _iOut . enum .~ (         _iInA == r ^?! ix _iInB)
-    OEqRI -> \r -> r & V.ix _iOut . enum .~ (r ^?! ix _iInA ==          _iInB)
-    OEqRR -> \r -> r & V.ix _iOut . enum .~ (r ^?! ix _iInA == r ^?! ix _iInB)
-    OModR -> \r -> r & V.ix _iOut .~ r ^?! ix _iInA `mod` r ^?! ix _iInB
+    OAddR -> \m -> m & V.ix _iOut .~ m ^?! ix _iInA  +  m ^?! ix _iInB
+    OAddI -> \m -> m & V.ix _iOut .~ m ^?! ix _iInA  +  _iInB
+    OMulR -> \m -> m & V.ix _iOut .~ m ^?! ix _iInA  *  m ^?! ix _iInB
+    OMulI -> \m -> m & V.ix _iOut .~ m ^?! ix _iInA  *  _iInB
+    OBanR -> \m -> m & V.ix _iOut .~ m ^?! ix _iInA .&. m ^?! ix _iInB
+    OBanI -> \m -> m & V.ix _iOut .~ m ^?! ix _iInA .&. _iInB
+    OBorR -> \m -> m & V.ix _iOut .~ m ^?! ix _iInA .|. m ^?! ix _iInB
+    OBorI -> \m -> m & V.ix _iOut .~ m ^?! ix _iInA .|. _iInB
+    OSetR -> \m -> m & V.ix _iOut .~ m ^?! ix _iInA
+    OSetI -> \m -> m & V.ix _iOut .~          _iInA
+    OGtIR -> \m -> m & V.ix _iOut . enum .~ (         _iInA  > m ^?! ix _iInB)
+    OGtRI -> \m -> m & V.ix _iOut . enum .~ (m ^?! ix _iInA  >          _iInB)
+    OGtRR -> \m -> m & V.ix _iOut . enum .~ (m ^?! ix _iInA  > m ^?! ix _iInB)
+    OEqIR -> \m -> m & V.ix _iOut . enum .~ (         _iInA == m ^?! ix _iInB)
+    OEqRI -> \m -> m & V.ix _iOut . enum .~ (m ^?! ix _iInA ==          _iInB)
+    OEqRR -> \m -> m & V.ix _iOut . enum .~ (m ^?! ix _iInA == m ^?! ix _iInB)
+    OModR -> \m -> m & V.ix _iOut .~ m ^?! ix _iInA `mod` m ^?! ix _iInB
     ONoOp -> id
 
-stepMemory
+stepProgram
     :: Finite 6
-    -> Memory
-    -> Reg
-    -> Maybe Reg
-stepMemory iPtr mem r0 = (mem ^? ix i) <&> \instr ->
-    runOp instr r0 & V.ix iPtr +~ 1
+    -> Program
+    -> Mem
+    -> Maybe Mem
+stepProgram iPtr prog m0 = (prog ^? ix i) <&> \instr ->
+    runOp instr m0 & V.ix iPtr +~ 1
   where
-    i = r0 ^. V.ix iPtr
+    i = m0 ^. V.ix iPtr
 
-day19a :: (Finite 6, Memory) :~> Int
+day19a :: (Finite 6, Program) :~> Int
 day19a = MkSol
-    { sParse = P.parseMaybe memParser
+    { sParse = P.parseMaybe progParser
     , sShow  = show
-    , sSolve = \(i, m) -> fmap (V.head . NE.last) . NE.nonEmpty
-                        . iterateMaybe (stepMemory i m)
+    , sSolve = \(i, p) -> fmap (V.head . NE.last) . NE.nonEmpty
+                        . iterateMaybe (stepProgram i p)
                         $ V.replicate 0
     }
 
-day19b :: (Finite 6, Memory) :~> Int
+day19b :: (Finite 6, Program) :~> Int
 day19b = MkSol
-    { sParse = P.parseMaybe memParser
+    { sParse = P.parseMaybe progParser
     , sShow  = show
-    , sSolve = \(i, m) -> fmap (V.head . NE.last) . NE.nonEmpty
-                        . iterateMaybe (stepMemory i (runOptimizer i m))
+    , sSolve = \(i, p) -> fmap (V.head . NE.last) . NE.nonEmpty
+                        . iterateMaybe (stepProgram i (runOptimizer i p))
                         . set (V.ix 0) 1
                         $ V.replicate 0
     }
@@ -110,7 +110,7 @@ day19b = MkSol
 
 type Peephole = Pa.Parsec [Instr] ()
 
-runOptimizer :: Finite 6 -> Memory -> Memory
+runOptimizer :: Finite 6 -> Program -> Program
 runOptimizer i m0 = checkSize
                   . either (const (errorWithoutStackTrace "optimization failure"))
                            UV.fromList
@@ -169,7 +169,9 @@ addIfIsFactor i = do
     i' = fromIntegral i
 
 optimize :: Finite 6 -> Peephole [Instr]
-optimize i = concat <$> P.many (Pa.try (addIfIsFactor i) <|> ((:[]) <$> peep Nothing Nothing Nothing))
+optimize i = concat <$> P.many ( Pa.try (addIfIsFactor i)
+                             <|> ((:[]) <$> peep Nothing Nothing Nothing)
+                               )
 
 
 
@@ -177,9 +179,9 @@ optimize i = concat <$> P.many (Pa.try (addIfIsFactor i) <|> ((:[]) <$> peep Not
 
 type Parser = P.Parsec Void String
 
-memParser :: Parser (Finite 6, Memory)
-memParser = (,) <$> (P.string "#ip " `P.between` P.newline) parseFinite
-                <*> (UV.fromList <$> (instrParser `P.sepEndBy1` P.newline))
+progParser :: Parser (Finite 6, Program)
+progParser = (,) <$> (P.string "#ip " `P.between` P.newline) parseFinite
+                 <*> (UV.fromList <$> (instrParser `P.sepEndBy1` P.newline))
 
 instrParser :: Parser Instr
 instrParser = I <$> parseOpCode <* P.char ' '
