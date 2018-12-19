@@ -14,7 +14,7 @@ module AOC.Challenge.Day11 (
   , day11b
   ) where
 
-import           AOC.Common                       (meanVar)
+import           AOC.Common                       (Point, meanVar)
 import           AOC.Solver                       ((:~>)(..))
 import           Control.DeepSeq                  (force)
 import           Data.Foldable                    (maximumBy)
@@ -31,8 +31,6 @@ import qualified Data.Set                         as S
 import qualified Statistics.Distribution          as D
 import qualified Statistics.Distribution.Binomial as D
 import qualified Statistics.Distribution.Normal   as D
-
-type Point = V2 Int
 
 powerLevel :: Int -> Point -> Int
 powerLevel sid (V2 x y) = hun ((rid * y + sid) * rid) - 5

@@ -14,10 +14,10 @@ module AOC.Challenge.Day15 (
   , day15b
   ) where
 
-import           AOC.Common            (Point, boundingBox)
+import           AOC.Common            (boundingBox, ScanPoint(..))
 import           AOC.Common.Search     (aStar, exponentialFindMin)
 import           AOC.Solver            ((:~>)(..))
-import           Control.Lens          (makeLenses, folded, lined, (<.>), ifoldMapOf, (.~), (-~), view)
+import           Control.Lens          (makeLenses, folded, lined, (<.>), ifoldMapOf, (.~), (-~))
 import           Control.Monad         (guard)
 import           Data.Foldable         (toList)
 import           Data.Function         ((&))
@@ -25,13 +25,11 @@ import           Data.Functor.Foldable (Fix, cata, ana, hylo)
 import           Data.List             (intercalate)
 import           Data.Map              (Map)
 import           Data.Maybe            (catMaybes)
-import           Data.Ord              (comparing)
-import           Data.Semigroup        (Min(..), Max(..), First(..))
+import           Data.Semigroup        (First(..))
 import           Data.Set              (Set)
 import           Data.Tuple            (swap)
-import           Linear                (V2(..), _x, _y)
+import           Linear                (V2(..))
 import           Text.Printf           (printf)
-import qualified Data.List.NonEmpty    as NE
 import qualified Data.Map              as M
 import qualified Data.Set              as S
 import qualified Data.Set.NonEmpty     as NES
@@ -49,15 +47,6 @@ makeLenses ''Entity
 
 type World = Set ScanPoint
 type Entities = Map ScanPoint Entity
-
--- | It's 'Point', but with a newtype wrapper so we have an 'Ord' that
--- sorts by y first, then x
-newtype ScanPoint = SP { _gSP :: Point }
-  deriving (Eq, Show, Num)
-
-instance Ord ScanPoint where
-    compare = comparing (view _y . _gSP)
-           <> comparing (view _x . _gSP)
 
 dist :: ScanPoint -> ScanPoint -> Int
 dist (SP x) (SP y) = sum . abs $ x - y
@@ -243,7 +232,7 @@ _displayWorld w es = unlines
     ]
   where
     V2 xMin yMin `V2` V2 xMax yMax
-        = boundingBox . NES.unsafeFromSet . S.map _gSP $ w
+        = boundingBox . NES.unsafeFromSet . S.map _getSP $ w
     makeRow y = flip foldMap [xMin - 1 .. xMax + 1] $ \x ->
       let p = SP (V2 x y)
           inWorld = p `S.member` w

@@ -37,6 +37,8 @@ module AOC.Common (
   , Point
   , boundingBox
   , boundingBox'
+  , parseAsciiMap
+  , ScanPoint(..)
   ) where
 
 import           AOC.Util
@@ -49,10 +51,11 @@ import           Data.List
 import           Data.List.NonEmpty          (NonEmpty)
 import           Data.Map                    (Map)
 import           Data.Map.NonEmpty           (NEMap)
+import           Data.Ord
 import           Data.Semigroup
 import           Data.Semigroup.Foldable
 import           GHC.TypeNats
-import           Linear                      (V2(..))
+import           Linear                      (V2(..), _x, _y)
 import qualified Control.Foldl               as F
 import qualified Data.List.NonEmpty          as NE
 import qualified Data.Map                    as M
@@ -206,3 +209,27 @@ boundingBox ps = V2 xMin yMin `V2` V2 xMax yMax
 -- | A version of 'boundingBox' that works for normal possibly-empty lists.
 boundingBox' :: Foldable f => f Point -> Maybe (V2 Point)
 boundingBox' = fmap boundingBox . NE.nonEmpty . toList
+
+-- | It's 'Point', but with a newtype wrapper so we have an 'Ord' that
+-- sorts by y first, then x
+newtype ScanPoint = SP { _getSP :: Point }
+  deriving (Eq, Show, Num)
+
+instance Ord ScanPoint where
+    compare = comparing (view _y . _getSP)
+           <> comparing (view _x . _getSP)
+
+parseAsciiMap
+    :: (Char -> Maybe a)
+    -> String
+    -> Map Point a
+parseAsciiMap f = ifoldMapOf (lined <.> folded <. folding f) $ \(y,x) ->
+    M.singleton (V2 x y)
+
+-- asciiGrid :: IndexedFold Point String Char
+-- asciiGrid f = ifoldMapOf (lined <.> folded) _
+--     -- (Point -> Char -> m)
+--     -- -> String
+--     -- -> m
+-- -- parseAsciiGrid f = ifoldMapOf (lined <.> folded) $ \(y,x) ->
+--     -- f (V2 x y)

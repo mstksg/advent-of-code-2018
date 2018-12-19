@@ -14,7 +14,7 @@ module AOC.Challenge.Day18 (
   , day18b
   ) where
 
-import           AOC.Common    ((!!!))
+import           AOC.Common    (Point, (!!!), parseAsciiMap)
 import           AOC.Solver    ((:~>)(..))
 import           Control.Lens  (ifoldMapOf, folded, lined, (<.>), lengthOf, only)
 import           Control.Monad (mfilter)
@@ -28,7 +28,6 @@ data Terrain = TOpen
              | TYard
   deriving (Show, Eq, Ord)
 
-type Point = V2 Int
 type World = Map Point Terrain
 
 neighbs :: Point -> [Point]
@@ -100,12 +99,8 @@ day18b = MkSol
     }
 
 parseForest :: String -> World
-parseForest = ifoldMapOf (lined <.> folded) (uncurry classify)
-  where
-    classify y x = \case
-        '.' -> M.singleton p TOpen
-        '|' -> M.singleton p TTree
-        '#' -> M.singleton p TYard
-        _   -> mempty
-      where
-        p = V2 x y
+parseForest = parseAsciiMap $ \case
+    '.' -> Just TOpen
+    '|' -> Just TTree
+    '#' -> Just TYard
+    _   -> Nothing

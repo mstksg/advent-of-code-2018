@@ -14,16 +14,15 @@ module AOC.Challenge.Day13 (
   , day13b
   ) where
 
+import           AOC.Common            (Point, ScanPoint(..), parseAsciiMap)
 import           AOC.Solver            ((:~>)(..))
-import           Control.Lens          (view, makeLenses, (^.), (<.>), ifoldMapOf, folded, lined, over)
+import           Control.Lens          (makeLenses, (^.), (<.>), ifoldMapOf, folded, lined, over)
+import           Data.Bifunctor        (second)
 import           Data.Functor.Foldable (hylo)
 import           Data.Map              (Map)
-import           Data.Ord              (comparing)
 import           Data.These            (These(..), fromThese)
-import           Linear                (V2(..), _x, _y)
+import           Linear                (V2(..))
 import qualified Data.Map              as M
-
-type Point = V2 Int
 
 data Turn = TurnNW      -- ^ a forward-slash mirror @/@
           | TurnNE      -- ^ a backwards-slash mirror @\\@
@@ -39,15 +38,6 @@ data Cart = C { _cDir   :: Dir
   deriving (Eq, Show)
 
 makeLenses ''Cart
-
--- | It's 'Point', but with a newtype wrapper so we have an 'Ord' that
--- sorts by y first, then x
-newtype ScanPoint = SP { _getSP :: Point }
-  deriving (Eq, Show, Num)
-
-instance Ord ScanPoint where
-    compare = comparing (view _y . _getSP)
-           <> comparing (view _x . _getSP)
 
 type World = Map Point     Turn
 type Carts = Map ScanPoint Cart
@@ -127,17 +117,16 @@ day13b = MkSol
     lastPoint (CLDone  p  ) = p
 
 parseWorld :: String -> (World, Carts)
-parseWorld = maybe mempty (fromThese mempty mempty)
-           . ifoldMapOf (lined <.> folded) (uncurry classify)
+parseWorld = second (M.mapKeys SP)
+           . M.mapEither (second (`C` 0))
+           . parseAsciiMap go
   where
-    classify y x = \case
-        '/'  -> Just . This $ M.singleton p      TurnNW
-        '\\' -> Just . This $ M.singleton p      TurnNE
-        '+'  -> Just . This $ M.singleton p      TurnInter
-        'v'  -> Just . That $ M.singleton (SP p) (C DS 0)
-        '^'  -> Just . That $ M.singleton (SP p) (C DN 0)
-        '>'  -> Just . That $ M.singleton (SP p) (C DE 0)
-        '<'  -> Just . That $ M.singleton (SP p) (C DW 0)
-        _    -> Nothing
-      where
-        p = V2 x y
+    go = \case
+      '/'  -> Just . Left  $ TurnNW
+      '\\' -> Just . Left  $ TurnNE
+      '+'  -> Just . Left  $ TurnInter
+      'v'  -> Just . Right $ DS
+      '^'  -> Just . Right $ DN
+      '>'  -> Just . Right $ DE
+      '<'  -> Just . Right $ DW
+      _    -> Nothing
