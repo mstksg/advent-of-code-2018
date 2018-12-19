@@ -188,10 +188,12 @@ asciiGrid :: IndexedFold Point String Char
 newtype ScanPoint
 SP :: Point -> ScanPoint
 [_getSP] :: ScanPoint -> Point
+displayAsciiMap :: Char -> Map Point Char -> String
 instance GHC.Num.Num AOC.Common.ScanPoint
 instance GHC.Show.Show AOC.Common.ScanPoint
 instance GHC.Classes.Eq AOC.Common.ScanPoint
 instance GHC.Classes.Ord AOC.Common.ScanPoint
+instance (Control.Lens.At.Ixed (v a), Control.Lens.At.Index (v a) Data.Type.Equality.~ GHC.Types.Int, Control.Lens.At.IxValue (v a) Data.Type.Equality.~ a) => Control.Lens.At.Ixed (Data.Vector.Generic.Sized.Internal.Vector v n a)
 
 module AOC.Util.DynoMap
 newtype DynoMap
@@ -6517,6 +6519,7 @@ boundingBox :: Foldable1 f => f Point -> V2 Point
 boundingBox' :: Foldable f => f Point -> Maybe (V2 Point)
 parseAsciiMap :: (Char -> Maybe a) -> String -> Map Point a
 asciiGrid :: IndexedFold Point String Char
+displayAsciiMap :: Char -> Map Point Char -> String
 
 -- | Errors that might happen when running a <a>:~&gt;</a> on some input.
 data SolutionError
@@ -7104,13 +7107,13 @@ MRO :: !TestSpec -> !Bool -> !Bool -> !Bool -> !Finite 25 -> Part -> IO (Maybe S
 
 -- | Manually supply input (Default: always return Nothing)
 [_mroInput] :: MainRunOpts -> !Finite 25 -> Part -> IO (Maybe String)
-class HasMainRunOpts c_a23ke
-mainRunOpts :: HasMainRunOpts c_a23ke => Lens' c_a23ke MainRunOpts
-mroBench :: HasMainRunOpts c_a23ke => Lens' c_a23ke Bool
-mroInput :: HasMainRunOpts c_a23ke => Lens' c_a23ke (Finite 25 -> Part -> IO (Maybe String))
-mroLock :: HasMainRunOpts c_a23ke => Lens' c_a23ke Bool
-mroSpec :: HasMainRunOpts c_a23ke => Lens' c_a23ke TestSpec
-mroTest :: HasMainRunOpts c_a23ke => Lens' c_a23ke Bool
+class HasMainRunOpts c_a25jO
+mainRunOpts :: HasMainRunOpts c_a25jO => Lens' c_a25jO MainRunOpts
+mroBench :: HasMainRunOpts c_a25jO => Lens' c_a25jO Bool
+mroInput :: HasMainRunOpts c_a25jO => Lens' c_a25jO (Finite 25 -> Part -> IO (Maybe String))
+mroLock :: HasMainRunOpts c_a25jO => Lens' c_a25jO Bool
+mroSpec :: HasMainRunOpts c_a25jO => Lens' c_a25jO TestSpec
+mroTest :: HasMainRunOpts c_a25jO => Lens' c_a25jO Bool
 
 -- | Run, test, bench.
 mainRun :: (MonadIO m, MonadError [String] m) => Config -> MainRunOpts -> m (Map (Finite 25) (Map Part (Maybe Bool, Either [String] String)))
@@ -7123,10 +7126,10 @@ data MainViewOpts
 MVO :: !TestSpec -> !Bool -> MainViewOpts
 [_mvoSpec] :: MainViewOpts -> !TestSpec
 [_mvoWait] :: MainViewOpts -> !Bool
-class HasMainViewOpts c_a23rg
-mainViewOpts :: HasMainViewOpts c_a23rg => Lens' c_a23rg MainViewOpts
-mvoSpec :: HasMainViewOpts c_a23rg => Lens' c_a23rg TestSpec
-mvoWait :: HasMainViewOpts c_a23rg => Lens' c_a23rg Bool
+class HasMainViewOpts c_a25qQ
+mainViewOpts :: HasMainViewOpts c_a25qQ => Lens' c_a25qQ MainViewOpts
+mvoSpec :: HasMainViewOpts c_a25qQ => Lens' c_a25qQ TestSpec
+mvoWait :: HasMainViewOpts c_a25qQ => Lens' c_a25qQ Bool
 
 -- | View prompt
 mainView :: (MonadIO m, MonadError [String] m) => Config -> MainViewOpts -> m (Map (Finite 25) (Map Part Text))
@@ -7147,12 +7150,12 @@ MSO :: !ChallengeSpec -> !Bool -> !Bool -> !Bool -> MainSubmitOpts
 
 -- | Lock answer if submission succeeded? (Default: True)
 [_msoLock] :: MainSubmitOpts -> !Bool
-class HasMainSubmitOpts c_a23vz
-mainSubmitOpts :: HasMainSubmitOpts c_a23vz => Lens' c_a23vz MainSubmitOpts
-msoForce :: HasMainSubmitOpts c_a23vz => Lens' c_a23vz Bool
-msoLock :: HasMainSubmitOpts c_a23vz => Lens' c_a23vz Bool
-msoSpec :: HasMainSubmitOpts c_a23vz => Lens' c_a23vz ChallengeSpec
-msoTest :: HasMainSubmitOpts c_a23vz => Lens' c_a23vz Bool
+class HasMainSubmitOpts c_a25v9
+mainSubmitOpts :: HasMainSubmitOpts c_a25v9 => Lens' c_a25v9 MainSubmitOpts
+msoForce :: HasMainSubmitOpts c_a25v9 => Lens' c_a25v9 Bool
+msoLock :: HasMainSubmitOpts c_a25v9 => Lens' c_a25v9 Bool
+msoSpec :: HasMainSubmitOpts c_a25v9 => Lens' c_a25v9 ChallengeSpec
+msoTest :: HasMainSubmitOpts c_a25v9 => Lens' c_a25v9 Bool
 
 -- | Submit and analyze result
 mainSubmit :: (MonadIO m, MonadError [String] m) => Config -> MainSubmitOpts -> m (Text, SubmitRes)
