@@ -16,11 +16,10 @@ module AOC.Challenge.Day13 (
 
 import           AOC.Common            (Point, ScanPoint(..), parseAsciiMap)
 import           AOC.Solver            ((:~>)(..))
-import           Control.Lens          (makeLenses, (^.), (<.>), ifoldMapOf, folded, lined, over)
+import           Control.Lens          (makeLenses, (^.), over)
 import           Data.Bifunctor        (second)
 import           Data.Functor.Foldable (hylo)
 import           Data.Map              (Map)
-import           Data.These            (These(..), fromThese)
 import           Linear                (V2(..))
 import qualified Data.Map              as M
 

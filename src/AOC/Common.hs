@@ -38,6 +38,7 @@ module AOC.Common (
   , boundingBox
   , boundingBox'
   , parseAsciiMap
+  , asciiGrid
   , ScanPoint(..)
   ) where
 
@@ -223,13 +224,7 @@ parseAsciiMap
     :: (Char -> Maybe a)
     -> String
     -> Map Point a
-parseAsciiMap f = ifoldMapOf (lined <.> folded <. folding f) $ \(y,x) ->
-    M.singleton (V2 x y)
+parseAsciiMap f = ifoldMapOf (asciiGrid <. folding f) M.singleton
 
--- asciiGrid :: IndexedFold Point String Char
--- asciiGrid f = ifoldMapOf (lined <.> folded) _
---     -- (Point -> Char -> m)
---     -- -> String
---     -- -> m
--- -- parseAsciiGrid f = ifoldMapOf (lined <.> folded) $ \(y,x) ->
---     -- f (V2 x y)
+asciiGrid :: IndexedFold Point String Char
+asciiGrid = reindexed (uncurry (flip V2)) (lined <.> folded)

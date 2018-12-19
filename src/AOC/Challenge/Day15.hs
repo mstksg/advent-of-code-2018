@@ -14,10 +14,10 @@ module AOC.Challenge.Day15 (
   , day15b
   ) where
 
-import           AOC.Common            (boundingBox, ScanPoint(..))
+import           AOC.Common            (boundingBox, ScanPoint(..), asciiGrid)
 import           AOC.Common.Search     (aStar, exponentialFindMin)
 import           AOC.Solver            ((:~>)(..))
-import           Control.Lens          (makeLenses, folded, lined, (<.>), ifoldMapOf, (.~), (-~))
+import           Control.Lens          (makeLenses, ifoldMapOf, (.~), (-~))
 import           Control.Monad         (guard)
 import           Data.Foldable         (toList)
 import           Data.Function         ((&))
@@ -214,15 +214,11 @@ day15b = MkSol
 
 
 parseWorld :: String -> (World, Entities)
-parseWorld = ifoldMapOf (lined <.> folded) (uncurry classify)
-  where
-    classify y x = \case
-        '.' -> (S.singleton p, mempty)
-        'G' -> (S.singleton p, M.singleton p (E EGob 200 3))
-        'E' -> (S.singleton p, M.singleton p (E EElf 200 3))
-        _   -> mempty
-      where
-        p = SP $ V2 x y
+parseWorld = ifoldMapOf asciiGrid $ \(SP->p) -> \case
+    '.' -> (S.singleton p, mempty)
+    'G' -> (S.singleton p, M.singleton p (E EGob 200 3))
+    'E' -> (S.singleton p, M.singleton p (E EElf 200 3))
+    _   -> mempty
 
 _displayWorld :: World -> Entities -> String
 _displayWorld w es = unlines

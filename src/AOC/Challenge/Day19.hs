@@ -120,6 +120,23 @@ day19b = MkSol
                         $ V.replicate 0
     }
 
+-- this just checks if m is a factor of targ
+-- aka, if R3 is a factor of R2
+-- seti 1 1 1          # [A]: n = 1
+-- mulr 3 1 4          # [B]:
+-- eqrr 4 2 4          # if (n * m) == targ:
+-- addr 4 5 5          #   then: GOTO [C] (add m to output)
+-- addi 5 1 5          #   else: GOTO [D]
+-- addr 3 0 0          # [C] out += m       -- the thing
+-- addi 1 1 1          # [D] n   += 1
+-- gtrr 1 2 4          # if (n > targ):
+-- addr 5 4 5          #   then: GOTO [E]
+-- seti 2 7 5          #   else: GOTO [B]
+-- >>
+-- if m is a factor of targ:
+--   then: out += m
+-- goto: e
+
 
 type Parser = P.Parsec Void String
 
@@ -135,10 +152,6 @@ instrParser = I <$> parseOpCode <* P.char ' '
   where
     parseOpCode = P.choice . flip map [OAddR ..] $ \o ->
         o <$ P.try (P.string (map toLower . drop 1 . show $ o))
-    -- parseComment = do
-    --     P.space1
-    --     P.char '#'
-    --     P.skipMany . P.try $ P.satisfy (/= '\n')
 
 parseFinite :: Parser (Finite 6)
 parseFinite = maybe (fail "number out of range") pure . packFinite =<< P.decimal

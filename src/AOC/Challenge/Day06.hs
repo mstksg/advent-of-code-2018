@@ -14,21 +14,19 @@ module AOC.Challenge.Day06 (
   , day06b
   ) where
 
-import           AOC.Solver              ((:~>)(..), dyno_)
-import           AOC.Common              (freqs, clearOut, Point, boundingBox)
-import           Control.Monad           (guard, (<=<))
-import           Data.Char               (isDigit)
-import           Data.Functor            ((<&>))
-import           Data.Ix                 (range)
-import           Data.List.NonEmpty      (NonEmpty(..))
-import           Data.Semigroup          (Min(..),Max(..))
-import           Data.Semigroup.Foldable (foldMap1)
-import           Data.Witherable         (mapMaybe, catMaybes)
-import           Linear                  (V2(..))
-import           Text.Read               (readMaybe)
-import qualified Data.List.NonEmpty      as NE
-import qualified Data.Map                as M
-import qualified Data.Set                as S
+import           AOC.Common         (freqs, clearOut, Point, boundingBox)
+import           AOC.Solver         ((:~>)(..), dyno_)
+import           Control.Monad      (guard, (<=<))
+import           Data.Char          (isDigit)
+import           Data.Functor       ((<&>))
+import           Data.Ix            (range)
+import           Data.List.NonEmpty (NonEmpty(..))
+import           Data.Witherable    (mapMaybe, catMaybes)
+import           Linear             (V2(..))
+import           Text.Read          (readMaybe)
+import qualified Data.List.NonEmpty as NE
+import qualified Data.Map           as M
+import qualified Data.Set           as S
 
 type Box   = V2 Point
 

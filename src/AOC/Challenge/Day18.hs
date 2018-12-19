@@ -16,7 +16,7 @@ module AOC.Challenge.Day18 (
 
 import           AOC.Common    (Point, (!!!), parseAsciiMap)
 import           AOC.Solver    ((:~>)(..))
-import           Control.Lens  (ifoldMapOf, folded, lined, (<.>), lengthOf, only)
+import           Control.Lens  (folded, lengthOf, only)
 import           Control.Monad (mfilter)
 import           Data.Map      (Map)
 import           Data.Maybe    (mapMaybe)
