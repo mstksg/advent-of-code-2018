@@ -14,7 +14,7 @@ module AOC.Challenge.Day19 (
   , day19b
   ) where
 
-import           AOC.Common                 (iterateMaybe)
+import           AOC.Common                 (loopMaybe)
 import           AOC.Solver                 ((:~>)(..))
 import           Control.Applicative        ((<|>))
 import           Control.Lens               ((^.), (.~), (+~), (^?), (^?!), set, ix, enum)
@@ -26,7 +26,6 @@ import           Data.Foldable              (toList, forM_)
 import           Data.Function              ((&))
 import           Data.Functor               ((<&>))
 import           Data.Void                  (Void)
-import qualified Data.List.NonEmpty         as NE
 import qualified Data.Vector                as UV
 import qualified Data.Vector.Unboxed.Sized  as V
 import qualified Text.Megaparsec            as P
@@ -90,8 +89,8 @@ day19a :: (Finite 6, Program) :~> Int
 day19a = MkSol
     { sParse = P.parseMaybe progParser
     , sShow  = show
-    , sSolve = \(i, p) -> fmap (V.head . NE.last) . NE.nonEmpty
-                        . iterateMaybe (stepProgram i p)
+    , sSolve = \(i, p) -> Just . V.head
+                        . loopMaybe (stepProgram i p)
                         $ V.replicate 0
     }
 
@@ -99,8 +98,8 @@ day19b :: (Finite 6, Program) :~> Int
 day19b = MkSol
     { sParse = P.parseMaybe progParser
     , sShow  = show
-    , sSolve = \(i, p) -> fmap (V.head . NE.last) . NE.nonEmpty
-                        . iterateMaybe (stepProgram i (runOptimizer i p))
+    , sSolve = \(i, p) -> Just . V.head
+                        . loopMaybe (stepProgram i (runOptimizer i p))
                         . set (V.ix 0) 1
                         $ V.replicate 0
     }

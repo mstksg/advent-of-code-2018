@@ -16,6 +16,7 @@
 module AOC.Common (
     module AOC.Util
   , iterateMaybe
+  , loopMaybe
   , (!!!)
   , dup
   , scanlT
@@ -77,6 +78,19 @@ import qualified Data.Vector.Generic.Sized.Internal as SVG
 -- | Iterate until a 'Nothing' is produced
 iterateMaybe :: (a -> Maybe a) -> a -> [a]
 iterateMaybe f x0 = x0 : unfoldr (fmap dup . f) x0
+
+-- | Apply function until 'Nothing' is produced, and return last produced
+-- value.
+loopMaybe
+    :: (a -> Maybe a)
+    -> a
+    -> a
+loopMaybe f = go
+  where
+    go !x = case f x of
+      Nothing -> x
+      Just !y -> go y
+
 
 -- | A tuple of the same item twice
 dup :: a -> (a, a)
