@@ -48,8 +48,7 @@ data RegTok = RTStart
 tok :: RegTok -> Parser_ ()
 tok t = P.try $ guard . (== t) =<< P.anyToken
 
--- | From a stream of @('Time', 'Action')@ events, accumulate a map of
--- guards to time cards.
+-- | From a stream of 'RegTok', parse a set of all edges.
 buildEdges :: Parser_ (Set Edge)
 buildEdges = (tok RTStart `P.between` tok RTEnd) anySteps
   where
