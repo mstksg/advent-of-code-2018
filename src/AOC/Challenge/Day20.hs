@@ -56,7 +56,7 @@ buildEdges = (tok RTStart `P.between` tok RTEnd) anySteps
             P.try basicStep P.<|> branchStep
     branchStep = (tok RTRParen `P.between` tok RTLParen) $ do
       initPos <- P.getState
-      fmap S.unions . flip P.sepBy (tok RTOr) $ do
+      fmap S.unions . (`P.sepBy` tok RTOr) $ do
         P.setState initPos
         anySteps
     basicStep = do
