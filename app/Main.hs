@@ -1,7 +1,7 @@
 {-# LANGUAGE OverloadedStrings              #-}
 {-# OPTIONS_GHC -Werror=incomplete-patterns #-}
 
-import           AOC hiding (Parser)
+import           AOC
 import           Control.Applicative
 import           Control.DeepSeq
 import           Control.Exception
