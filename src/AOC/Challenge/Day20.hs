@@ -31,7 +31,7 @@ mkEdge x y
   | x <= y    = E x y
   | otherwise = E y x
 
--- | Parse a stream of @('Time', 'Action')@ events
+-- | Parse a stream of 'RegTok'.
 type Parser_ = P.Parsec [RegTok] Point
 
 data Dir = DN | DE | DS | DW
@@ -45,23 +45,21 @@ data RegTok = RTStart
             | RTEnd
   deriving (Show, Eq, Ord)
 
-isTok :: RegTok -> Parser_ ()
-isTok t = P.try $ do
-    d <- P.anyToken
-    guard $ d == t
+tok :: RegTok -> Parser_ ()
+tok t = P.try $ guard . (== t) =<< P.anyToken
 
 -- | From a stream of @('Time', 'Action')@ events, accumulate a map of
 -- guards to time cards.
 buildEdges :: Parser_ (Set Edge)
-buildEdges = (isTok RTStart `P.between` isTok RTEnd) go
+buildEdges = (tok RTStart `P.between` tok RTEnd) anySteps
   where
-    go = fmap S.unions . P.many $
-            P.try basicStep P.<|> splitStep
-    splitStep = (isTok RTRParen `P.between` isTok RTLParen) $ do
+    anySteps = fmap S.unions . P.many $
+            P.try basicStep P.<|> branchStep
+    branchStep = (tok RTRParen `P.between` tok RTLParen) $ do
       initPos <- P.getState
-      fmap S.unions . flip P.sepBy (isTok RTOr) $ do
+      fmap S.unions . flip P.sepBy (tok RTOr) $ do
         P.setState initPos
-        go
+        anySteps
     basicStep = do
       currPos <- P.getState
       RTDir d <- P.anyToken
@@ -71,7 +69,7 @@ buildEdges = (isTok RTStart `P.between` isTok RTEnd) go
             DS -> V2   0   1
             DW -> V2 (-1)  0
       P.setState newPos
-      S.insert (mkEdge currPos newPos) <$> go
+      S.insert (mkEdge currPos newPos) <$> anySteps
 
 neighbs :: Point -> [Point]
 neighbs p = [ p + V2 dx dy
@@ -93,7 +91,7 @@ farthestRoom es = go 0 S.empty (V2 0 0)
                    
 day20a :: [RegTok] :~> Int
 day20a = MkSol
-    { sParse = Just . parseTok
+    { sParse = Just . parseToks
     , sShow  = show
     , sSolve = fmap farthestRoom
              . eitherToMaybe
@@ -105,7 +103,7 @@ roomDistances es = go 0 S.empty (V2 0 0)
   where
     go :: Int -> Set Point -> Point -> [Int]
     go n seen p = (n :) $
-        go (n + 1) (S.insert p seen) =<< allNeighbs
+        concatMap (go (n + 1) (S.insert p seen)) allNeighbs
       where
         allNeighbs = filter ((`S.member` es) . mkEdge p)
                    . filter (`S.notMember` seen)
@@ -113,16 +111,16 @@ roomDistances es = go 0 S.empty (V2 0 0)
                    
 day20b :: [RegTok] :~> Int
 day20b = MkSol
-    { sParse = Just . parseTok
+    { sParse = Just . parseToks
     , sShow  = show
-    , sSolve = fmap (length . filter (>= 1) . roomDistances)
+    , sSolve = fmap (length . filter (>= 1000) . roomDistances)
              . eitherToMaybe
              . P.runParser buildEdges (V2 0 0) ""
     }
 
 
-parseTok :: String -> [RegTok]
-parseTok = mapMaybe $ \case
+parseToks :: String -> [RegTok]
+parseToks = mapMaybe $ \case
     '^' -> Just RTStart
     'N' -> Just $ RTDir DN
     'E' -> Just $ RTDir DE
