@@ -14,26 +14,26 @@ module AOC.Challenge.Day19 (
   , day19b
   ) where
 
-import           AOC.Common                 (loopMaybe)
-import           AOC.Solver                 ((:~>)(..))
-import           Control.Applicative        ((<|>))
-import           Control.Lens               ((^.), (.~), (+~), (^?), (^?!), set, ix, enum)
-import           Control.Monad              (mfilter, guard)
-import           Data.Bits                  ((.&.), (.|.))
-import           Data.Char                  (toLower)
-import           Data.Finite                (Finite, packFinite)
-import           Data.Foldable              (toList, forM_)
-import           Data.Function              ((&))
-import           Data.Functor               ((<&>))
-import           Data.Void                  (Void)
-import qualified Data.Vector                as UV
-import qualified Data.Vector.Unboxed.Sized  as V
-import qualified Text.Megaparsec            as P
-import qualified Text.Megaparsec.Char       as P
-import qualified Text.Megaparsec.Char.Lexer as P
-import qualified Text.Parsec                as Pa
+import           AOC.Solver                        ((:~>)(..))
+import           Control.Applicative               ((<|>))
+import           Control.Lens                      (set, ix, forMOf_)
+import           Control.Monad                     (mfilter, guard)
+import           Control.Monad.Primitive           (PrimMonad, PrimState)
+import           Control.Monad.ST                  (runST)
+import           Data.Bits                         ((.&.), (.|.))
+import           Data.Char                         (toLower)
+import           Data.Finite                       (Finite, packFinite)
+import           Data.Foldable                     (toList, forM_)
+import           Data.Void                         (Void)
+import qualified Data.Vector                       as UV
+import qualified Data.Vector.Unboxed.Mutable.Sized as MV
+import qualified Data.Vector.Unboxed.Sized         as V
+import qualified Text.Megaparsec                   as P
+import qualified Text.Megaparsec.Char              as P
+import qualified Text.Megaparsec.Char.Lexer        as P
+import qualified Text.Parsec                       as Pa
 
-type Mem = V.Vector 6 Int
+type Mem s = MV.MVector 6 s Int
 
 type Program = UV.Vector Instr
 
@@ -54,43 +54,59 @@ data OpCode = OAddR | OAddI
             | OModR | ONoOp
   deriving (Show, Eq, Ord, Enum, Bounded)
 
-runOp :: Instr -> Mem -> Mem
+runOp :: (PrimMonad m, PrimState m ~ s) => Instr -> Mem s -> m ()
 runOp I{..} = case _iOp of
-    OAddR -> \m -> m & V.ix _iOut .~ m ^?! ix _iInA  +  m ^?! ix _iInB
-    OAddI -> \m -> m & V.ix _iOut .~ m ^?! ix _iInA  +  _iInB
-    OMulR -> \m -> m & V.ix _iOut .~ m ^?! ix _iInA  *  m ^?! ix _iInB
-    OMulI -> \m -> m & V.ix _iOut .~ m ^?! ix _iInA  *  _iInB
-    OBanR -> \m -> m & V.ix _iOut .~ m ^?! ix _iInA .&. m ^?! ix _iInB
-    OBanI -> \m -> m & V.ix _iOut .~ m ^?! ix _iInA .&. _iInB
-    OBorR -> \m -> m & V.ix _iOut .~ m ^?! ix _iInA .|. m ^?! ix _iInB
-    OBorI -> \m -> m & V.ix _iOut .~ m ^?! ix _iInA .|. _iInB
-    OSetR -> \m -> m & V.ix _iOut .~ m ^?! ix _iInA
-    OSetI -> \m -> m & V.ix _iOut .~          _iInA
-    OGtIR -> \m -> m & V.ix _iOut . enum .~ (         _iInA  > m ^?! ix _iInB)
-    OGtRI -> \m -> m & V.ix _iOut . enum .~ (m ^?! ix _iInA  >          _iInB)
-    OGtRR -> \m -> m & V.ix _iOut . enum .~ (m ^?! ix _iInA  > m ^?! ix _iInB)
-    OEqIR -> \m -> m & V.ix _iOut . enum .~ (         _iInA == m ^?! ix _iInB)
-    OEqRI -> \m -> m & V.ix _iOut . enum .~ (m ^?! ix _iInA ==          _iInB)
-    OEqRR -> \m -> m & V.ix _iOut . enum .~ (m ^?! ix _iInA == m ^?! ix _iInB)
-    OModR -> \m -> m & V.ix _iOut .~ m ^?! ix _iInA `mod` m ^?! ix _iInB
-    ONoOp -> id
+    OAddR -> rOp (+)
+    OAddI -> iOp (+)
+    OMulR -> rOp (*)
+    OMulI -> iOp (*)
+    OBanR -> rOp (.&.)
+    OBanI -> iOp (.&.)
+    OBorR -> rOp (.|.)
+    OBorI -> iOp (.|.)
+    OSetR -> \m -> MV.write m _iOut =<< MV.read m (fromIntegral _iInA)
+    OSetI -> \m -> MV.write m _iOut _iInA
+    OGtIR -> \m -> MV.write m _iOut . fromEnum =<<
+      (>) <$> pure _iInA                     <*> MV.read m (fromIntegral _iInB)
+    OGtRI -> \m -> MV.write m _iOut . fromEnum =<<
+      (>) <$> MV.read m (fromIntegral _iInA) <*> pure _iInB
+    OGtRR -> \m -> MV.write m _iOut . fromEnum =<<
+      (>) <$> MV.read m (fromIntegral _iInA) <*> MV.read m (fromIntegral _iInB)
+    OEqIR -> \m -> MV.write m _iOut . fromEnum =<<
+     (==) <$> pure _iInA                     <*> MV.read m (fromIntegral _iInB)
+    OEqRI -> \m -> MV.write m _iOut . fromEnum =<<
+     (==) <$> MV.read m (fromIntegral _iInA) <*> pure _iInB
+    OEqRR -> \m -> MV.write m _iOut . fromEnum =<<
+     (==) <$> MV.read m (fromIntegral _iInA) <*> MV.read m (fromIntegral _iInB)
+    OModR -> rOp mod
+    ONoOp -> \_ -> pure ()
+  where
+    rOp f m = MV.write m _iOut =<<
+        f <$> MV.read m (fromIntegral _iInA) <*> MV.read m (fromIntegral _iInB)
+    iOp f m = MV.write m _iOut . (`f` _iInB) =<< MV.read m (fromIntegral _iInA)
 
-stepProgram
+runProgram
     :: Finite 6
     -> Program
-    -> Mem
-    -> Maybe Mem
-stepProgram iPtr prog m0 = (prog ^? ix i) <&> \instr ->
-    runOp instr m0 & V.ix iPtr +~ 1
-  where
-    i = m0 ^. V.ix iPtr
+    -> V.Vector 6 Int
+    -> V.Vector 6 Int
+runProgram iPtr p v = runST $ do
+    mv <- V.thaw v
+    let go = do
+          i <- MV.read mv iPtr
+          forMOf_ (ix i) p $ \instr -> do
+            runOp instr mv
+            MV.modify mv (+1) iPtr
+            go
+    go
+    V.freeze mv
 
 day19a :: (Finite 6, Program) :~> Int
 day19a = MkSol
     { sParse = P.parseMaybe progParser
     , sShow  = show
     , sSolve = \(i, p) -> Just . V.head
-                        . loopMaybe (stepProgram i p)
+                        . runProgram i p
                         $ V.replicate 0
     }
 
@@ -99,7 +115,7 @@ day19b = MkSol
     { sParse = P.parseMaybe progParser
     , sShow  = show
     , sSolve = \(i, p) -> Just . V.head
-                        . loopMaybe (stepProgram i (runOptimizer i p))
+                        . runProgram i (runOptimizer i p)
                         . set (V.ix 0) 1
                         $ V.replicate 0
     }
