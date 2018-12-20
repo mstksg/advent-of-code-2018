@@ -28,7 +28,7 @@ module AOC.Run.Load (
   , parseTests
   ) where
 
-import           AOC.Challenge
+import           AOC.Challenge hiding (Parser)
 import           AOC.Util
 import           Advent
 import           Control.Applicative
