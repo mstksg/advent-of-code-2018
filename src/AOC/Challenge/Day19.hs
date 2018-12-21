@@ -56,34 +56,31 @@ data OpCode = OAddR | OAddI
 
 runOp :: (PrimMonad m, PrimState m ~ s) => Instr -> Mem s -> m ()
 runOp I{..} = case _iOp of
-    OAddR -> rOp (+)
-    OAddI -> iOp (+)
-    OMulR -> rOp (*)
-    OMulI -> iOp (*)
-    OBanR -> rOp (.&.)
-    OBanI -> iOp (.&.)
-    OBorR -> rOp (.|.)
-    OBorI -> iOp (.|.)
-    OSetR -> \m -> MV.write m _iOut =<< MV.read m (fromIntegral _iInA)
+    OAddR -> rrOp (+)
+    OAddI -> riOp (+)
+    OMulR -> rrOp (*)
+    OMulI -> riOp (*)
+    OBanR -> rrOp (.&.)
+    OBanI -> riOp (.&.)
+    OBorR -> rrOp (.|.)
+    OBorI -> riOp (.|.)
+    OSetR -> riOp const
     OSetI -> \m -> MV.write m _iOut _iInA
-    OGtIR -> \m -> MV.write m _iOut . fromEnum =<<
-      (>) <$> pure _iInA                     <*> MV.read m (fromIntegral _iInB)
-    OGtRI -> \m -> MV.write m _iOut . fromEnum =<<
-      (>) <$> MV.read m (fromIntegral _iInA) <*> pure _iInB
-    OGtRR -> \m -> MV.write m _iOut . fromEnum =<<
-      (>) <$> MV.read m (fromIntegral _iInA) <*> MV.read m (fromIntegral _iInB)
-    OEqIR -> \m -> MV.write m _iOut . fromEnum =<<
-     (==) <$> pure _iInA                     <*> MV.read m (fromIntegral _iInB)
-    OEqRI -> \m -> MV.write m _iOut . fromEnum =<<
-     (==) <$> MV.read m (fromIntegral _iInA) <*> pure _iInB
-    OEqRR -> \m -> MV.write m _iOut . fromEnum =<<
-     (==) <$> MV.read m (fromIntegral _iInA) <*> MV.read m (fromIntegral _iInB)
-    OModR -> rOp mod
+    OGtIR -> irOp $ \x y -> if x  > y then 1 else 0
+    OGtRI -> riOp $ \x y -> if x  > y then 1 else 0
+    OGtRR -> rrOp $ \x y -> if x  > y then 1 else 0
+    OEqIR -> irOp $ \x y -> if x == y then 1 else 0
+    OEqRI -> riOp $ \x y -> if x == y then 1 else 0
+    OEqRR -> rrOp $ \x y -> if x == y then 1 else 0
+    OModR -> rrOp mod
     ONoOp -> \_ -> pure ()
   where
-    rOp f m = MV.write m _iOut =<<
-        f <$> MV.read m (fromIntegral _iInA) <*> MV.read m (fromIntegral _iInB)
-    iOp f m = MV.write m _iOut . (`f` _iInB) =<< MV.read m (fromIntegral _iInA)
+    rrOp f m = do
+      x <- MV.read m (fromIntegral _iInA)
+      y <- MV.read m (fromIntegral _iInB)
+      MV.write m _iOut (f x y)
+    riOp f m = MV.write m _iOut . (`f` _iInB) =<< MV.read m (fromIntegral _iInA)
+    irOp f m = MV.write m _iOut . f _iInA     =<< MV.read m (fromIntegral _iInB)
 
 runProgram
     :: Finite 6

@@ -87,7 +87,7 @@ farthestRoom es = go 0 S.empty (V2 0 0)
         allNeighbs = filter ((`S.member` es) . mkEdge p)
                    . filter (`S.notMember` seen)
                    $ neighbs p
-                   
+
 day20a :: [RegTok] :~> Int
 day20a = MkSol
     { sParse = Just . parseToks
@@ -107,7 +107,7 @@ roomDistances es = go 0 S.empty (V2 0 0)
         allNeighbs = filter ((`S.member` es) . mkEdge p)
                    . filter (`S.notMember` seen)
                    $ neighbs p
-                   
+
 day20b :: [RegTok] :~> Int
 day20b = MkSol
     { sParse = Just . parseToks
