@@ -187,6 +187,7 @@ meanVar :: Fractional a => Fold a (a, a)
 type Point = V2 Int
 cardinalNeighbs :: Point -> [Point]
 fullNeighbs :: Point -> [Point]
+mannDist :: Point -> Point -> Int
 memoPoint :: Memo Point
 
 -- | Find the minimum and maximum x and y from a collection of points.
@@ -6541,6 +6542,7 @@ boundingBox' :: Foldable f => f Point -> Maybe (V2 Point)
 cardinalNeighbs :: Point -> [Point]
 fullNeighbs :: Point -> [Point]
 memoPoint :: Memo Point
+mannDist :: Point -> Point -> Int
 parseAsciiMap :: (Char -> Maybe a) -> String -> Map Point a
 asciiGrid :: IndexedFold Point String Char
 displayAsciiMap :: Char -> Map Point Char -> String
@@ -7140,13 +7142,13 @@ MRO :: !TestSpec -> !Bool -> !Bool -> !Bool -> !Finite 25 -> Part -> IO (Maybe S
 
 -- | Manually supply input (Default: always return Nothing)
 [_mroInput] :: MainRunOpts -> !Finite 25 -> Part -> IO (Maybe String)
-class HasMainRunOpts c_a2gaM
-mainRunOpts :: HasMainRunOpts c_a2gaM => Lens' c_a2gaM MainRunOpts
-mroBench :: HasMainRunOpts c_a2gaM => Lens' c_a2gaM Bool
-mroInput :: HasMainRunOpts c_a2gaM => Lens' c_a2gaM (Finite 25 -> Part -> IO (Maybe String))
-mroLock :: HasMainRunOpts c_a2gaM => Lens' c_a2gaM Bool
-mroSpec :: HasMainRunOpts c_a2gaM => Lens' c_a2gaM TestSpec
-mroTest :: HasMainRunOpts c_a2gaM => Lens' c_a2gaM Bool
+class HasMainRunOpts c_a2g1m
+mainRunOpts :: HasMainRunOpts c_a2g1m => Lens' c_a2g1m MainRunOpts
+mroBench :: HasMainRunOpts c_a2g1m => Lens' c_a2g1m Bool
+mroInput :: HasMainRunOpts c_a2g1m => Lens' c_a2g1m (Finite 25 -> Part -> IO (Maybe String))
+mroLock :: HasMainRunOpts c_a2g1m => Lens' c_a2g1m Bool
+mroSpec :: HasMainRunOpts c_a2g1m => Lens' c_a2g1m TestSpec
+mroTest :: HasMainRunOpts c_a2g1m => Lens' c_a2g1m Bool
 
 -- | Run, test, bench.
 mainRun :: (MonadIO m, MonadError [String] m) => Config -> MainRunOpts -> m (Map (Finite 25) (Map Part (Maybe Bool, Either [String] String)))
@@ -7159,10 +7161,10 @@ data MainViewOpts
 MVO :: !TestSpec -> !Bool -> MainViewOpts
 [_mvoSpec] :: MainViewOpts -> !TestSpec
 [_mvoWait] :: MainViewOpts -> !Bool
-class HasMainViewOpts c_a2ghO
-mainViewOpts :: HasMainViewOpts c_a2ghO => Lens' c_a2ghO MainViewOpts
-mvoSpec :: HasMainViewOpts c_a2ghO => Lens' c_a2ghO TestSpec
-mvoWait :: HasMainViewOpts c_a2ghO => Lens' c_a2ghO Bool
+class HasMainViewOpts c_a2g8o
+mainViewOpts :: HasMainViewOpts c_a2g8o => Lens' c_a2g8o MainViewOpts
+mvoSpec :: HasMainViewOpts c_a2g8o => Lens' c_a2g8o TestSpec
+mvoWait :: HasMainViewOpts c_a2g8o => Lens' c_a2g8o Bool
 
 -- | View prompt
 mainView :: (MonadIO m, MonadError [String] m) => Config -> MainViewOpts -> m (Map (Finite 25) (Map Part Text))
@@ -7183,12 +7185,12 @@ MSO :: !ChallengeSpec -> !Bool -> !Bool -> !Bool -> MainSubmitOpts
 
 -- | Lock answer if submission succeeded? (Default: True)
 [_msoLock] :: MainSubmitOpts -> !Bool
-class HasMainSubmitOpts c_a2gm7
-mainSubmitOpts :: HasMainSubmitOpts c_a2gm7 => Lens' c_a2gm7 MainSubmitOpts
-msoForce :: HasMainSubmitOpts c_a2gm7 => Lens' c_a2gm7 Bool
-msoLock :: HasMainSubmitOpts c_a2gm7 => Lens' c_a2gm7 Bool
-msoSpec :: HasMainSubmitOpts c_a2gm7 => Lens' c_a2gm7 ChallengeSpec
-msoTest :: HasMainSubmitOpts c_a2gm7 => Lens' c_a2gm7 Bool
+class HasMainSubmitOpts c_a2gcH
+mainSubmitOpts :: HasMainSubmitOpts c_a2gcH => Lens' c_a2gcH MainSubmitOpts
+msoForce :: HasMainSubmitOpts c_a2gcH => Lens' c_a2gcH Bool
+msoLock :: HasMainSubmitOpts c_a2gcH => Lens' c_a2gcH Bool
+msoSpec :: HasMainSubmitOpts c_a2gcH => Lens' c_a2gcH ChallengeSpec
+msoTest :: HasMainSubmitOpts c_a2gcH => Lens' c_a2gcH Bool
 
 -- | Submit and analyze result
 mainSubmit :: (MonadIO m, MonadError [String] m) => Config -> MainSubmitOpts -> m (Text, SubmitRes)
