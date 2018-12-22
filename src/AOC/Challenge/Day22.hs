@@ -114,11 +114,15 @@ climbDist1 (e0,_) (e1,_)
 pathTime :: [ClimbState] -> Int
 pathTime = sum . map (uncurry climbDist1) . (zip <*> tail)
 
-day22b :: _ :~> _
+day22b :: (Int, Point) :~> Int
 day22b = MkSol
     { sParse = parse22
     , sShow  = show
     , sSolve = \(d, p) ->
-        let mp      = terrainTypes d (p * 2) p
+        let mp      = terrainTypes d (pad p) p
         in  pathTime <$> journey mp p
     }
+  where
+    pad (V2 x y)
+      | x > y     = V2 ((x * 6) `div` 5) (y * 2)
+      | otherwise = V2 (x * 2)           ((y * 6) `div` 5)
