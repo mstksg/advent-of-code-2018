@@ -12,15 +12,60 @@
 @package aoc2018
 @version 0.1.0.0
 
-module AOC.Common.ElfCode
-instance GHC.Classes.Ord AOC.Common.ElfCode.Instr
-instance GHC.Classes.Eq AOC.Common.ElfCode.Instr
-instance GHC.Show.Show AOC.Common.ElfCode.Instr
-instance GHC.Enum.Bounded AOC.Common.ElfCode.OpCode
-instance GHC.Enum.Enum AOC.Common.ElfCode.OpCode
-instance GHC.Classes.Ord AOC.Common.ElfCode.OpCode
-instance GHC.Classes.Eq AOC.Common.ElfCode.OpCode
-instance GHC.Show.Show AOC.Common.ElfCode.OpCode
+module AOC.Common.Elfcode
+type Mem s = MVector 6 s Int
+type IMem = Vector 6 Int
+type ECProg = Vector Instr
+data Instr
+I :: OpCode -> Int -> Int -> Finite 6 -> Instr
+[_iOp] :: Instr -> OpCode
+[_iInA] :: Instr -> Int
+[_iInB] :: Instr -> Int
+[_iOut] :: Instr -> Finite 6
+data OpCode
+OAddR :: OpCode
+OAddI :: OpCode
+OMulR :: OpCode
+OMulI :: OpCode
+OBanR :: OpCode
+OBanI :: OpCode
+OBorR :: OpCode
+OBorI :: OpCode
+OSetR :: OpCode
+OSetI :: OpCode
+OGtIR :: OpCode
+OGtRI :: OpCode
+OGtRR :: OpCode
+OEqIR :: OpCode
+OEqRI :: OpCode
+OEqRR :: OpCode
+ODivR :: OpCode
+ODivI :: OpCode
+OModR :: OpCode
+ONoOp :: OpCode
+OOutR :: OpCode
+OOutI :: OpCode
+runOp :: Instr -> IMem -> (Maybe Int, IMem)
+execOp :: (PrimMonad m, PrimState m ~ s) => Instr -> Mem s -> m (Maybe Int)
+runECProg :: Finite 6 -> ECProg -> IMem -> ([Int], IMem)
+evalECProg :: Finite 6 -> ECProg -> IMem -> [Int]
+execECProg :: Finite 6 -> ECProg -> IMem -> IMem
+traceECProg :: Finite 6 -> ECProg -> IMem -> [(Maybe Int, IMem)]
+traceECProg_ :: Finite 6 -> ECProg -> IMem -> [IMem]
+optimizeEC :: [Peephole [Instr]] -> ECProg -> ECProg
+type Peephole = Parsec [Instr] ()
+peep :: Maybe Int -> Maybe Int -> Maybe (Finite 6) -> Peephole Instr
+currPeepPos :: Peephole Int
+parseElfcode :: String -> Maybe (Finite 6, ECProg)
+elfcodeParser :: Parser (Finite 6, ECProg)
+instance GHC.Classes.Ord AOC.Common.Elfcode.Instr
+instance GHC.Classes.Eq AOC.Common.Elfcode.Instr
+instance GHC.Show.Show AOC.Common.Elfcode.Instr
+instance GHC.Enum.Bounded AOC.Common.Elfcode.OpCode
+instance GHC.Enum.Enum AOC.Common.Elfcode.OpCode
+instance GHC.Classes.Ord AOC.Common.Elfcode.OpCode
+instance GHC.Classes.Eq AOC.Common.Elfcode.OpCode
+instance GHC.Show.Show AOC.Common.Elfcode.OpCode
 
 module AOC.Common.Search
 
@@ -6688,62 +6733,6 @@ module AOC.Challenge.Day24
 module AOC.Challenge.Day23
 
 
--- | Day 22. See <a>AOC.Solver</a> for the types used in this module!
---   
---   After completing the challenge, it is recommended to:
---   
---   <ul>
---   <li>Replace <a>AOC.Prelude</a> imports to specific modules (with
---   explicit imports) for readability.</li>
---   <li>Remove the <tt>-Wno-unused-imports</tt> and
---   <tt>-Wno-unused-top-binds</tt> pragmas.</li>
---   <li>Replace the partial type signatures underscores in the solution
---   types <tt>_ :~&gt; _</tt> with the actual types of inputs and outputs
---   of the solution. You can delete the type signatures completely and GHC
---   will recommend what should go in place of the underscores.</li>
---   </ul>
-module AOC.Challenge.Day22
-day22a :: (Int, Point) :~> Int
-day22b :: _ :~> _
-instance GHC.Generics.Generic AOC.Challenge.Day22.Equip
-instance GHC.Enum.Enum AOC.Challenge.Day22.Equip
-instance GHC.Show.Show AOC.Challenge.Day22.Equip
-instance GHC.Classes.Ord AOC.Challenge.Day22.Equip
-instance GHC.Classes.Eq AOC.Challenge.Day22.Equip
-instance GHC.Enum.Enum AOC.Challenge.Day22.Terrain
-instance GHC.Show.Show AOC.Challenge.Day22.Terrain
-instance GHC.Classes.Ord AOC.Challenge.Day22.Terrain
-instance GHC.Classes.Eq AOC.Challenge.Day22.Terrain
-instance Data.Hashable.Class.Hashable AOC.Challenge.Day22.Equip
-
-
--- | Day 21. See <a>AOC.Solver</a> for the types used in this module!
---   
---   After completing the challenge, it is recommended to:
---   
---   <ul>
---   <li>Replace <a>AOC.Prelude</a> imports to specific modules (with
---   explicit imports) for readability.</li>
---   <li>Remove the <tt>-Wno-unused-imports</tt> and
---   <tt>-Wno-unused-top-binds</tt> pragmas.</li>
---   <li>Replace the partial type signatures underscores in the solution
---   types <tt>_ :~&gt; _</tt> with the actual types of inputs and outputs
---   of the solution. You can delete the type signatures completely and GHC
---   will recommend what should go in place of the underscores.</li>
---   </ul>
-module AOC.Challenge.Day21
-day21a :: _ :~> _
-day21b :: _ :~> _
-instance GHC.Classes.Ord AOC.Challenge.Day21.Instr
-instance GHC.Classes.Eq AOC.Challenge.Day21.Instr
-instance GHC.Show.Show AOC.Challenge.Day21.Instr
-instance GHC.Enum.Bounded AOC.Challenge.Day21.OpCode
-instance GHC.Enum.Enum AOC.Challenge.Day21.OpCode
-instance GHC.Classes.Ord AOC.Challenge.Day21.OpCode
-instance GHC.Classes.Eq AOC.Challenge.Day21.OpCode
-instance GHC.Show.Show AOC.Challenge.Day21.OpCode
-
-
 -- | Template Haskell for discovering all named challenges in a given
 --   directory.
 module AOC.Discover
@@ -6792,6 +6781,27 @@ instance GHC.Classes.Eq AOC.Discover.ChallengeSpec
 instance GHC.Show.Show AOC.Discover.ChallengeSpec
 
 
+module AOC.Challenge.Day22
+day22a :: (Int, Point) :~> Int
+day22b :: _ :~> _
+instance GHC.Generics.Generic AOC.Challenge.Day22.Equip
+instance GHC.Enum.Enum AOC.Challenge.Day22.Equip
+instance GHC.Show.Show AOC.Challenge.Day22.Equip
+instance GHC.Classes.Ord AOC.Challenge.Day22.Equip
+instance GHC.Classes.Eq AOC.Challenge.Day22.Equip
+instance GHC.Enum.Enum AOC.Challenge.Day22.Terrain
+instance GHC.Show.Show AOC.Challenge.Day22.Terrain
+instance GHC.Classes.Ord AOC.Challenge.Day22.Terrain
+instance GHC.Classes.Eq AOC.Challenge.Day22.Terrain
+instance Data.Hashable.Class.Hashable AOC.Challenge.Day22.Equip
+
+
+-- | Day 21. See <a>AOC.Solver</a> for the types used in this module!
+module AOC.Challenge.Day21
+day21a :: (Finite 6, ECProg) :~> Int
+day21b :: (Finite 6, ECProg) :~> Int
+
+
 -- | Day 20. See <a>AOC.Solver</a> for the types used in this module!
 module AOC.Challenge.Day20
 day20a :: [RegTok] :~> Int
@@ -6811,16 +6821,8 @@ instance GHC.Show.Show AOC.Challenge.Day20.Edge
 
 -- | Day 19. See <a>AOC.Solver</a> for the types used in this module!
 module AOC.Challenge.Day19
-day19a :: (Finite 6, Program) :~> Int
-day19b :: (Finite 6, Program) :~> Int
-instance GHC.Classes.Ord AOC.Challenge.Day19.Instr
-instance GHC.Classes.Eq AOC.Challenge.Day19.Instr
-instance GHC.Show.Show AOC.Challenge.Day19.Instr
-instance GHC.Enum.Bounded AOC.Challenge.Day19.OpCode
-instance GHC.Enum.Enum AOC.Challenge.Day19.OpCode
-instance GHC.Classes.Ord AOC.Challenge.Day19.OpCode
-instance GHC.Classes.Eq AOC.Challenge.Day19.OpCode
-instance GHC.Show.Show AOC.Challenge.Day19.OpCode
+day19a :: (Finite 6, ECProg) :~> Int
+day19b :: (Finite 6, ECProg) :~> Int
 
 
 -- | Day 18. See <a>AOC.Solver</a> for the types used in this module!
@@ -7142,13 +7144,13 @@ MRO :: !TestSpec -> !Bool -> !Bool -> !Bool -> !Finite 25 -> Part -> IO (Maybe S
 
 -- | Manually supply input (Default: always return Nothing)
 [_mroInput] :: MainRunOpts -> !Finite 25 -> Part -> IO (Maybe String)
-class HasMainRunOpts c_a2g1m
-mainRunOpts :: HasMainRunOpts c_a2g1m => Lens' c_a2g1m MainRunOpts
-mroBench :: HasMainRunOpts c_a2g1m => Lens' c_a2g1m Bool
-mroInput :: HasMainRunOpts c_a2g1m => Lens' c_a2g1m (Finite 25 -> Part -> IO (Maybe String))
-mroLock :: HasMainRunOpts c_a2g1m => Lens' c_a2g1m Bool
-mroSpec :: HasMainRunOpts c_a2g1m => Lens' c_a2g1m TestSpec
-mroTest :: HasMainRunOpts c_a2g1m => Lens' c_a2g1m Bool
+class HasMainRunOpts c_a2cki
+mainRunOpts :: HasMainRunOpts c_a2cki => Lens' c_a2cki MainRunOpts
+mroBench :: HasMainRunOpts c_a2cki => Lens' c_a2cki Bool
+mroInput :: HasMainRunOpts c_a2cki => Lens' c_a2cki (Finite 25 -> Part -> IO (Maybe String))
+mroLock :: HasMainRunOpts c_a2cki => Lens' c_a2cki Bool
+mroSpec :: HasMainRunOpts c_a2cki => Lens' c_a2cki TestSpec
+mroTest :: HasMainRunOpts c_a2cki => Lens' c_a2cki Bool
 
 -- | Run, test, bench.
 mainRun :: (MonadIO m, MonadError [String] m) => Config -> MainRunOpts -> m (Map (Finite 25) (Map Part (Maybe Bool, Either [String] String)))
@@ -7161,10 +7163,10 @@ data MainViewOpts
 MVO :: !TestSpec -> !Bool -> MainViewOpts
 [_mvoSpec] :: MainViewOpts -> !TestSpec
 [_mvoWait] :: MainViewOpts -> !Bool
-class HasMainViewOpts c_a2g8o
-mainViewOpts :: HasMainViewOpts c_a2g8o => Lens' c_a2g8o MainViewOpts
-mvoSpec :: HasMainViewOpts c_a2g8o => Lens' c_a2g8o TestSpec
-mvoWait :: HasMainViewOpts c_a2g8o => Lens' c_a2g8o Bool
+class HasMainViewOpts c_a2crk
+mainViewOpts :: HasMainViewOpts c_a2crk => Lens' c_a2crk MainViewOpts
+mvoSpec :: HasMainViewOpts c_a2crk => Lens' c_a2crk TestSpec
+mvoWait :: HasMainViewOpts c_a2crk => Lens' c_a2crk Bool
 
 -- | View prompt
 mainView :: (MonadIO m, MonadError [String] m) => Config -> MainViewOpts -> m (Map (Finite 25) (Map Part Text))
@@ -7185,12 +7187,12 @@ MSO :: !ChallengeSpec -> !Bool -> !Bool -> !Bool -> MainSubmitOpts
 
 -- | Lock answer if submission succeeded? (Default: True)
 [_msoLock] :: MainSubmitOpts -> !Bool
-class HasMainSubmitOpts c_a2gcH
-mainSubmitOpts :: HasMainSubmitOpts c_a2gcH => Lens' c_a2gcH MainSubmitOpts
-msoForce :: HasMainSubmitOpts c_a2gcH => Lens' c_a2gcH Bool
-msoLock :: HasMainSubmitOpts c_a2gcH => Lens' c_a2gcH Bool
-msoSpec :: HasMainSubmitOpts c_a2gcH => Lens' c_a2gcH ChallengeSpec
-msoTest :: HasMainSubmitOpts c_a2gcH => Lens' c_a2gcH Bool
+class HasMainSubmitOpts c_a2cvD
+mainSubmitOpts :: HasMainSubmitOpts c_a2cvD => Lens' c_a2cvD MainSubmitOpts
+msoForce :: HasMainSubmitOpts c_a2cvD => Lens' c_a2cvD Bool
+msoLock :: HasMainSubmitOpts c_a2cvD => Lens' c_a2cvD Bool
+msoSpec :: HasMainSubmitOpts c_a2cvD => Lens' c_a2cvD ChallengeSpec
+msoTest :: HasMainSubmitOpts c_a2cvD => Lens' c_a2cvD Bool
 
 -- | Submit and analyze result
 mainSubmit :: (MonadIO m, MonadError [String] m) => Config -> MainSubmitOpts -> m (Text, SubmitRes)
