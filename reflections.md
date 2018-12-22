@@ -1920,10 +1920,8 @@ recursive descent.
 
 ```haskell
 neighbs :: Point -> [Point]
-neighbs p = [ p + V2 dx dy
-            | dx <- [-1 .. 1]
-            , dy <- if dx == 0 then [-1,1] else [-1..1]
-            ]
+neighbs p = (p +) <$> [ V2 0 (-1), V2 1 0, V2 0 1, V2 (-1) 0 ]
+
 
 roomDistances :: Set Edge -> [Int]
 roomDistances es = go 0 S.empty (V2 0 0)
@@ -1961,17 +1959,16 @@ day20b inp = length . filter (>= 1000) $ roomDistances edges
 ```
 >> Day 20a
 benchmarking...
-time                 68.08 ms   (61.10 ms .. 71.78 ms)
-                     0.961 R²   (0.852 R² .. 1.000 R²)
-mean                 71.17 ms   (68.04 ms .. 82.18 ms)
-std dev              9.031 ms   (1.578 ms .. 15.38 ms)
-variance introduced by outliers: 44% (moderately inflated)
+time                 54.36 ms   (53.48 ms .. 55.61 ms)
+                     0.999 R²   (0.997 R² .. 1.000 R²)
+mean                 54.67 ms   (54.07 ms .. 56.08 ms)
+std dev              1.596 ms   (907.2 μs .. 2.498 ms)
 
 >> Day 20b
 benchmarking...
-time                 679.2 ms   (655.9 ms .. 696.3 ms)
-                     1.000 R²   (1.000 R² .. 1.000 R²)
-mean                 679.0 ms   (675.6 ms .. 683.6 ms)
-std dev              4.381 ms   (2.138 ms .. 5.531 ms)
+time                 658.4 ms   (609.0 ms .. 683.2 ms)
+                     0.999 R²   (0.998 R² .. 1.000 R²)
+mean                 662.8 ms   (656.4 ms .. 668.8 ms)
+std dev              7.416 ms   (4.565 ms .. 9.048 ms)
 variance introduced by outliers: 19% (moderately inflated)
 ```

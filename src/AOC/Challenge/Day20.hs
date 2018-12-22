@@ -14,7 +14,7 @@ module AOC.Challenge.Day20 (
   , day20b
   ) where
 
-import           AOC.Common    (Point, eitherToMaybe)
+import           AOC.Common    (Point, eitherToMaybe, cardinalNeighbs)
 import           AOC.Solver    ((:~>)(..))
 import           Control.Monad (guard)
 import           Data.Maybe    (mapMaybe)
@@ -70,12 +70,6 @@ buildEdges = (tok RTStart `P.between` tok RTEnd) anySteps
       P.setState newPos
       S.insert (mkEdge currPos newPos) <$> anySteps
 
-neighbs :: Point -> [Point]
-neighbs p = [ p + V2 dx dy
-            | dx <- [-1 .. 1]
-            , dy <- if dx == 0 then [-1,1] else [-1..1]
-            ]
-
 farthestRoom :: Set Edge -> Int
 farthestRoom es = go 0 S.empty (V2 0 0)
   where
@@ -86,7 +80,7 @@ farthestRoom es = go 0 S.empty (V2 0 0)
       where
         allNeighbs = filter ((`S.member` es) . mkEdge p)
                    . filter (`S.notMember` seen)
-                   $ neighbs p
+                   $ cardinalNeighbs p
 
 day20a :: [RegTok] :~> Int
 day20a = MkSol
@@ -106,7 +100,7 @@ roomDistances es = go 0 S.empty (V2 0 0)
       where
         allNeighbs = filter ((`S.member` es) . mkEdge p)
                    . filter (`S.notMember` seen)
-                   $ neighbs p
+                   $ cardinalNeighbs p
 
 day20b :: [RegTok] :~> Int
 day20b = MkSol

@@ -14,11 +14,12 @@ module AOC.Challenge.Day15 (
   , day15b
   ) where
 
-import           AOC.Common            (boundingBox, ScanPoint(..), asciiGrid)
+import           AOC.Common            (boundingBox, ScanPoint(..), asciiGrid, cardinalNeighbs)
 import           AOC.Common.Search     (aStar, exponentialFindMin)
 import           AOC.Solver            ((:~>)(..))
 import           Control.Lens          (makeLenses, ifoldMapOf, (.~), (-~))
 import           Control.Monad         (guard)
+import           Data.Coerce           (coerce)
 import           Data.Foldable         (toList)
 import           Data.Function         ((&))
 import           Data.Functor.Foldable (Fix, cata, ana, hylo)
@@ -82,7 +83,8 @@ stepTo w x dest = snd
                 . toList
                 . S.map (\n -> (,n) . length <$> actualLiteralAStar w' n dest)
                 . (`S.intersection` w')
-                $ neighbs x
+                . S.fromList
+                $ coerce cardinalNeighbs x
   where
     w' = S.delete x w
 

@@ -39,6 +39,9 @@ module AOC.Common (
   , meanVar
   -- * 2D Maps
   , Point
+  , cardinalNeighbs
+  , fullNeighbs
+  , memoPoint
   , boundingBox
   , boundingBox'
   , parseAsciiMap
@@ -57,6 +60,7 @@ import           Data.List
 import           Data.List.NonEmpty                 (NonEmpty)
 import           Data.Map                           (Map)
 import           Data.Map.NonEmpty                  (NEMap)
+import           Data.MemoCombinators               (Memo)
 import           Data.Ord
 import           Data.Semigroup
 import           Data.Semigroup.Foldable
@@ -66,6 +70,7 @@ import qualified Control.Foldl                      as F
 import qualified Data.List.NonEmpty                 as NE
 import qualified Data.Map                           as M
 import qualified Data.Map.NonEmpty                  as NEM
+import qualified Data.MemoCombinators               as Memo
 import qualified Data.Set                           as S
 import qualified Data.Vector.Generic.Sized.Internal as SVG
 
@@ -229,6 +234,21 @@ boundingBox ps = V2 xMin yMin `V2` V2 xMax yMax
 -- | A version of 'boundingBox' that works for normal possibly-empty lists.
 boundingBox' :: Foldable f => f Point -> Maybe (V2 Point)
 boundingBox' = fmap boundingBox . NE.nonEmpty . toList
+
+cardinalNeighbs :: Point -> [Point]
+cardinalNeighbs p = (p +) <$> [ V2 0 (-1), V2 1 0, V2 0 1, V2 (-1) 0 ]
+
+fullNeighbs :: Point -> [Point]
+fullNeighbs p = [ p + V2 dx dy
+                | dx <- [-1 .. 1]
+                , dy <- if dx == 0 then [-1,1] else [-1..1]
+                ]
+
+
+memoPoint :: Memo Point
+memoPoint = Memo.wrap (uncurry V2) (\(V2 x y) -> (x, y)) $
+                Memo.pair Memo.integral Memo.integral
+
 
 -- | It's 'Point', but with a newtype wrapper so we have an 'Ord' that
 -- sorts by y first, then x

@@ -14,13 +14,12 @@ module AOC.Challenge.Day18 (
   , day18b
   ) where
 
-import           AOC.Common    (Point, (!!!), parseAsciiMap)
+import           AOC.Common    (Point, (!!!), parseAsciiMap, fullNeighbs)
 import           AOC.Solver    ((:~>)(..))
 import           Control.Lens  (folded, lengthOf, only)
 import           Control.Monad (mfilter)
 import           Data.Map      (Map)
 import           Data.Maybe    (mapMaybe)
-import           Linear        (V2(..))
 import qualified Data.Map      as M
 
 data Terrain = TOpen
@@ -29,12 +28,6 @@ data Terrain = TOpen
   deriving (Show, Eq, Ord)
 
 type World = Map Point Terrain
-
-neighbs :: Point -> [Point]
-neighbs p = [ p + V2 dx dy
-            | dx <- [-1 .. 1]
-            , dy <- if dx == 0 then [-1,1] else [-1..1]
-            ]
 
 stepMap :: World -> World
 stepMap mp = M.mapWithKey go mp
@@ -54,7 +47,7 @@ stepMap mp = M.mapWithKey go mp
       where
         neighbCount t = length
                       . mapMaybe (mfilter (== t) . (`M.lookup` mp))
-                      . neighbs
+                      . fullNeighbs
                       $ p
 
 day18a :: World :~> Int

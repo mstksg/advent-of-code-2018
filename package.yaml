@@ -74,6 +74,7 @@ library:
   - advent-of-code-api >= 0.1.2.3
   - aeson
   - ansi-terminal
+  - astar
   - bytestring
   - conduit
   - containers
@@ -81,6 +82,7 @@ library:
   - curl
   - data-default
   - data-default-class
+  - data-memocombinators
   - deepseq
   - directory
   - dlist
@@ -91,6 +93,7 @@ library:
   - free
   - free-algebras
   - groups
+  - hashable
   - haskeline
   - haskell-names
   - haskell-src-exts
@@ -123,6 +126,7 @@ library:
   - these
   - time
   - transformers
+  - unordered-containers
   - vector
   - vector-sized
   - witherable

@@ -1,39 +1,18 @@
-{-# OPTIONS_GHC -Wno-unused-imports   #-}
-{-# OPTIONS_GHC -Wno-unused-top-binds #-}
 
--- |
--- Module      : AOC.Challenge.Day21
--- Copyright   : (c) Justin Le 2018
--- License     : BSD3
---
--- Maintainer  : justin@jle.im
--- Stability   : experimental
--- Portability : non-portable
---
--- Day 21.  See "AOC.Solver" for the types used in this module!
---
--- After completing the challenge, it is recommended to:
---
--- *   Replace "AOC.Prelude" imports to specific modules (with explicit
---     imports) for readability.
--- *   Remove the @-Wno-unused-imports@ and @-Wno-unused-top-binds@
---     pragmas.
--- *   Replace the partial type signatures underscores in the solution
---     types @_ :~> _@ with the actual types of inputs and outputs of the
---     solution.  You can delete the type signatures completely and GHC
---     will recommend what should go in place of the underscores.
-
-module AOC.Challenge.Day21 (
-    day21a
-  , day21b
+module AOC.Common.ElfCode (
   ) where
 
-import           AOC.Prelude
+import           Control.Applicative
+import           Data.Char
 import           Control.Lens
+import           Control.Monad.Primitive
 import           Control.Monad.ST.Lazy
 import           Control.Monad.ST.Lazy.Unsafe
 import           Control.Monad.Writer
 import           Data.Bits
+import           Data.Finite
+import           Data.Maybe
+import           Data.Void
 import qualified Data.Set                                      as S
 import qualified Data.Vector                                   as UV
 import qualified Data.Vector.Unboxed.Mutable.Sized             as MV
@@ -63,7 +42,8 @@ data OpCode = OAddR | OAddI
             | OEqIR | OEqRI | OEqRR
             | ODivR | ODivI
             | OModR
-            | ONoOp | OTrce
+            | ONoOp
+            | OTrce
   deriving (Show, Eq, Ord, Enum, Bounded)
 
 runOp :: (MonadWriter [Int] m, PrimMonad m, PrimState m ~ s) => Instr -> Mem s -> m ()
@@ -116,35 +96,6 @@ runProgram iPtr p v = runST $ do
               strictToLazyST $ MV.modify mv (+1) iPtr
               (out ++) <$> go
     go
-
-day21a :: _ :~> _
-day21a = MkSol
-    { sParse = P.parseMaybe progParser
-    , sShow  = show
-    , sSolve = \(i, p) -> listToMaybe
-                        . runProgram i p
-                        $ V.replicate 0
-    }
-
-day21b :: _ :~> _
-day21b = MkSol
-    { sParse = P.parseMaybe progParser
-    , sShow  = show
-    , sSolve = \(i, p) -> listToMaybe . reverse . uniqRun
-                        . runProgram i p
-                        $ V.replicate 0
-    }
-
-
-uniqRun :: [Int] -> [Int]
-uniqRun = go S.empty
-  where
-    go _    []     = []
-    go seen (x:xs)
-      | x `S.member` seen = []
-      | otherwise         = x : go (S.insert x seen) xs
-
-
 
 type Parser = P.Parsec Void String
 
