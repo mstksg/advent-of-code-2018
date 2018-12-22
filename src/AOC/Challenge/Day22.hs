@@ -1,6 +1,3 @@
-{-# OPTIONS_GHC -Wno-unused-imports   #-}
-{-# OPTIONS_GHC -Wno-unused-top-binds #-}
-
 -- |
 -- Module      : AOC.Challenge.Day22
 -- Copyright   : (c) Justin Le 2018
@@ -9,33 +6,26 @@
 -- Maintainer  : justin@jle.im
 -- Stability   : experimental
 -- Portability : non-portable
---
--- Day 22.  See "AOC.Solver" for the types used in this module!
---
--- After completing the challenge, it is recommended to:
---
--- *   Replace "AOC.Prelude" imports to specific modules (with explicit
---     imports) for readability.
--- *   Remove the @-Wno-unused-imports@ and @-Wno-unused-top-binds@
---     pragmas.
--- *   Replace the partial type signatures underscores in the solution
---     types @_ :~> _@ with the actual types of inputs and outputs of the
---     solution.  You can delete the type signatures completely and GHC
---     will recommend what should go in place of the underscores.
 
 module AOC.Challenge.Day22 (
     day22a
   , day22b
   ) where
 
-import           AOC.Prelude hiding (aStar)
-import           Data.Finite
-import           Data.Graph.AStar
-import           Data.Hashable      (Hashable)
-import           Data.Ix
-import qualified Data.HashSet       as HS
-import qualified Data.Map           as M
-import qualified Data.Set           as S
+import           AOC.Common       (Point, mannDist, clearOut)
+import           AOC.Solver       ((:~>)(..))
+import           Data.Char        (isDigit)
+import           Data.Finite      (Finite, modulo)
+import           Data.Graph.AStar (aStar)
+import           Data.Hashable    (Hashable)
+import           Data.Ix          (range)
+import           Data.Map         (Map)
+import           Data.Maybe       (isJust)
+import           GHC.Generics     (Generic)
+import           Linear           (V2(..))
+import qualified Data.HashSet     as HS
+import qualified Data.Map         as M
+import qualified Data.Set         as S
 
 data Terrain = TRocky
              | TWet
@@ -122,7 +112,7 @@ climbDist1 (e0,_) (e1,_)
     | otherwise = 7
 
 pathTime :: [ClimbState] -> Int
-pathTime = sum . map (uncurry climbDist1) . (zip`ap`tail)
+pathTime = sum . map (uncurry climbDist1) . (zip <*> tail)
 
 day22b :: _ :~> _
 day22b = MkSol

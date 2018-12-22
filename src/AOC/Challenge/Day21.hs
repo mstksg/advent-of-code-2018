@@ -1,6 +1,3 @@
-{-# OPTIONS_GHC -Wno-unused-imports   #-}
-{-# OPTIONS_GHC -Wno-unused-top-binds #-}
-
 -- |
 -- Module      : AOC.Challenge.Day21
 -- Copyright   : (c) Justin Le 2018
@@ -11,130 +8,57 @@
 -- Portability : non-portable
 --
 -- Day 21.  See "AOC.Solver" for the types used in this module!
---
--- After completing the challenge, it is recommended to:
---
--- *   Replace "AOC.Prelude" imports to specific modules (with explicit
---     imports) for readability.
--- *   Remove the @-Wno-unused-imports@ and @-Wno-unused-top-binds@
---     pragmas.
--- *   Replace the partial type signatures underscores in the solution
---     types @_ :~> _@ with the actual types of inputs and outputs of the
---     solution.  You can delete the type signatures completely and GHC
---     will recommend what should go in place of the underscores.
 
 module AOC.Challenge.Day21 (
     day21a
   , day21b
   ) where
 
-import           AOC.Prelude
-import           Control.Lens
-import           Control.Monad.ST.Lazy
-import           Control.Monad.ST.Lazy.Unsafe
-import           Control.Monad.Writer
-import           Data.Bits
-import qualified Data.Set                                      as S
-import qualified Data.Vector                                   as UV
-import qualified Data.Vector.Unboxed.Mutable.Sized             as MV
-import qualified Data.Vector.Unboxed.Sized                     as V
-import qualified Text.Megaparsec                               as P
-import qualified Text.Megaparsec.Char                          as P
-import qualified Text.Megaparsec.Char.Lexer        as P hiding (space)
-import qualified Text.Parsec                                   as Pa
+import           AOC.Common.Elfcode        (ECProg, Instr(..), OpCode(..), Peephole, IMem, currPeepPos, peep, traceECProg_, optimizeEC, parseElfcode)
+import           AOC.Solver                ((:~>)(..))
+import           Data.Finite               (Finite)
+import           Data.Maybe                (listToMaybe, mapMaybe)
+import qualified Data.Set                  as S
+import qualified Data.Vector               as UV
+import qualified Data.Vector.Unboxed.Sized as V
 
-type Mem s = MV.MVector 6 s Int
-
-type Program = UV.Vector Instr
-
-data Instr = I { _iOp    :: OpCode
-               , _iInA   :: Int
-               , _iInB   :: Int
-               , _iOut   :: Finite 6
-               }
-  deriving (Show, Eq, Ord)
-
-data OpCode = OAddR | OAddI
-            | OMulR | OMulI
-            | OBanR | OBanI
-            | OBorR | OBorI
-            | OSetR | OSetI
-            | OGtIR | OGtRI | OGtRR
-            | OEqIR | OEqRI | OEqRR
-            | ODivR | ODivI
-            | OModR
-            | ONoOp | OTrce
-  deriving (Show, Eq, Ord, Enum, Bounded)
-
-runOp :: (MonadWriter [Int] m, PrimMonad m, PrimState m ~ s) => Instr -> Mem s -> m ()
-runOp I{..} = case _iOp of
-    OAddR -> rrOp (+)
-    OAddI -> riOp (+)
-    OMulR -> rrOp (*)
-    OMulI -> riOp (*)
-    OBanR -> rrOp (.&.)
-    OBanI -> riOp (.&.)
-    OBorR -> rrOp (.|.)
-    OBorI -> riOp (.|.)
-    OSetR -> riOp const
-    OSetI -> \m -> MV.write m _iOut _iInA
-    OGtIR -> irOp $ \x y -> if x  > y then 1 else 0
-    OGtRI -> riOp $ \x y -> if x  > y then 1 else 0
-    OGtRR -> rrOp $ \x y -> if x  > y then 1 else 0
-    OEqIR -> irOp $ \x y -> if x == y then 1 else 0
-    OEqRI -> riOp $ \x y -> if x == y then 1 else 0
-    OEqRR -> rrOp $ \x y -> if x == y then 1 else 0
-    ODivR -> rrOp div
-    ODivI -> riOp div
-    OModR -> rrOp mod
-    ONoOp -> \_ -> pure ()
-    OTrce -> \m -> do
-        res <- MV.read m (fromIntegral _iOut)
-        tell [res]
-  where
-    rrOp f m = do
-      x <- MV.read m (fromIntegral _iInA)
-      y <- MV.read m (fromIntegral _iInB)
-      MV.write m _iOut (f x y)
-    riOp f m = MV.write m _iOut . (`f` _iInB) =<< MV.read m (fromIntegral _iInA)
-    irOp f m = MV.write m _iOut . f _iInA     =<< MV.read m (fromIntegral _iInB)
-
-runProgram
+-- | All the times where the program checks if something is equal to the
+-- value in register zero
+zeroChecks
     :: Finite 6
-    -> Program
-    -> V.Vector 6 Int
+    -> ECProg
+    -> [IMem]
     -> [Int]
-runProgram iPtr p v = runST $ do
-    mv <- strictToLazyST $ V.thaw v
-    let go = do
-          -- unsafeIOToST . print =<< strictToLazyST (V.freeze mv)
-          i <- strictToLazyST $ MV.read mv iPtr
-          case p ^? ix i of
-            Nothing    -> pure []
-            Just instr -> do
-              out <- strictToLazyST $ execWriterT (runOp instr mv)
-              strictToLazyST $ MV.modify mv (+1) iPtr
-              (out ++) <$> go
-    go
+zeroChecks iPtr prog = mapMaybe checksZero
+  where
+    checksZero v = prog UV.!? (v `V.index` iPtr) >>= \case
+      I OEqIR x 0 _ -> Just x
+      I OEqRI 0 x _ -> Just x
+      I OEqRR 0 r _ -> Just $ v `V.index` fromIntegral r
+      I OEqRR r 0 _ -> Just $ v `V.index` fromIntegral r
+      _             -> Nothing
 
-day21a :: _ :~> _
+day21a :: (Finite 6, ECProg) :~> Int
 day21a = MkSol
-    { sParse = P.parseMaybe progParser
+    { sParse = parseElfcode
     , sShow  = show
-    , sSolve = \(i, p) -> listToMaybe
-                        . runProgram i p
-                        $ V.replicate 0
+    , sSolve = \(i, optimizeEC [division i] -> p) ->
+            listToMaybe
+          . zeroChecks i p
+          . traceECProg_ i p
+          $ V.replicate 0
     }
 
-day21b :: _ :~> _
+day21b :: (Finite 6, ECProg) :~> Int
 day21b = MkSol
-    { sParse = P.parseMaybe progParser
+    { sParse = parseElfcode
     , sShow  = show
-    , sSolve = \(i, p) -> listToMaybe . reverse . uniqRun
-                        . runProgram i p
-                        $ V.replicate 0
+    , sSolve = \(i, optimizeEC [division i] -> p) ->
+            listToMaybe . reverse . uniqRun
+          . zeroChecks i p
+          . traceECProg_ i p
+          $ V.replicate 0
     }
-
 
 uniqRun :: [Int] -> [Int]
 uniqRun = go S.empty
@@ -144,25 +68,35 @@ uniqRun = go S.empty
       | x `S.member` seen = []
       | otherwise         = x : go (S.insert x seen) xs
 
-
-
-type Parser = P.Parsec Void String
-
-progParser :: Parser (Finite 6, Program)
-progParser = (,) <$> (P.string "#ip " `P.between` P.newline) parseFinite
-                 <*> (UV.fromList . catMaybes <$> (lineParser `P.sepEndBy1` P.space))
+-- | Peephole optimize a division
+division
+    :: Finite 6      -- ^ instruction register
+    -> Peephole [Instr]
+division i = do
+    a <- currPeepPos
+    -- let a' = fromIntegral a
+    I OSetI _ _ z1 <- peep (Just 0)   Nothing   Nothing
+    let z1' = fromIntegral z1
+    -- b <- currPeepPos
+    I OAddI _ _ z2 <- peep (Just z1') (Just 1)  Nothing
+    let z2' = fromIntegral z2
+    n <- peep (Just z2') Nothing (Just z2) >>= \case
+      I OMulR _ n _ -> pure $ Left  n
+      I OMulI _ n _ -> pure $ Right n
+      _             -> fail "No match"
+    I OGtRR _ m _  <- peep (Just z2') Nothing   (Just z2)
+    I OAddR _ _ _  <- peep (Just z2') (Just i') (Just i )
+    I OAddI _ _ _  <- peep (Just i' ) (Just 1 ) (Just i )
+    I OSetI q _ _  <- peep Nothing    Nothing   (Just i )
+    I OAddI _ _ _  <- peep (Just z1') (Just 1 ) (Just z1)
+    I OSetI _ _ _  <- peep (Just a  ) Nothing   (Just i )
+    I OSetR _ _ o  <- peep (Just z1') Nothing   Nothing
+    c <- currPeepPos
+    pure . take (c - a) $
+        [ case n of
+            Left  r -> I ODivR m r o
+            Right x -> I ODivI m x o
+        , I OSetI q 0 i
+        ] ++ repeat (I ONoOp 0 0 0)
   where
-    lineParser = P.try (Just <$> instrParser)
-             <|> Nothing <$ (P.char '#' *> P.many (P.noneOf "\n"))
-
-instrParser :: Parser Instr
-instrParser = I <$> parseOpCode <* P.space1
-                <*> P.decimal   <* P.space1
-                <*> P.decimal   <* P.space1
-                <*> parseFinite <* P.skipMany (P.satisfy (/= '\n'))
-  where
-    parseOpCode = P.choice . flip map [OAddR ..] $ \o ->
-        o <$ P.try (P.string (map toLower . drop 1 . show $ o))
-
-parseFinite :: Parser (Finite 6)
-parseFinite = maybe (fail "number out of range") pure . packFinite =<< P.decimal
+    i' = fromIntegral i
