@@ -14,7 +14,7 @@ module AOC.Challenge.Day15 (
   , day15b
   ) where
 
-import           AOC.Common            (boundingBox, ScanPoint(..), asciiGrid, cardinalNeighbs)
+import           AOC.Common            (boundingBox, ScanPoint(..), asciiGrid, cardinalNeighbs, mannDist)
 import           AOC.Common.Search     (aStar, exponentialFindMin)
 import           AOC.Solver            ((:~>)(..))
 import           Control.Lens          (makeLenses, ifoldMapOf, (.~), (-~))
@@ -49,11 +49,8 @@ makeLenses ''Entity
 type World = Set ScanPoint
 type Entities = Map ScanPoint Entity
 
-dist :: ScanPoint -> ScanPoint -> Int
-dist (SP x) (SP y) = sum . abs $ x - y
-
 neighbs :: ScanPoint -> Set ScanPoint
-neighbs p = S.fromList . map ((+ p) . SP) $ [V2 (-1) 0, V2 0 (-1), V2 1 0, V2 0 1]
+neighbs = S.fromList . coerce cardinalNeighbs
 
 inRangeOf :: Set ScanPoint -> Set ScanPoint
 inRangeOf = foldMap neighbs
@@ -67,7 +64,7 @@ actualLiteralAStar
     -> ScanPoint
     -> Maybe Path
 actualLiteralAStar w p0 dest =
-      aStar (dist dest)
+      aStar (mannDist (_getSP dest) . _getSP)
             (M.fromSet (const 1) . (`S.intersection` w) . neighbs)
             p0
             dest
@@ -83,8 +80,7 @@ stepTo w x dest = snd
                 . toList
                 . S.map (\n -> (,n) . length <$> actualLiteralAStar w' n dest)
                 . (`S.intersection` w')
-                . S.fromList
-                $ coerce cardinalNeighbs x
+                $ neighbs x
   where
     w' = S.delete x w
 

@@ -41,6 +41,7 @@ module AOC.Common (
   , Point
   , cardinalNeighbs
   , fullNeighbs
+  , mannDist
   , memoPoint
   , boundingBox
   , boundingBox'
@@ -248,6 +249,9 @@ fullNeighbs p = [ p + V2 dx dy
 memoPoint :: Memo Point
 memoPoint = Memo.wrap (uncurry V2) (\(V2 x y) -> (x, y)) $
                 Memo.pair Memo.integral Memo.integral
+
+mannDist :: Point -> Point -> Int
+mannDist x y = sum . abs $ x - y
 
 
 -- | It's 'Point', but with a newtype wrapper so we have an 'Ord' that

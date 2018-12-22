@@ -14,7 +14,7 @@ module AOC.Challenge.Day06 (
   , day06b
   ) where
 
-import           AOC.Common         (freqs, clearOut, Point, boundingBox)
+import           AOC.Common         (freqs, clearOut, Point, boundingBox, mannDist)
 import           AOC.Solver         ((:~>)(..), dyno_)
 import           Control.Monad      (guard, (<=<))
 import           Data.Char          (isDigit)
@@ -29,9 +29,6 @@ import qualified Data.Map           as M
 import qualified Data.Set           as S
 
 type Box   = V2 Point
-
-distance :: Point -> Point -> Int
-distance x = sum . abs . subtract x
 
 bbPoints :: Box -> [Point]
 bbPoints (V2 mins maxs) = range (mins, maxs)
@@ -48,7 +45,7 @@ labelVoronoi sites p = do
                             $ dists
     pure closestSite
   where
-    dists                  = sites <&> \site -> (site, distance p site)
+    dists                  = sites <&> \site -> (site, mannDist p site)
 
 day06a :: NonEmpty Point :~> Int
 day06a = MkSol
@@ -86,7 +83,7 @@ day06b = MkSol
           $ sites
     }
   where
-    totalDist p = sum . fmap (distance p)
+    totalDist p = sum . fmap (mannDist p)
 
 parseLine :: String -> Maybe Point
 parseLine = (packUp =<<)

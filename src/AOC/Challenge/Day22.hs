@@ -42,31 +42,21 @@ data Terrain = TRocky
              | TNarrow
   deriving (Eq, Ord, Show, Enum)
 
-erosionLevel
-    :: Int
-    -> Point
-    -> Point
-    -> Maybe (Finite 20183)
-erosionLevel d targ = eLev
-  where
-    eLev  = memoPoint eLev'
-    eLev' = fmap (modulo . fromIntegral . (+ d)) . geoIxes
-    geoIxes p@(V2 x y)
-      | p == targ   = Just 0
-      | p == V2 0 0 = Just 0
-      | y == 0      = Just $ x * 16807
-      | x == 0      = Just $ y * 48271
-      | x <= 0      = Nothing
-      | y <= 0      = Nothing
-      | otherwise   = (*) <$> (fromIntegral <$> eLev (V2 (x - 1) y))
-                          <*> (fromIntegral <$> eLev (V2 x (y - 1)))
 
-terrainType
-    :: Int
-    -> Point
-    -> Point
-    -> Maybe Terrain
-terrainType d targ = fmap (toEnum . (`mod` 3) . fromIntegral) . erosionLevel d targ
+erosionLevels :: Int -> Point -> Point -> Map Point (Finite 20183)
+erosionLevels d lim targ = eLevs
+  where
+    geoIxes = (`M.fromSet` S.fromList (range (V2 0 0, lim))) $ \p@(V2 x y) ->
+      if | p == targ   -> 0
+         | p == V2 0 0 -> 0
+         | y == 0      -> x * 16807
+         | x == 0      -> y * 48271
+         | otherwise   -> fromIntegral (eLevs M.! V2 (x - 1) y)
+                        * fromIntegral (eLevs M.! V2 x (y - 1))
+    eLevs = modulo . fromIntegral . (+ d) <$> geoIxes
+
+terrainTypes :: Int -> Point -> Point -> Map Point Terrain
+terrainTypes d l = fmap (toEnum . (`mod` 3) . fromIntegral) . erosionLevels d l
 
 parse22 :: String -> Maybe (Int, Point)
 parse22 = go . map read . words . clearOut (not . isDigit)
@@ -78,8 +68,7 @@ day22a :: (Int, Point) :~> Int
 day22a = MkSol
     { sParse = parse22
     , sShow  = show
-    , sSolve = \(d, p) -> let tt = terrainType d p
-                          in  Just . sum . map (maybe 0 fromEnum . tt) $ range (V2 0 0, p)
+    , sSolve = \(d, p) -> Just . sum . fmap fromEnum $ terrainTypes d p p
     }
 
 data Equip = EGear
@@ -95,21 +84,24 @@ compatible TRocky  = isJust
 compatible TWet    = (/= Just ETorch)
 compatible TNarrow = (/= Just EGear )
 
-moves :: (Point -> Maybe Terrain) -> ClimbState -> [ClimbState]
-moves tt (e0, p0) = filter (uncurry compat) $ es ++ ps
+neighbs :: Point -> [Point]
+neighbs p = (p +) <$> [ V2 0 (-1), V2 1 0, V2 0 1, V2 (-1) 0 ]
+
+moves :: Map Point Terrain -> ClimbState -> [ClimbState]
+moves mp (e0, p0) = filter (uncurry compat) $ es ++ ps
   where
     es = map (,p0)
        . filter (/= e0)
        $ [Nothing, Just EGear, Just ETorch]
-    ps = (e0,) <$> cardinalNeighbs p0
-    compat e = maybe False (`compatible` e) . tt
+    ps = (e0,) <$> neighbs p0
+    compat e = maybe False (`compatible` e) . (`M.lookup` mp)
 
 journey
-    :: (Point -> Maybe Terrain)
+    :: Map Point Terrain
     -> Point
     -> Maybe [ClimbState]
-journey tt targ = (o:) <$> aStar (HS.fromList . moves tt)
-                                 climbDist
+journey mp targ = (o:) <$> aStar (HS.fromList . moves mp)
+                                 climbDist1
                                  (climbDist t)
                                  (== t)
                                  o
@@ -119,25 +111,24 @@ journey tt targ = (o:) <$> aStar (HS.fromList . moves tt)
 
 climbDist :: ClimbState -> ClimbState -> Int
 climbDist (e0,p0) (e1,p1)
-    | e0 == e1  = dist p0 p1
-    | otherwise = dist p0 p1 + 7
+    | e0 == e1  = mannDist p0 p1
+    | otherwise = mannDist p0 p1 + 7
 
+-- | A version of 'climbDist' that works for a single move or equipment
+-- swap only.
 climbDist1 :: ClimbState -> ClimbState -> Int
 climbDist1 (e0,_) (e1,_)
     | e0 == e1  = 1
     | otherwise = 7
 
-dist :: Point -> Point -> Int
-dist x y = sum . abs $ x - y
-
 pathTime :: [ClimbState] -> Int
-pathTime = sum . map (uncurry climbDist) . (zip`ap`tail)
+pathTime = sum . map (uncurry climbDist1) . (zip`ap`tail)
 
 day22b :: _ :~> _
 day22b = MkSol
     { sParse = parse22
     , sShow  = show
     , sSolve = \(d, p) ->
-        let tt      = terrainType d p
-        in  pathTime <$> journey tt p
+        let mp      = terrainTypes d (p * 2) p
+        in  pathTime <$> journey mp p
     }
