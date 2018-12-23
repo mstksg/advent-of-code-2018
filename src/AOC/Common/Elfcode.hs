@@ -22,9 +22,7 @@ module AOC.Common.Elfcode (
   ) where
 
 import           Control.Applicative
-import           Control.Lens
 import           Control.Monad.Primitive
-import           Control.Monad.ST.Lazy
 import           Control.Monad.Writer
 import           Data.Bits
 import           Data.Char
@@ -33,6 +31,8 @@ import           Data.Foldable
 import           Data.Maybe
 import           Data.Void
 import           Text.Megaparsec.Char.Lexer        (decimal)
+import qualified Control.Monad.ST                  as STS
+import qualified Control.Monad.ST.Lazy             as STL
 import qualified Data.Vector                       as UV
 import qualified Data.Vector.Unboxed.Mutable.Sized as MV
 import qualified Data.Vector.Unboxed.Sized         as V
@@ -98,7 +98,7 @@ execOp I{..} = case _iOp of
     irOp f m = (Nothing <$) . MV.write m _iOut . f _iInA     =<< MV.read m (fromIntegral _iInB)
 
 runOp :: Instr -> IMem -> (Maybe Int, IMem)
-runOp i v = runST $ strictToLazyST $ do
+runOp i v = STS.runST $ do
     mv <- V.thaw v
     res <- execOp i mv
     (res,) <$> V.freeze mv
@@ -108,25 +108,34 @@ runECProg
     -> ECProg
     -> IMem
     -> ([Int], IMem)
-runECProg iPtr p v = runST $ do
-    mv <- strictToLazyST $ V.thaw v
+runECProg iPtr p v = STL.runST $ do
+    mv <- STL.strictToLazyST $ V.thaw v
     let go = do
-          i <- strictToLazyST $ MV.read mv iPtr
+          i <- STL.strictToLazyST $ MV.read mv iPtr
           case p UV.!? i of
             Nothing    -> pure []
             Just instr -> do
-              out <- strictToLazyST $ execOp instr mv
-              strictToLazyST $ MV.modify mv (+1) iPtr
+              out <- STL.strictToLazyST $
+                execOp instr mv <* MV.modify mv (+1) iPtr
               (maybeToList out ++) <$> go
     res <- go
-    (res,) <$> strictToLazyST (V.freeze mv)
+    (res,) <$> STL.strictToLazyST (V.freeze mv)
 
 execECProg
     :: Finite 6
     -> ECProg
     -> IMem
     -> IMem
-execECProg iPtr p = snd . runECProg iPtr p
+execECProg iPtr p v = STS.runST $ do
+    mv <- V.thaw v
+    let go = do
+          i <- MV.read mv iPtr
+          forM_ (p UV.!? i) $ \instr -> do
+            _ <- execOp instr mv
+            MV.modify mv (+1) iPtr
+            go
+    go
+    V.freeze mv
 
 evalECProg
     :: Finite 6
@@ -140,13 +149,19 @@ traceECProg
     -> ECProg
     -> IMem
     -> [(Maybe Int, IMem)]
-traceECProg iPtr p = go
-  where
-    go !v = case p UV.!? V.index v iPtr of
-      Nothing    -> []
-      Just instr ->
-        let o@(_, v') = runOp instr v
-        in  o : go (v' & V.ix iPtr +~ 1)
+traceECProg iPtr p v = STL.runST $ do
+    mv <- STL.strictToLazyST $ V.thaw v
+    let go = do
+          i <- STL.strictToLazyST $ MV.read mv iPtr
+          case p UV.!? i of
+            Nothing    -> pure []
+            Just instr -> do
+              res <- STL.strictToLazyST $
+                (,) <$> execOp instr mv
+                    <*> V.freeze mv
+                    <*  MV.modify mv (+1) iPtr
+              (res :) <$> go
+    go
 
 traceECProg_
     :: Finite 6

@@ -74,10 +74,8 @@ division
     -> Peephole [Instr]
 division i = do
     a <- currPeepPos
-    -- let a' = fromIntegral a
     I OSetI _ _ z1 <- peep (Just 0)   Nothing   Nothing
     let z1' = fromIntegral z1
-    -- b <- currPeepPos
     I OAddI _ _ z2 <- peep (Just z1') (Just 1)  Nothing
     let z2' = fromIntegral z2
     n <- peep (Just z2') Nothing (Just z2) >>= \case
