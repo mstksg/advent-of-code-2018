@@ -6784,16 +6784,16 @@ instance GHC.Show.Show AOC.Discover.ChallengeSpec
 module AOC.Challenge.Day22
 day22a :: (Int, Point) :~> Int
 day22b :: (Int, Point) :~> Int
-instance GHC.Generics.Generic AOC.Challenge.Day22.Equip
-instance GHC.Enum.Enum AOC.Challenge.Day22.Equip
-instance GHC.Show.Show AOC.Challenge.Day22.Equip
-instance GHC.Classes.Ord AOC.Challenge.Day22.Equip
-instance GHC.Classes.Eq AOC.Challenge.Day22.Equip
+instance GHC.Generics.Generic AOC.Challenge.Day22.Equipment
+instance GHC.Enum.Enum AOC.Challenge.Day22.Equipment
+instance GHC.Show.Show AOC.Challenge.Day22.Equipment
+instance GHC.Classes.Ord AOC.Challenge.Day22.Equipment
+instance GHC.Classes.Eq AOC.Challenge.Day22.Equipment
 instance GHC.Enum.Enum AOC.Challenge.Day22.Terrain
 instance GHC.Show.Show AOC.Challenge.Day22.Terrain
 instance GHC.Classes.Ord AOC.Challenge.Day22.Terrain
 instance GHC.Classes.Eq AOC.Challenge.Day22.Terrain
-instance Data.Hashable.Class.Hashable AOC.Challenge.Day22.Equip
+instance Data.Hashable.Class.Hashable AOC.Challenge.Day22.Equipment
 
 
 -- | Day 21. See <a>AOC.Solver</a> for the types used in this module!
@@ -7144,13 +7144,13 @@ MRO :: !TestSpec -> !Bool -> !Bool -> !Bool -> !Finite 25 -> Part -> IO (Maybe S
 
 -- | Manually supply input (Default: always return Nothing)
 [_mroInput] :: MainRunOpts -> !Finite 25 -> Part -> IO (Maybe String)
-class HasMainRunOpts c_a2crN
-mainRunOpts :: HasMainRunOpts c_a2crN => Lens' c_a2crN MainRunOpts
-mroBench :: HasMainRunOpts c_a2crN => Lens' c_a2crN Bool
-mroInput :: HasMainRunOpts c_a2crN => Lens' c_a2crN (Finite 25 -> Part -> IO (Maybe String))
-mroLock :: HasMainRunOpts c_a2crN => Lens' c_a2crN Bool
-mroSpec :: HasMainRunOpts c_a2crN => Lens' c_a2crN TestSpec
-mroTest :: HasMainRunOpts c_a2crN => Lens' c_a2crN Bool
+class HasMainRunOpts c_a2cm2
+mainRunOpts :: HasMainRunOpts c_a2cm2 => Lens' c_a2cm2 MainRunOpts
+mroBench :: HasMainRunOpts c_a2cm2 => Lens' c_a2cm2 Bool
+mroInput :: HasMainRunOpts c_a2cm2 => Lens' c_a2cm2 (Finite 25 -> Part -> IO (Maybe String))
+mroLock :: HasMainRunOpts c_a2cm2 => Lens' c_a2cm2 Bool
+mroSpec :: HasMainRunOpts c_a2cm2 => Lens' c_a2cm2 TestSpec
+mroTest :: HasMainRunOpts c_a2cm2 => Lens' c_a2cm2 Bool
 
 -- | Run, test, bench.
 mainRun :: (MonadIO m, MonadError [String] m) => Config -> MainRunOpts -> m (Map (Finite 25) (Map Part (Maybe Bool, Either [String] String)))
@@ -7163,10 +7163,10 @@ data MainViewOpts
 MVO :: !TestSpec -> !Bool -> MainViewOpts
 [_mvoSpec] :: MainViewOpts -> !TestSpec
 [_mvoWait] :: MainViewOpts -> !Bool
-class HasMainViewOpts c_a2cyP
-mainViewOpts :: HasMainViewOpts c_a2cyP => Lens' c_a2cyP MainViewOpts
-mvoSpec :: HasMainViewOpts c_a2cyP => Lens' c_a2cyP TestSpec
-mvoWait :: HasMainViewOpts c_a2cyP => Lens' c_a2cyP Bool
+class HasMainViewOpts c_a2ct4
+mainViewOpts :: HasMainViewOpts c_a2ct4 => Lens' c_a2ct4 MainViewOpts
+mvoSpec :: HasMainViewOpts c_a2ct4 => Lens' c_a2ct4 TestSpec
+mvoWait :: HasMainViewOpts c_a2ct4 => Lens' c_a2ct4 Bool
 
 -- | View prompt
 mainView :: (MonadIO m, MonadError [String] m) => Config -> MainViewOpts -> m (Map (Finite 25) (Map Part Text))
@@ -7187,12 +7187,12 @@ MSO :: !ChallengeSpec -> !Bool -> !Bool -> !Bool -> MainSubmitOpts
 
 -- | Lock answer if submission succeeded? (Default: True)
 [_msoLock] :: MainSubmitOpts -> !Bool
-class HasMainSubmitOpts c_a2cD8
-mainSubmitOpts :: HasMainSubmitOpts c_a2cD8 => Lens' c_a2cD8 MainSubmitOpts
-msoForce :: HasMainSubmitOpts c_a2cD8 => Lens' c_a2cD8 Bool
-msoLock :: HasMainSubmitOpts c_a2cD8 => Lens' c_a2cD8 Bool
-msoSpec :: HasMainSubmitOpts c_a2cD8 => Lens' c_a2cD8 ChallengeSpec
-msoTest :: HasMainSubmitOpts c_a2cD8 => Lens' c_a2cD8 Bool
+class HasMainSubmitOpts c_a2cxn
+mainSubmitOpts :: HasMainSubmitOpts c_a2cxn => Lens' c_a2cxn MainSubmitOpts
+msoForce :: HasMainSubmitOpts c_a2cxn => Lens' c_a2cxn Bool
+msoLock :: HasMainSubmitOpts c_a2cxn => Lens' c_a2cxn Bool
+msoSpec :: HasMainSubmitOpts c_a2cxn => Lens' c_a2cxn ChallengeSpec
+msoTest :: HasMainSubmitOpts c_a2cxn => Lens' c_a2cxn Bool
 
 -- | Submit and analyze result
 mainSubmit :: (MonadIO m, MonadError [String] m) => Config -> MainSubmitOpts -> m (Text, SubmitRes)
