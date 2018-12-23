@@ -40,6 +40,8 @@ Check out reflections and commentary at the [package haddocks][haddock]!
 *   **Day 18 Reflections**
 *   **Day 19 Reflections**
 *   **[Day 20 Reflections][d20r]** *[code][d20g]* / *[rendered][d20h]* / *[benchmarks][d20b]*
+*   **Day 21 Reflections**
+*   **Day 22 Reflections**
 
 "Rendered" links go to haddock source renders for code, with reflections in the
 documentation.  Haddock source renders have hyperlinked identifiers,
