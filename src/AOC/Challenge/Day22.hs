@@ -12,7 +12,7 @@ module AOC.Challenge.Day22 (
   , day22b
   ) where
 
-import           AOC.Common       (Point, mannDist, clearOut)
+import           AOC.Common       (Point, mannDist, clearOut, cardinalNeighbs)
 import           AOC.Solver       ((:~>)(..))
 import           Data.Char        (isDigit)
 import           Data.Finite      (Finite, modulo)
@@ -38,7 +38,6 @@ erosionLevels d lim targ = eLevs
   where
     geoIxes = (`M.fromSet` S.fromList (range (V2 0 0, lim))) $ \p@(V2 x y) ->
       if | p == targ   -> 0
-         | p == V2 0 0 -> 0
          | y == 0      -> x * 16807
          | x == 0      -> y * 48271
          | otherwise   -> fromIntegral (eLevs M.! V2 (x - 1) y)
@@ -48,12 +47,6 @@ erosionLevels d lim targ = eLevs
 terrainTypes :: Int -> Point -> Point -> Map Point Terrain
 terrainTypes d l = fmap (toEnum . (`mod` 3) . fromIntegral) . erosionLevels d l
 
-parse22 :: String -> Maybe (Int, Point)
-parse22 = go . map read . words . clearOut (not . isDigit)
-  where
-    go [d,x,y] = Just (d, V2 x y)
-    go _       = Nothing
-
 day22a :: (Int, Point) :~> Int
 day22a = MkSol
     { sParse = parse22
@@ -61,44 +54,39 @@ day22a = MkSol
     , sSolve = \(d, p) -> Just . sum . fmap fromEnum $ terrainTypes d p p
     }
 
-data Equip = EGear
-           | ETorch
+data Equipment = EGear
+               | ETorch
   deriving (Eq, Ord, Show, Enum, Generic)
+instance Hashable Equipment
 
-instance Hashable Equip
+type ClimbState = (Maybe Equipment, Point)
 
-type ClimbState = (Maybe Equip, Point)
-
-compatible :: Terrain -> Maybe Equip -> Bool
+compatible :: Terrain -> Maybe Equipment -> Bool
 compatible TRocky  = isJust
 compatible TWet    = (/= Just ETorch)
 compatible TNarrow = (/= Just EGear )
 
-neighbs :: Point -> [Point]
-neighbs p = (p +) <$> [ V2 0 (-1), V2 1 0, V2 0 1, V2 (-1) 0 ]
-
 moves :: Map Point Terrain -> ClimbState -> [ClimbState]
 moves mp (e0, p0) = filter (uncurry compat) $ es ++ ps
   where
-    es = map (,p0)
-       . filter (/= e0)
-       $ [Nothing, Just EGear, Just ETorch]
-    ps = (e0,) <$> neighbs p0
+    es = [ (e1, p0)
+         | e1 <- [Nothing, Just EGear, Just ETorch], e1 /= e0
+         ]
+    ps = (e0,) <$> cardinalNeighbs p0
     compat e = maybe False (`compatible` e) . (`M.lookup` mp)
 
 journey
     :: Map Point Terrain
     -> Point
     -> Maybe [ClimbState]
-journey mp targ = (o:) <$> aStar (HS.fromList . moves mp)
-                                 climbDist1
-                                 (climbDist t)
-                                 (== t)
-                                 o
+journey mp targ = (o:) <$>
+    aStar (HS.fromList . moves mp) climbDist1 (climbDist t) (== t) o
   where
     o = (Just ETorch, V2 0 0)
     t = (Just ETorch, targ)
 
+-- | Used as the A* heuristic: best-case-scenario time for arriving at
+-- destination with correct tool.
 climbDist :: ClimbState -> ClimbState -> Int
 climbDist (e0,p0) (e1,p1)
     | e0 == e1  = mannDist p0 p1
@@ -111,9 +99,6 @@ climbDist1 (e0,_) (e1,_)
     | e0 == e1  = 1
     | otherwise = 7
 
-pathTime :: [ClimbState] -> Int
-pathTime = sum . map (uncurry climbDist1) . (zip <*> tail)
-
 day22b :: (Int, Point) :~> Int
 day22b = MkSol
     { sParse = parse22
@@ -124,5 +109,13 @@ day22b = MkSol
     }
   where
     pad (V2 x y)
-      | x > y     = V2 ((x * 6) `div` 5) (y * 2)
-      | otherwise = V2 (x * 2)           ((y * 6) `div` 5)
+      | x > y     = V2 ((x * 5) `div` 4) (y * 2)
+      | otherwise = V2 (x * 2)           ((y * 5) `div` 4)
+    pathTime = sum . map (uncurry climbDist1) . (zip <*> tail)
+
+parse22 :: String -> Maybe (Int, Point)
+parse22 = go . map read . words . clearOut (not . isDigit)
+  where
+    go [d,x,y] = Just (d, V2 x y)
+    go _       = Nothing
+
