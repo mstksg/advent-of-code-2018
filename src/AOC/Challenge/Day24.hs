@@ -1,6 +1,4 @@
-{-# LANGUAGE OverloadedStrings        #-}
-{-# OPTIONS_GHC -Wno-unused-imports   #-}
-{-# OPTIONS_GHC -Wno-unused-top-binds #-}
+{-# LANGUAGE OverloadedStrings #-}
 
 -- |
 -- Module      : AOC.Challenge.Day24
@@ -12,35 +10,32 @@
 -- Portability : non-portable
 --
 -- Day 24.  See "AOC.Solver" for the types used in this module!
---
--- After completing the challenge, it is recommended to:
---
--- *   Replace "AOC.Prelude" imports to specific modules (with explicit
---     imports) for readability.
--- *   Remove the @-Wno-unused-imports@ and @-Wno-unused-top-binds@
---     pragmas.
--- *   Replace the partial type signatures underscores in the solution
---     types @_ :~> _@ with the actual types of inputs and outputs of the
---     solution.  You can delete the type signatures completely and GHC
---     will recommend what should go in place of the underscores.
 
-module AOC.Challenge.Day24  where
+module AOC.Challenge.Day24 (
+    day24a
+  , day24b
+  ) where
 
--- module AOC.Challenge.Day24 (
---     day24a
---   , day24b
---   ) where
-
-import           AOC.Prelude
-import           Control.Lens
-import           Data.OrdPSQ                            (OrdPSQ)
-import qualified Data.List.NonEmpty                     as NE
-import qualified Data.Map                               as M
-import qualified Data.OrdPSQ                            as PSQ
-import qualified Data.Set                               as S
-import qualified Text.Megaparsec                        as P
-import qualified Text.Megaparsec.Char                   as P
-import qualified Text.Megaparsec.Char.Lexer as P hiding (space)
+import           AOC.Common                 (getDown, eitherToMaybe)
+import           AOC.Common.Search          (exponentialFindMin)
+import           AOC.Solver                 ((:~>)(..))
+import           Control.Lens               (ix, at, view, uses, iforM, (.~), (.=), _1, _2, _3, non)
+import           Control.Monad.State        (evalState)
+import           Data.Char                  (isDigit, isLetter)
+import           Data.Foldable              (fold, forM_, maximumBy)
+import           Data.Function              ((&))
+import           Data.Map                   (Map)
+import           Data.Ord                   (Down(..), comparing)
+import           Data.OrdPSQ                (OrdPSQ)
+import           Data.Void                  (Void)
+import           Data.Witherable            (catMaybes)
+import           Text.Megaparsec.Char.Lexer (decimal)
+import qualified Data.List.NonEmpty         as NE
+import qualified Data.Map                   as M
+import qualified Data.OrdPSQ                as PSQ
+import qualified Data.Set                   as S
+import qualified Text.Megaparsec            as P
+import qualified Text.Megaparsec.Char       as P
 
 data Resist = RImmune | RWeak
   deriving (Show, Eq, Ord)
@@ -69,9 +64,6 @@ stab g1 g2 = case M.lookup (_gAtkType g1) (_gResist g2) of
     Nothing      -> 1
     Just RImmune -> 0
     Just RWeak   -> 2
-
-getDown :: Down a -> a
-getDown (Down x) = x
 
 selectTargets
     :: Arena
@@ -167,30 +159,30 @@ type Parser_ = P.Parsec Void String
 
 parse24 :: Parser_ Arena
 parse24 = M.union <$> ("Immune System:" *> P.space *> teamParser TImm <* P.space)
-                  <*> ("Infection:" *> P.space *> teamParser TInf)
+                  <*> ("Infection:"     *> P.space *> teamParser TInf)
 
 teamParser :: Team -> Parser_ Arena
 teamParser t = M.fromList <$> (P.try (groupParser t) `P.sepEndBy1` P.newline)
 
 groupParser :: Team -> Parser_ (Grp, Int)
 groupParser _gTeam = do
-    n <- P.decimal
+    n <- decimal
     P.skipMany (P.satisfy (not . isDigit))
-    _gHP <- P.decimal <* P.space
+    _gHP <- decimal <* P.space
     "hit points" <* P.space
     _gResist <- fmap fold . P.optional . P.try $ (P.char '(' `P.between` P.char ')') resistanceParser
     P.skipMany (P.satisfy (not . isDigit))
-    _gAtk <- P.decimal <* P.space
+    _gAtk <- decimal <* P.space
     _gAtkType <- P.some (P.satisfy isLetter)
     P.skipMany (P.satisfy (not . isDigit))
-    _gInitiative <- Down <$> P.decimal
+    _gInitiative <- Down <$> decimal
     pure (G{..}, n)
 
 resistanceParser :: Parser_ Resistance
 resistanceParser = M.unions <$> (resistSpec `P.sepBy1` (P.char ';' *> P.space))
   where
-    res = (RImmune <$ P.try "immune")
-      <|> (RWeak   <$ P.try "weak")
+    res   = (RImmune <$ P.try "immune")
+      P.<|> (RWeak   <$ P.try "weak")
     resistSpec = do
       r <- res <* P.space
       "to" <* P.space

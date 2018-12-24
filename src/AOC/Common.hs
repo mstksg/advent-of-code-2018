@@ -38,6 +38,7 @@ module AOC.Common (
   , foldMapPar1
   , meanVar
   , eitherItem
+  , getDown
   -- * 2D Maps
   , Point
   , cardinalNeighbs
@@ -128,6 +129,9 @@ freqs = M.fromListWith (+) . map (,1) . toList
 eitherItem :: Lens' (Either a a) a
 eitherItem f (Left x) = Left <$> f x
 eitherItem f (Right x) = Right <$> f x
+
+getDown :: Down a -> a
+getDown (Down x) = x
 
 -- | Collect all possible single-item perturbations from a given
 -- perturbing function.
