@@ -56,6 +56,13 @@ day23a = MkSol
   where
     go c = length . filter (`inRangeOf` c)
 
+touchesRegion
+    :: Circle
+    -> V2 Point3
+    -> Bool
+touchesRegion c bb = any (`inRangeOf` c) (boundingCube bb)
+                  || any (`inRegion` bb) (circleBounds c)
+
 inRangeOf
     :: Point3
     -> Circle
@@ -85,10 +92,10 @@ maxOverlapInRegion cs0 bb@(V2 mns mxs)
       where
         bb1Cube = boundingCube bb1
         circInRegion c = any (`inRangeOf` c) bb1Cube
-                      || any (inRegion bb1) (circleBounds c)
+                      || any (`inRegion` bb1) (circleBounds c)
 
-inRegion :: V2 Point3 -> Point3 -> Bool
-inRegion (V2 mn mx) p = all (>= 0) (p - mn)
+inRegion :: Point3 -> V2 Point3 -> Bool
+inRegion p (V2 mn mx) = all (>= 0) (p - mn)
                      && all (>= 0) (mx - p)
 
 

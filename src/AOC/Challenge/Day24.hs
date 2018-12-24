@@ -26,7 +26,7 @@ import           Data.Foldable              (fold)
 import           Data.Function              ((&))
 import           Data.Map                   (Map)
 import           Data.Maybe                 (listToMaybe)
-import           Data.Ord                   (Down(..), comparing)
+import           Data.Ord                   (Down(..))
 import           Data.OrdPSQ                (OrdPSQ)
 import           Data.Traversable           (forM)
 import           Data.Void                  (Void)
@@ -101,7 +101,7 @@ makeAttacks targs a = go queue0 M.empty
         -> Map    Grp            Int
         -> Arena
     go queue finished = case PSQ.minView queue of
-      Nothing      -> finished
+      Nothing             -> finished
       Just (g,_,n,queue') -> case M.lookup g targs of
         Nothing   -> go queue' (M.insert g n finished)
         Just targ -> case PSQ.lookup targ queue' of
@@ -136,14 +136,14 @@ fightBattle a
     a' = makeAttacks (selectTargets a) a
     teams = _gTeam <$> M.keys a'
 
-day24a :: _ :~> _
+day24a :: Arena :~> Int
 day24a = MkSol
     { sParse = P.parseMaybe parse24
     , sShow  = show
     , sSolve = fmap (sum . snd) . eitherToMaybe . fightBattle
     }
 
-day24b :: _ :~> _
+day24b :: Arena :~> Int
 day24b = MkSol
     { sParse = P.parseMaybe parse24
     , sShow  = show
@@ -176,7 +176,7 @@ groupParser _gTeam = do
     P.skipMany (P.satisfy (not . isDigit))
     _gHP <- decimal <* P.space
     "hit points" <* P.space
-    _gResist <- fmap fold . P.optional . P.try $ (P.char '(' `P.between` P.char ')') resistanceParser
+    _gResist <- fmap fold . P.optional . P.try $ ("(" `P.between` ")") resistanceParser
     P.skipMany (P.satisfy (not . isDigit))
     _gAtk <- decimal <* P.space
     _gAtkType <- P.some (P.satisfy isLetter)
@@ -185,12 +185,12 @@ groupParser _gTeam = do
     pure (G{..}, n)
 
 resistanceParser :: Parser_ Resistance
-resistanceParser = M.unions <$> (resistSpec `P.sepBy1` (P.char ';' *> P.space))
+resistanceParser = M.unions <$> (resistSpec `P.sepBy1` (";" *> P.space))
   where
     res   = (RImmune <$ P.try "immune")
       P.<|> (RWeak   <$ P.try "weak")
     resistSpec = do
       r <- res <* P.space
       "to" <* P.space
-      ts <- P.some (P.satisfy isLetter) `P.sepBy1` (P.char ',' *> P.space)
+      ts <- P.some (P.satisfy isLetter) `P.sepBy1` (",")
       pure . M.fromList $ (,r) <$> ts
