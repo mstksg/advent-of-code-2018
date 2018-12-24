@@ -227,6 +227,7 @@ foldMapPar1 :: Semigroup b => (a -> b) -> NonEmpty a -> b
 
 -- | <a>Fold</a> for computing mean and variance
 meanVar :: Fractional a => Fold a (a, a)
+eitherItem :: Lens' (Either a a) a
 
 -- | 2D Coordinate
 type Point = V2 Int
@@ -257,6 +258,7 @@ instance GHC.Show.Show AOC.Common.ScanPoint
 instance GHC.Classes.Eq AOC.Common.ScanPoint
 instance GHC.Classes.Ord AOC.Common.ScanPoint
 instance (Control.Lens.At.Ixed (v a), Control.Lens.At.Index (v a) Data.Type.Equality.~ GHC.Types.Int, Control.Lens.At.IxValue (v a) Data.Type.Equality.~ a) => Control.Lens.At.Ixed (Data.Vector.Generic.Sized.Internal.Vector v n a)
+instance (GHC.Classes.Ord k, GHC.Classes.Ord p) => Control.Lens.At.Ixed (Data.OrdPSQ.Internal.OrdPSQ k p v)
 
 module AOC.Util.DynoMap
 newtype DynoMap
@@ -6513,6 +6515,7 @@ firstRepeated :: Ord a => [a] -> Maybe a
 
 -- | Build a frequency map
 freqs :: (Foldable f, Ord a) => f a -> Map a Int
+eitherItem :: Lens' (Either a a) a
 
 -- | Collect all possible single-item perturbations from a given perturbing
 --   function.
@@ -6718,45 +6721,37 @@ data Resist
 RImmune :: Resist
 RWeak :: Resist
 type Resistance = Map String Resist
+data Team
+TImm :: Team
+TInf :: Team
 data Grp
-G :: Int -> Resistance -> Int -> String -> Down Int -> Grp
+G :: Int -> Resistance -> Int -> String -> Down Int -> Team -> Grp
 [_gHP] :: Grp -> Int
 [_gResist] :: Grp -> Resistance
 [_gAtk] :: Grp -> Int
 [_gAtkType] :: Grp -> String
 [_gInitiative] :: Grp -> Down Int
-gResist :: Lens' Grp Resistance
-gInitiative :: Lens' Grp (Down Int)
-gHP :: Lens' Grp Int
-gAtkType :: Lens' Grp String
-gAtk :: Lens' Grp Int
-type Arena = (Map Grp Int, Map Grp Int)
+[_gTeam] :: Grp -> Team
+type Arena = Map Grp Int
 effPower :: Grp -> Int -> Int
 stab :: Grp -> Grp -> Int
 getDown :: Down a -> a
-selectTargets :: Map Grp Int -> Map Grp Int -> Map Grp Grp
-data Team
-TImm :: Team
-TInf :: Team
-teamEither :: Team -> a -> Either a a
+selectTargets :: Arena -> Map Grp Grp
 makeAttacks :: Map Grp Grp -> Arena -> Arena
-eitherItem :: Lens' (Either a a) a
 fightBattle :: Arena -> Either Arena (Team, Map Grp Int)
 day24a :: _ :~> _
 day24b :: _ :~> _
-boosted :: Int -> Arena -> Arena
-traceArena :: Arena -> String
 type Parser_ = Parsec Void String
-parse24 :: Parser_ (Map Grp Int, Map Grp Int)
-teamParser :: Parser_ (Map Grp Int)
-groupParser :: Parser_ (Grp, Int)
+parse24 :: Parser_ Arena
+teamParser :: Team -> Parser_ Arena
+groupParser :: Team -> Parser_ (Grp, Int)
 resistanceParser :: Parser_ Resistance
-instance GHC.Classes.Ord AOC.Challenge.Day24.Team
-instance GHC.Classes.Eq AOC.Challenge.Day24.Team
-instance GHC.Show.Show AOC.Challenge.Day24.Team
 instance GHC.Classes.Ord AOC.Challenge.Day24.Grp
 instance GHC.Classes.Eq AOC.Challenge.Day24.Grp
 instance GHC.Show.Show AOC.Challenge.Day24.Grp
+instance GHC.Classes.Ord AOC.Challenge.Day24.Team
+instance GHC.Classes.Eq AOC.Challenge.Day24.Team
+instance GHC.Show.Show AOC.Challenge.Day24.Team
 instance GHC.Classes.Ord AOC.Challenge.Day24.Resist
 instance GHC.Classes.Eq AOC.Challenge.Day24.Resist
 instance GHC.Show.Show AOC.Challenge.Day24.Resist
@@ -7211,13 +7206,13 @@ MRO :: !TestSpec -> !Bool -> !Bool -> !Bool -> !Finite 25 -> Part -> IO (Maybe S
 
 -- | Manually supply input (Default: always return Nothing)
 [_mroInput] :: MainRunOpts -> !Finite 25 -> Part -> IO (Maybe String)
-class HasMainRunOpts c_a2jrQ
-mainRunOpts :: HasMainRunOpts c_a2jrQ => Lens' c_a2jrQ MainRunOpts
-mroBench :: HasMainRunOpts c_a2jrQ => Lens' c_a2jrQ Bool
-mroInput :: HasMainRunOpts c_a2jrQ => Lens' c_a2jrQ (Finite 25 -> Part -> IO (Maybe String))
-mroLock :: HasMainRunOpts c_a2jrQ => Lens' c_a2jrQ Bool
-mroSpec :: HasMainRunOpts c_a2jrQ => Lens' c_a2jrQ TestSpec
-mroTest :: HasMainRunOpts c_a2jrQ => Lens' c_a2jrQ Bool
+class HasMainRunOpts c_a2jaD
+mainRunOpts :: HasMainRunOpts c_a2jaD => Lens' c_a2jaD MainRunOpts
+mroBench :: HasMainRunOpts c_a2jaD => Lens' c_a2jaD Bool
+mroInput :: HasMainRunOpts c_a2jaD => Lens' c_a2jaD (Finite 25 -> Part -> IO (Maybe String))
+mroLock :: HasMainRunOpts c_a2jaD => Lens' c_a2jaD Bool
+mroSpec :: HasMainRunOpts c_a2jaD => Lens' c_a2jaD TestSpec
+mroTest :: HasMainRunOpts c_a2jaD => Lens' c_a2jaD Bool
 
 -- | Run, test, bench.
 mainRun :: (MonadIO m, MonadError [String] m) => Config -> MainRunOpts -> m (Map (Finite 25) (Map Part (Maybe Bool, Either [String] String)))
@@ -7230,10 +7225,10 @@ data MainViewOpts
 MVO :: !TestSpec -> !Bool -> MainViewOpts
 [_mvoSpec] :: MainViewOpts -> !TestSpec
 [_mvoWait] :: MainViewOpts -> !Bool
-class HasMainViewOpts c_a2jyS
-mainViewOpts :: HasMainViewOpts c_a2jyS => Lens' c_a2jyS MainViewOpts
-mvoSpec :: HasMainViewOpts c_a2jyS => Lens' c_a2jyS TestSpec
-mvoWait :: HasMainViewOpts c_a2jyS => Lens' c_a2jyS Bool
+class HasMainViewOpts c_a2jhF
+mainViewOpts :: HasMainViewOpts c_a2jhF => Lens' c_a2jhF MainViewOpts
+mvoSpec :: HasMainViewOpts c_a2jhF => Lens' c_a2jhF TestSpec
+mvoWait :: HasMainViewOpts c_a2jhF => Lens' c_a2jhF Bool
 
 -- | View prompt
 mainView :: (MonadIO m, MonadError [String] m) => Config -> MainViewOpts -> m (Map (Finite 25) (Map Part Text))
@@ -7254,12 +7249,12 @@ MSO :: !ChallengeSpec -> !Bool -> !Bool -> !Bool -> MainSubmitOpts
 
 -- | Lock answer if submission succeeded? (Default: True)
 [_msoLock] :: MainSubmitOpts -> !Bool
-class HasMainSubmitOpts c_a2jDb
-mainSubmitOpts :: HasMainSubmitOpts c_a2jDb => Lens' c_a2jDb MainSubmitOpts
-msoForce :: HasMainSubmitOpts c_a2jDb => Lens' c_a2jDb Bool
-msoLock :: HasMainSubmitOpts c_a2jDb => Lens' c_a2jDb Bool
-msoSpec :: HasMainSubmitOpts c_a2jDb => Lens' c_a2jDb ChallengeSpec
-msoTest :: HasMainSubmitOpts c_a2jDb => Lens' c_a2jDb Bool
+class HasMainSubmitOpts c_a2jlY
+mainSubmitOpts :: HasMainSubmitOpts c_a2jlY => Lens' c_a2jlY MainSubmitOpts
+msoForce :: HasMainSubmitOpts c_a2jlY => Lens' c_a2jlY Bool
+msoLock :: HasMainSubmitOpts c_a2jlY => Lens' c_a2jlY Bool
+msoSpec :: HasMainSubmitOpts c_a2jlY => Lens' c_a2jlY ChallengeSpec
+msoTest :: HasMainSubmitOpts c_a2jlY => Lens' c_a2jlY Bool
 
 -- | Submit and analyze result
 mainSubmit :: (MonadIO m, MonadError [String] m) => Config -> MainSubmitOpts -> m (Text, SubmitRes)
