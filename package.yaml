@@ -58,6 +58,7 @@ default-extensions:
 - RecordWildCards
 - ScopedTypeVariables
 - TemplateHaskell
+- TransformListComp
 - TupleSections
 - TypeApplications
 - TypeInType
