@@ -250,7 +250,7 @@ memoPoint :: Memo Point
 memoPoint = Memo.wrap (uncurry V2) (\(V2 x y) -> (x, y)) $
                 Memo.pair Memo.integral Memo.integral
 
-mannDist :: Point -> Point -> Int
+mannDist :: (Foldable f, Num a, Num (f a)) => f a -> f a -> a
 mannDist x y = sum . abs $ x - y
 
 
