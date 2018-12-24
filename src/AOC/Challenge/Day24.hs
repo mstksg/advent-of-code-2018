@@ -19,7 +19,7 @@ module AOC.Challenge.Day24 (
 import           AOC.Common                 (getDown, eitherToMaybe)
 import           AOC.Common.Search          (exponentialFindMin)
 import           AOC.Solver                 ((:~>)(..))
-import           Control.Lens               (ix, at, view, uses, iforM, (.~), (.=), _1, _2, _3, non)
+import           Control.Lens               (ix, at, view, uses, (.~), (.=), _3, non)
 import           Control.Monad.State        (evalState)
 import           Data.Char                  (isDigit, isLetter)
 import           Data.Foldable              (fold, forM_, maximumBy)
@@ -27,6 +27,7 @@ import           Data.Function              ((&))
 import           Data.Map                   (Map)
 import           Data.Ord                   (Down(..), comparing)
 import           Data.OrdPSQ                (OrdPSQ)
+import           Data.Traversable           (forM)
 import           Data.Void                  (Void)
 import           Data.Witherable            (catMaybes)
 import           Text.Megaparsec.Char.Lexer (decimal)
@@ -68,19 +69,22 @@ stab g1 g2 = case M.lookup (_gAtkType g1) (_gResist g2) of
 selectTargets
     :: Arena
     -> Map Grp Grp      -- ^ targets
-selectTargets a = catMaybes . M.mapKeys (view _3) . flip evalState candidates . iforM queue $ \(Down p, _,_) g -> do
-    targ <- uses (at (_gTeam g) . non M.empty) $
-                   fmap (fst . maximumBy (comparing snd))
-                 . NE.nonEmpty
-                 . filter ((> 0) . view (_2 . _1))
-                 . map (\(h, n) -> (h, (stab g h * p, effPower h n, getDown (_gInitiative h))))
-                 . M.toList
+selectTargets a = catMaybes . M.mapKeys (view _3) . flip evalState candidates . forM queue $ \g -> do
+    targ <- uses (at (_gTeam g) . non M.empty) $ \cands ->
+        fmap (fst . maximumBy (comparing snd)) . NE.nonEmpty $
+          [ (h, (dmg, effPower h n, getDown (_gInitiative h)))
+          | (h, n) <- M.toList cands
+          , let dmg = stab g h
+          , dmg > 0
+          ]
     forM_ targ $ \t ->
       ix (_gTeam g) . at t .= Nothing
     pure targ
   where
     queue :: Map (Down Int, Down Int, Grp) Grp
-    queue = M.fromList . map (\(g, n) -> ((Down $ effPower g n, _gInitiative g, g), g)) $ M.toList a
+    queue = M.fromList [ ((Down (effPower g n), _gInitiative g, g), g)
+                       | (g, n) <- M.toList a
+                       ]
     candidates :: Map Team Arena
     candidates = flip M.fromSet (S.fromDistinctAscList [TImm, TInf]) $ \t ->
         M.filterWithKey (\g _ -> _gTeam g /= t) a
@@ -115,10 +119,10 @@ makeAttacks targs a = go queue0 M.empty
                     | newM > 0  = queue' & ix targ .~ newM
                     | otherwise = PSQ.delete targ queue'
               in  go queue'' (M.insert g n finished)
-    castTeam :: (Grp, Int) -> (Grp, Down Int, Int)
-    castTeam (g, n) = (g, _gInitiative g, n)
     queue0 :: OrdPSQ Grp (Down Int) Int
-    queue0 = PSQ.fromList . map castTeam . M.toList $ a
+    queue0 = PSQ.fromList [ (g, _gInitiative g, n)
+                          | (g, n) <- M.toList a
+                          ]
 
 fightBattle :: Arena -> Either Arena (Team, Map Grp Int)
 fightBattle a
