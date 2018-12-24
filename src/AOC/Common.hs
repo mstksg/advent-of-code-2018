@@ -37,6 +37,7 @@ module AOC.Common (
   , foldMapPar
   , foldMapPar1
   , meanVar
+  , eitherItem
   -- * 2D Maps
   , Point
   , cardinalNeighbs
@@ -72,6 +73,7 @@ import qualified Data.List.NonEmpty                 as NE
 import qualified Data.Map                           as M
 import qualified Data.Map.NonEmpty                  as NEM
 import qualified Data.MemoCombinators               as Memo
+import qualified Data.OrdPSQ                        as OrdPSQ
 import qualified Data.Set                           as S
 import qualified Data.Vector.Generic.Sized.Internal as SVG
 
@@ -122,6 +124,10 @@ firstRepeated = go S.empty
 -- | Build a frequency map
 freqs :: (Foldable f, Ord a) => f a -> Map a Int
 freqs = M.fromListWith (+) . map (,1) . toList
+
+eitherItem :: Lens' (Either a a) a
+eitherItem f (Left x) = Left <$> f x
+eitherItem f (Right x) = Right <$> f x
 
 -- | Collect all possible single-item perturbations from a given
 -- perturbing function.
@@ -294,3 +300,11 @@ type instance IxValue (SVG.Vector v n a) = a
 
 instance (Ixed (v a), Index (v a) ~ Int, IxValue (v a) ~ a) => Ixed (SVG.Vector v n a) where
     ix i f (SVG.Vector v) = SVG.Vector <$> ix i f v
+
+type instance Index   (OrdPSQ.OrdPSQ k p v) = k
+type instance IxValue (OrdPSQ.OrdPSQ k p v) = v
+
+instance (Ord k, Ord p) => Ixed (OrdPSQ.OrdPSQ k p v) where
+    ix i f q = case OrdPSQ.lookup i q of
+      Nothing    -> pure q
+      Just (p,x) -> flip (OrdPSQ.insert i p) q <$> f x

@@ -33,8 +33,11 @@ module AOC.Challenge.Day24  where
 
 import           AOC.Prelude
 import           Control.Lens
+import           Data.OrdPSQ                            (OrdPSQ)
 import qualified Data.List.NonEmpty                     as NE
 import qualified Data.Map                               as M
+import qualified Data.OrdPSQ                            as PSQ
+import qualified Data.Set                               as S
 import qualified Text.Megaparsec                        as P
 import qualified Text.Megaparsec.Char                   as P
 import qualified Text.Megaparsec.Char.Lexer as P hiding (space)
@@ -44,17 +47,19 @@ data Resist = RImmune | RWeak
 
 type Resistance = Map String Resist
 
+data Team = TImm | TInf
+  deriving (Show, Eq, Ord)
+
 data Grp = G { _gHP         :: Int
              , _gResist     :: Resistance
              , _gAtk        :: Int
              , _gAtkType    :: String
              , _gInitiative :: Down Int
+             , _gTeam       :: Team
              }
   deriving (Show, Eq, Ord)
 
-makeLenses ''Grp
-
-type Arena = (Map Grp Int, Map Grp Int)
+type Arena = Map Grp Int
 
 effPower :: Grp -> Int -> Int
 effPower g n = _gAtk g * n
@@ -69,79 +74,69 @@ getDown :: Down a -> a
 getDown (Down x) = x
 
 selectTargets
-    :: Map Grp Int      -- ^ attackers
-    -> Map Grp Int      -- ^ enemies
+    :: Arena
     -> Map Grp Grp      -- ^ targets
-selectTargets atk ene = catMaybes . M.mapKeys (view _3) . flip evalState ene . iforM queue $ \(Down p, _,_) g -> do
-    targ <- gets $ fmap (fst . maximumBy (comparing snd))
+selectTargets a = catMaybes . M.mapKeys (view _3) . flip evalState candidates . iforM queue $ \(Down p, _,_) g -> do
+    targ <- uses (at (_gTeam g) . non M.empty) $
+                   fmap (fst . maximumBy (comparing snd))
                  . NE.nonEmpty
                  . filter ((> 0) . view (_2 . _1))
-                 -- . map (\(h, n) -> (h, ((stab g h * p) `div` _gHP h, effPower h n, getDown (_gInitiative h))))
                  . map (\(h, n) -> (h, (stab g h * p, effPower h n, getDown (_gInitiative h))))
                  . M.toList
-    mapM_ (modify . M.delete) targ
+    forM_ targ $ \t ->
+      ix (_gTeam g) . at t .= Nothing
     pure targ
   where
     queue :: Map (Down Int, Down Int, Grp) Grp
-    queue = M.fromList . map (\(g, n) -> ((Down $ effPower g n, _gInitiative g, g), g)) $ M.toList atk
-
--- type Arena' = (Map (Bool, Grp) Int)
-
-data Team = TImm | TInf
-  deriving (Show, Eq, Ord)
-
-teamEither :: Team -> a -> Either a a
-teamEither TImm = Left
-teamEither TInf = Right
+    queue = M.fromList . map (\(g, n) -> ((Down $ effPower g n, _gInitiative g, g), g)) $ M.toList a
+    candidates :: Map Team Arena
+    candidates = flip M.fromSet (S.fromDistinctAscList [TImm, TInf]) $ \t ->
+        M.filterWithKey (\g _ -> _gTeam g /= t) a
 
 makeAttacks
     :: Map Grp Grp
     -> Arena
     -> Arena
-makeAttacks targs a = go (mergeArena a, M.empty)
+makeAttacks targs a = go queue0 M.empty
   where
-    go :: (Map (Down Int) (Team, Grp, Int), Map Grp (Either Int Int)) -> Arena
-    go (queue, finished) = case M.minView queue of
-      Nothing      -> M.mapEither id finished
-      Just ((t,g,n),queue') -> case M.lookup g targs of
-        Nothing   -> go (queue', M.insert g (teamEither t n) finished)
-        Just targ -> case find ((== targ) . view (_2 . _2)) (M.toList queue') of
+    go  :: OrdPSQ Grp (Down Int) Int
+        -> Map    Grp            Int
+        -> Arena
+    go queue finished = case PSQ.minView queue of
+      Nothing      -> finished
+      Just (g,_,n,queue') -> case M.lookup g targs of
+        Nothing   -> go queue' (M.insert g n finished)
+        Just targ -> case PSQ.lookup targ queue' of
           Nothing -> case M.lookup targ finished of
-            Nothing -> go (queue', M.insert g (teamEither t n) finished)
-            Just (either id id->m)  ->
+            Nothing -> go queue' (M.insert g n finished)
+            Just m  ->
               let totDamg   = stab g targ * n * _gAtk g
                   newM      = m - (totDamg `div` _gHP targ)
                   finished'
-                    | newM > 0  = finished & ix targ . eitherItem .~ newM
+                    | newM > 0  = finished & ix targ .~ newM
                     | otherwise = M.delete targ finished
-              in  go (queue', M.insert g (teamEither t n) finished')
-          Just (i, (_,_,m)) ->
+              in  go queue' (M.insert g n finished')
+          Just (_,m) ->
               let totDamg   = stab g targ * n * _gAtk g
                   newM      = m - (totDamg `div` _gHP targ)
                   queue''
-                    | newM > 0  = queue' & ix i . _3 .~ newM
-                    | otherwise = M.delete i queue'
-              in  go (queue'', M.insert g (teamEither t n) finished)
-    castTeam :: Team -> Grp -> Int -> (Down Int, (Team, Grp, Int))
-    castTeam t g n = (_gInitiative g, (t, g, n))
-    mergeArena :: Arena -> Map (Down Int) (Team, Grp, Int)
-    mergeArena (M.toList->t1, M.toList->t2) = M.fromList $ map (uncurry (castTeam TImm)) t1
-                                                        ++ map (uncurry (castTeam TInf)) t2
-
-eitherItem :: Lens' (Either a a) a
-eitherItem f (Left x) = Left <$> f x
-eitherItem f (Right x) = Right <$> f x
+                    | newM > 0  = queue' & ix targ .~ newM
+                    | otherwise = PSQ.delete targ queue'
+              in  go queue'' (M.insert g n finished)
+    castTeam :: (Grp, Int) -> (Grp, Down Int, Int)
+    castTeam (g, n) = (g, _gInitiative g, n)
+    queue0 :: OrdPSQ Grp (Down Int) Int
+    queue0 = PSQ.fromList . map castTeam . M.toList $ a
 
 fightBattle :: Arena -> Either Arena (Team, Map Grp Int)
--- fightBattle ((\a -> trace (traceArena a) a)->(t1,t2))
-fightBattle a@(t1, t2)
-    | a' == a    = Left a
-    | M.null t1' = Right (TInf, t2')
-    | M.null t2' = Right (TImm, t1')
-    | otherwise  = fightBattle (t1', t2')
+fightBattle a
+    | a' == a             = Left a
+    | all (== TImm) teams = Right (TImm, a')
+    | all (== TInf) teams = Right (TInf, a')
+    | otherwise           = fightBattle a'
   where
-    targs = selectTargets t1 t2 <> selectTargets t2 t1
-    a'@(t1',t2') = makeAttacks targs (t1, t2)
+    a' = makeAttacks (selectTargets a) a
+    teams = _gTeam <$> M.keys a'
 
 day24a :: _ :~> _
 day24a = MkSol
@@ -155,46 +150,30 @@ day24b = MkSol
     { sParse = P.parseMaybe parse24
     , sShow  = show
     , sSolve = \a ->
-        let goodEnough (traceShowId->i) = case fightBattle (boosted i a) of
+        let goodEnough i = case fightBattle (boost i a) of
               Right (TImm, b) -> Just (sum b)
               _               -> Nothing
         in  exponentialFindMin goodEnough 1
     }
+  where
+    boost :: Int -> Arena -> Arena
+    boost i = M.mapKeys $ \g -> case _gTeam g of
+        TImm -> g { _gAtk = _gAtk g + i }
+        TInf -> g
 
-boosted :: Int -> Arena -> Arena
-boosted i a = a & _1 %~ M.mapKeys (over gAtk (+ i))
 
-traceArena :: Arena -> String
-traceArena (t1, t2) = unlines . concat $
-    [ ["Immune System:"]
-    , flip M.foldMapWithKey t1 $ \g n -> [printf "Group %d/%d/%d with %d units" (_gHP g) (_gAtk g) (getDown $ _gInitiative g) n]
-    , ["Infection:"]
-    , flip M.foldMapWithKey t2 $ \g n -> [printf "Group %d/%d/%d with %d units" (_gHP g) (_gAtk g) (getDown $ _gInitiative g) n]
-    ]
-
--- Immune System:
--- 84 units each with 9798 hit points (immune to bludgeoning) with an attack that does 1151 fire damage at initiative 9
--- 255 units each with 9756 hit points (weak to cold, radiation) with an attack that does 382 slashing damage at initiative 17
--- 4943 units each with 6022 hit points (weak to bludgeoning) with an attack that does 11 bludgeoning damage at initiative 4
--- 305 units each with 3683 hit points (weak to bludgeoning, slashing) with an attack that does 107 cold damage at initiative 5
--- 1724 units each with 6584 hit points (weak to radiation) with an attack that does 30 cold damage at initiative 6
--- 2758 units each with 5199 hit points (immune to slashing, bludgeoning, cold; weak to fire) with an attack that does 18 bludgeoning damage at initiative 15
--- 643 units each with 9928 hit points (immune to fire; weak to slashing, bludgeoning) with an attack that does 149 fire damage at initiative 14
--- 219 units each with 8810 hit points with an attack that does 368 cold damage at initiative 3
--- 9826 units each with 10288 hit points (weak to bludgeoning; immune to cold) with an attack that does 8 cold damage at initiative 18
--- 2417 units each with 9613 hit points (weak to fire, cold) with an attack that does 36 cold damage at initiative 19
 
 type Parser_ = P.Parsec Void String
 
-parse24 :: Parser_ (Map Grp Int, Map Grp Int)
-parse24 = (,) <$> ("Immune System:" *> P.space *> teamParser <* P.space)
-              <*> ("Infection:" *> P.space *> teamParser)
+parse24 :: Parser_ Arena
+parse24 = M.union <$> ("Immune System:" *> P.space *> teamParser TImm <* P.space)
+                  <*> ("Infection:" *> P.space *> teamParser TInf)
 
-teamParser :: Parser_ (Map Grp Int)
-teamParser = M.fromList <$> (P.try groupParser `P.sepEndBy1` P.newline)
+teamParser :: Team -> Parser_ Arena
+teamParser t = M.fromList <$> (P.try (groupParser t) `P.sepEndBy1` P.newline)
 
-groupParser :: Parser_ (Grp, Int)
-groupParser = do
+groupParser :: Team -> Parser_ (Grp, Int)
+groupParser _gTeam = do
     n <- P.decimal
     P.skipMany (P.satisfy (not . isDigit))
     _gHP <- P.decimal <* P.space
@@ -217,27 +196,3 @@ resistanceParser = M.unions <$> (resistSpec `P.sepBy1` (P.char ';' *> P.space))
       "to" <* P.space
       ts <- P.some (P.satisfy isLetter) `P.sepBy1` (P.char ',' *> P.space)
       pure . M.fromList $ (,r) <$> ts
-
--- Immune System:
--- 84 units each with 9798 hit points (immune to bludgeoning) with an attack that does 1151 fire damage at initiative 9
--- 255 units each with 9756 hit points (weak to cold, radiation) with an attack that does 382 slashing damage at initiative 17
--- 4943 units each with 6022 hit points (weak to bludgeoning) with an attack that does 11 bludgeoning damage at initiative 4
--- 305 units each with 3683 hit points (weak to bludgeoning, slashing) with an attack that does 107 cold damage at initiative 5
--- 1724 units each with 6584 hit points (weak to radiation) with an attack that does 30 cold damage at initiative 6
--- 2758 units each with 5199 hit points (immune to slashing, bludgeoning, cold; weak to fire) with an attack that does 18 bludgeoning damage at initiative 15
--- 643 units each with 9928 hit points (immune to fire; weak to slashing, bludgeoning) with an attack that does 149 fire damage at initiative 14
--- 219 units each with 8810 hit points with an attack that does 368 cold damage at initiative 3
--- 9826 units each with 10288 hit points (weak to bludgeoning; immune to cold) with an attack that does 8 cold damage at initiative 18
--- 2417 units each with 9613 hit points (weak to fire, cold) with an attack that does 36 cold damage at initiative 19
-
--- Infection:
--- 1379 units each with 46709 hit points with an attack that does 66 slashing damage at initiative 16
--- 1766 units each with 15378 hit points (weak to bludgeoning) with an attack that does 12 radiation damage at initiative 10
--- 7691 units each with 33066 hit points (weak to bludgeoning) with an attack that does 7 slashing damage at initiative 12
--- 6941 units each with 43373 hit points (weak to cold) with an attack that does 12 fire damage at initiative 7
--- 5526 units each with 28081 hit points (weak to fire, slashing) with an attack that does 7 bludgeoning damage at initiative 11
--- 5844 units each with 41829 hit points with an attack that does 11 bludgeoning damage at initiative 20
--- 370 units each with 25050 hit points (immune to radiation; weak to fire) with an attack that does 120 radiation damage at initiative 2
--- 164 units each with 42669 hit points with an attack that does 481 fire damage at initiative 13
--- 3956 units each with 30426 hit points (weak to radiation) with an attack that does 13 cold damage at initiative 8
--- 2816 units each with 35467 hit points (immune to slashing, radiation, fire; weak to cold) with an attack that does 24 slashing damage at initiative 1
