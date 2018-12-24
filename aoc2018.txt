@@ -232,7 +232,7 @@ meanVar :: Fractional a => Fold a (a, a)
 type Point = V2 Int
 cardinalNeighbs :: Point -> [Point]
 fullNeighbs :: Point -> [Point]
-mannDist :: Point -> Point -> Int
+mannDist :: (Foldable f, Num a, Num (f a)) => f a -> f a -> a
 memoPoint :: Memo Point
 
 -- | Find the minimum and maximum x and y from a collection of points.
@@ -6587,7 +6587,7 @@ boundingBox' :: Foldable f => f Point -> Maybe (V2 Point)
 cardinalNeighbs :: Point -> [Point]
 fullNeighbs :: Point -> [Point]
 memoPoint :: Memo Point
-mannDist :: Point -> Point -> Int
+mannDist :: (Foldable f, Num a, Num (f a)) => f a -> f a -> a
 parseAsciiMap :: (Char -> Maybe a) -> String -> Map Point a
 asciiGrid :: IndexedFold Point String Char
 displayAsciiMap :: Char -> Map Point Char -> String
@@ -6714,6 +6714,52 @@ module AOC.Challenge.Day25
 --   will recommend what should go in place of the underscores.</li>
 --   </ul>
 module AOC.Challenge.Day24
+data Resist
+RImmune :: Resist
+RWeak :: Resist
+type Resistance = Map String Resist
+data Grp
+G :: Int -> Resistance -> Int -> String -> Down Int -> Grp
+[_gHP] :: Grp -> Int
+[_gResist] :: Grp -> Resistance
+[_gAtk] :: Grp -> Int
+[_gAtkType] :: Grp -> String
+[_gInitiative] :: Grp -> Down Int
+gResist :: Lens' Grp Resistance
+gInitiative :: Lens' Grp (Down Int)
+gHP :: Lens' Grp Int
+gAtkType :: Lens' Grp String
+gAtk :: Lens' Grp Int
+type Arena = (Map Grp Int, Map Grp Int)
+effPower :: Grp -> Int -> Int
+stab :: Grp -> Grp -> Int
+getDown :: Down a -> a
+selectTargets :: Map Grp Int -> Map Grp Int -> Map Grp Grp
+data Team
+TImm :: Team
+TInf :: Team
+teamEither :: Team -> a -> Either a a
+makeAttacks :: Map Grp Grp -> Arena -> Arena
+eitherItem :: Lens' (Either a a) a
+fightBattle :: Arena -> Either Arena (Team, Map Grp Int)
+day24a :: _ :~> _
+day24b :: _ :~> _
+boosted :: Int -> Arena -> Arena
+traceArena :: Arena -> String
+type Parser_ = Parsec Void String
+parse24 :: Parser_ (Map Grp Int, Map Grp Int)
+teamParser :: Parser_ (Map Grp Int)
+groupParser :: Parser_ (Grp, Int)
+resistanceParser :: Parser_ Resistance
+instance GHC.Classes.Ord AOC.Challenge.Day24.Team
+instance GHC.Classes.Eq AOC.Challenge.Day24.Team
+instance GHC.Show.Show AOC.Challenge.Day24.Team
+instance GHC.Classes.Ord AOC.Challenge.Day24.Grp
+instance GHC.Classes.Eq AOC.Challenge.Day24.Grp
+instance GHC.Show.Show AOC.Challenge.Day24.Grp
+instance GHC.Classes.Ord AOC.Challenge.Day24.Resist
+instance GHC.Classes.Eq AOC.Challenge.Day24.Resist
+instance GHC.Show.Show AOC.Challenge.Day24.Resist
 
 
 -- | Day 23. See <a>AOC.Solver</a> for the types used in this module!
@@ -6731,6 +6777,27 @@ module AOC.Challenge.Day24
 --   will recommend what should go in place of the underscores.</li>
 --   </ul>
 module AOC.Challenge.Day23
+type Point3 = V3 Int
+data Circle
+C :: !Point3 -> !Int -> Circle
+[_cCenter] :: Circle -> !Point3
+[_cRadius] :: Circle -> !Int
+day23a :: _ :~> _
+inRangeOf :: Point3 -> Circle -> Bool
+findMostOverlaps :: NESet Circle -> (Int, Point3)
+maxOverlapInRegion :: NonEmpty Circle -> V2 Point3 -> (Int, Point3)
+inRegion :: V2 Point3 -> Point3 -> Bool
+bbSize :: V2 Point3 -> Int
+octants :: V2 Point3 -> [V2 Point3]
+completeOverlap :: Foldable f => f Circle -> V2 Point3 -> Bool
+boundingCube :: V2 Point3 -> [Point3]
+day23b :: _ :~> _
+circleBounds :: Circle -> [Point3]
+boundingBox3 :: Foldable1 f => f Point3 -> V2 Point3
+parse23 :: String -> [Circle]
+instance GHC.Classes.Ord AOC.Challenge.Day23.Circle
+instance GHC.Classes.Eq AOC.Challenge.Day23.Circle
+instance GHC.Show.Show AOC.Challenge.Day23.Circle
 
 
 -- | Template Haskell for discovering all named challenges in a given
@@ -7144,13 +7211,13 @@ MRO :: !TestSpec -> !Bool -> !Bool -> !Bool -> !Finite 25 -> Part -> IO (Maybe S
 
 -- | Manually supply input (Default: always return Nothing)
 [_mroInput] :: MainRunOpts -> !Finite 25 -> Part -> IO (Maybe String)
-class HasMainRunOpts c_a2cyU
-mainRunOpts :: HasMainRunOpts c_a2cyU => Lens' c_a2cyU MainRunOpts
-mroBench :: HasMainRunOpts c_a2cyU => Lens' c_a2cyU Bool
-mroInput :: HasMainRunOpts c_a2cyU => Lens' c_a2cyU (Finite 25 -> Part -> IO (Maybe String))
-mroLock :: HasMainRunOpts c_a2cyU => Lens' c_a2cyU Bool
-mroSpec :: HasMainRunOpts c_a2cyU => Lens' c_a2cyU TestSpec
-mroTest :: HasMainRunOpts c_a2cyU => Lens' c_a2cyU Bool
+class HasMainRunOpts c_a2jrQ
+mainRunOpts :: HasMainRunOpts c_a2jrQ => Lens' c_a2jrQ MainRunOpts
+mroBench :: HasMainRunOpts c_a2jrQ => Lens' c_a2jrQ Bool
+mroInput :: HasMainRunOpts c_a2jrQ => Lens' c_a2jrQ (Finite 25 -> Part -> IO (Maybe String))
+mroLock :: HasMainRunOpts c_a2jrQ => Lens' c_a2jrQ Bool
+mroSpec :: HasMainRunOpts c_a2jrQ => Lens' c_a2jrQ TestSpec
+mroTest :: HasMainRunOpts c_a2jrQ => Lens' c_a2jrQ Bool
 
 -- | Run, test, bench.
 mainRun :: (MonadIO m, MonadError [String] m) => Config -> MainRunOpts -> m (Map (Finite 25) (Map Part (Maybe Bool, Either [String] String)))
@@ -7163,10 +7230,10 @@ data MainViewOpts
 MVO :: !TestSpec -> !Bool -> MainViewOpts
 [_mvoSpec] :: MainViewOpts -> !TestSpec
 [_mvoWait] :: MainViewOpts -> !Bool
-class HasMainViewOpts c_a2cFW
-mainViewOpts :: HasMainViewOpts c_a2cFW => Lens' c_a2cFW MainViewOpts
-mvoSpec :: HasMainViewOpts c_a2cFW => Lens' c_a2cFW TestSpec
-mvoWait :: HasMainViewOpts c_a2cFW => Lens' c_a2cFW Bool
+class HasMainViewOpts c_a2jyS
+mainViewOpts :: HasMainViewOpts c_a2jyS => Lens' c_a2jyS MainViewOpts
+mvoSpec :: HasMainViewOpts c_a2jyS => Lens' c_a2jyS TestSpec
+mvoWait :: HasMainViewOpts c_a2jyS => Lens' c_a2jyS Bool
 
 -- | View prompt
 mainView :: (MonadIO m, MonadError [String] m) => Config -> MainViewOpts -> m (Map (Finite 25) (Map Part Text))
@@ -7187,12 +7254,12 @@ MSO :: !ChallengeSpec -> !Bool -> !Bool -> !Bool -> MainSubmitOpts
 
 -- | Lock answer if submission succeeded? (Default: True)
 [_msoLock] :: MainSubmitOpts -> !Bool
-class HasMainSubmitOpts c_a2cKf
-mainSubmitOpts :: HasMainSubmitOpts c_a2cKf => Lens' c_a2cKf MainSubmitOpts
-msoForce :: HasMainSubmitOpts c_a2cKf => Lens' c_a2cKf Bool
-msoLock :: HasMainSubmitOpts c_a2cKf => Lens' c_a2cKf Bool
-msoSpec :: HasMainSubmitOpts c_a2cKf => Lens' c_a2cKf ChallengeSpec
-msoTest :: HasMainSubmitOpts c_a2cKf => Lens' c_a2cKf Bool
+class HasMainSubmitOpts c_a2jDb
+mainSubmitOpts :: HasMainSubmitOpts c_a2jDb => Lens' c_a2jDb MainSubmitOpts
+msoForce :: HasMainSubmitOpts c_a2jDb => Lens' c_a2jDb Bool
+msoLock :: HasMainSubmitOpts c_a2jDb => Lens' c_a2jDb Bool
+msoSpec :: HasMainSubmitOpts c_a2jDb => Lens' c_a2jDb ChallengeSpec
+msoTest :: HasMainSubmitOpts c_a2jDb => Lens' c_a2jDb Bool
 
 -- | Submit and analyze result
 mainSubmit :: (MonadIO m, MonadError [String] m) => Config -> MainSubmitOpts -> m (Text, SubmitRes)
