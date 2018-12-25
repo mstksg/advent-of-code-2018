@@ -1,6 +1,3 @@
-{-# OPTIONS_GHC -Wno-unused-imports   #-}
-{-# OPTIONS_GHC -Wno-unused-top-binds #-}
-
 -- |
 -- Module      : AOC.Challenge.Day25
 -- Copyright   : (c) Justin Le 2018
@@ -11,27 +8,36 @@
 -- Portability : non-portable
 --
 -- Day 25.  See "AOC.Solver" for the types used in this module!
---
--- After completing the challenge, it is recommended to:
---
--- *   Replace "AOC.Prelude" imports to specific modules (with explicit
---     imports) for readability.
--- *   Remove the @-Wno-unused-imports@ and @-Wno-unused-top-binds@
---     pragmas.
--- *   Replace the partial type signatures underscores in the solution
---     types @_ :~> _@ with the actual types of inputs and outputs of the
---     solution.  You can delete the type signatures completely and GHC
---     will recommend what should go in place of the underscores.
 
 module AOC.Challenge.Day25 (
     day25a
   ) where
 
-import           AOC.Prelude
+import           AOC.Common      (mannDist, clearOut)
+import           AOC.Solver      ((:~>)(..))
+import           Data.Char       (isDigit)
+import           Data.Graph      (Graph)
+import           Data.Witherable (mapMaybe)
+import           Linear          (V4(..))
+import qualified Data.Graph      as G
 
-day25a :: _ :~> _
+constellationGraph :: [V4 Int] -> Graph
+constellationGraph xs = g
+  where
+    (g, _, _) = G.graphFromEdges (map collect xs)
+    collect x = (x,x,filter ((<= 3) . mannDist x) xs)
+
+day25a :: [V4 Int] :~> Int
 day25a = MkSol
-    { sParse = Just
-    , sShow  = id
-    , sSolve = Just
+    { sParse = Just . parse25
+    , sShow  = show
+    , sSolve = Just . length . G.scc . constellationGraph
     }
+
+parse25 :: String -> [V4 Int]
+parse25 = mapMaybe (go . map read . words . clearOut d) . lines
+  where
+    d '-' = False
+    d c   = not (isDigit c)
+    go [x,y,z,r] = Just $ V4 x y z r
+    go _         = Nothing
