@@ -24,21 +24,13 @@
 --     will recommend what should go in place of the underscores.
 
 module AOC.Challenge.Day25 (
-    -- day25a
-  -- , day25b
+    day25a
   ) where
 
 import           AOC.Prelude
 
 day25a :: _ :~> _
 day25a = MkSol
-    { sParse = Just
-    , sShow  = id
-    , sSolve = Just
-    }
-
-day25b :: _ :~> _
-day25b = MkSol
     { sParse = Just
     , sShow  = id
     , sSolve = Just

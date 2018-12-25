@@ -239,7 +239,7 @@ type Point = V2 Int
 -- Returns @'V2' (V2 xMin yMin) (V2 xMax yMax)@.
 boundingBox :: (Foldable1 f, Applicative g, Ord a) => f (g a) -> V2 (g a)
 boundingBox = (\(Ap mn, Ap mx) -> V2 (getMin <$> mn) (getMax <$> mx))
-             . foldMap1 (\p -> (Ap (Min <$> p), Ap (Max <$> p)))
+            . foldMap1 (\p -> (Ap (Min <$> p), Ap (Max <$> p)))
 
 -- | A version of 'boundingBox' that works for normal possibly-empty lists.
 boundingBox' :: Foldable f => f Point -> Maybe (V2 Point)
