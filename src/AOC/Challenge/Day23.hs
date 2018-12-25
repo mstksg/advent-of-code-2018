@@ -1,6 +1,3 @@
-{-# OPTIONS_GHC -Wno-unused-imports   #-}
-{-# OPTIONS_GHC -Wno-unused-top-binds #-}
-
 -- |
 -- Module      : AOC.Challenge.Day23
 -- Copyright   : (c) Justin Le 2018
@@ -11,32 +8,25 @@
 -- Portability : non-portable
 --
 -- Day 23.  See "AOC.Solver" for the types used in this module!
---
--- After completing the challenge, it is recommended to:
---
--- *   Replace "AOC.Prelude" imports to specific modules (with explicit
---     imports) for readability.
--- *   Remove the @-Wno-unused-imports@ and @-Wno-unused-top-binds@
---     pragmas.
--- *   Replace the partial type signatures underscores in the solution
---     types @_ :~> _@ with the actual types of inputs and outputs of the
---     solution.  You can delete the type signatures completely and GHC
---     will recommend what should go in place of the underscores.
 
 module AOC.Challenge.Day23 (
     day23a
   , day23b
   ) where
 
-import           AOC.Prelude
-import           Data.Ix
-import           Data.OrdPSQ        (OrdPSQ)
-import qualified Data.List.NonEmpty as NE
-import qualified Data.Map           as M
-import qualified Data.OrdPSQ        as PSQ
-import qualified Data.Set           as S
-import qualified Data.Set.NonEmpty  as NES
-import qualified Linear             as L
+import           AOC.Common              (clearOut, mannDist, boundingBox)
+import           AOC.Solver              ((:~>)(..))
+import           Data.Char               (isDigit)
+import           Data.Foldable           (foldl', toList, maximumBy)
+import           Data.List.NonEmpty      (NonEmpty)
+import           Data.Ord                (Down(..), comparing)
+import           Data.OrdPSQ             (OrdPSQ)
+import           Data.Semigroup.Foldable (foldMap1)
+import           Data.Witherable         (mapMaybe)
+import           Linear                  (V2(..), V3(..))
+import qualified Data.List.NonEmpty      as NE
+import qualified Data.OrdPSQ             as PSQ
+import qualified Linear                  as L
 
 type Point3 = V3 Int
 type BoundingBox = V2 Point3
@@ -102,10 +92,7 @@ drillDown ss0 = go (addIn bb0 ss0 PSQ.empty)
       Nothing  -> id
       Just ss' -> addIn bb ss'
     addIn bb ss = PSQ.insert bb (Down (length ss)) ss
-    bb0 = boundingBox3 . foldMap1 (NE.fromList . circleBounds) $ ss0
-
-bbVolume :: BoundingBox -> Int
-bbVolume (V2 mn mx) = product $ mx - mn
+    bb0 = boundingBox . foldMap1 (NE.fromList . circleBounds) $ ss0
 
 octants :: BoundingBox -> [BoundingBox]
 octants (V2 mns mxs)
@@ -123,9 +110,9 @@ boundingCube = traverse (\(V2 mn mx) -> [mn,mx]) . L.transpose
 
 day23b :: _ :~> _
 day23b = MkSol
-    { sParse = NE.nonEmpty . parse23
+    { sParse = Just . parse23
     , sShow  = show
-    , sSolve = Just . mannDist 0 . drillDown
+    , sSolve = fmap (mannDist 0 . drillDown) . NE.nonEmpty
     }
 
 circleBounds :: Sphere -> [Point3]
@@ -138,11 +125,7 @@ circleBounds (S c r) =
     , d <- [b, -b]
     ]
 
-boundingBox3 :: Foldable1 f => f Point3 -> BoundingBox
-boundingBox3 ps = V3 xMin yMin zMin `V2` V3 xMax yMax zMax
-  where
-    ((Min xMin, Min yMin, Min zMin), (Max xMax, Max yMax, Max zMax)) = flip foldMap1 ps $ \(V3 x y z) ->
-        ((Min x, Min y, Min z), (Max x, Max y, Max z))
+
 
 
 parse23 :: String -> [Sphere]

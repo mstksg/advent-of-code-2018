@@ -64,6 +64,7 @@ import           Data.List.NonEmpty                 (NonEmpty)
 import           Data.Map                           (Map)
 import           Data.Map.NonEmpty                  (NEMap)
 import           Data.MemoCombinators               (Memo)
+import           Data.Monoid                        (Ap(..))
 import           Data.Ord
 import           Data.Semigroup
 import           Data.Semigroup.Foldable
@@ -236,11 +237,9 @@ type Point = V2 Int
 -- | Find the minimum and maximum x and y from a collection of points.
 --
 -- Returns @'V2' (V2 xMin yMin) (V2 xMax yMax)@.
-boundingBox :: Foldable1 f => f Point -> V2 Point
-boundingBox ps = V2 xMin yMin `V2` V2 xMax yMax
-  where
-    (Min xMin, Min yMin, Max xMax, Max yMax) = flip foldMap1 ps $ \(V2 x y) ->
-        (Min x, Min y, Max x, Max y)
+boundingBox :: (Foldable1 f, Applicative g, Ord a) => f (g a) -> V2 (g a)
+boundingBox = (\(Ap mn, Ap mx) -> V2 (getMin <$> mn) (getMax <$> mx))
+             . foldMap1 (\p -> (Ap (Min <$> p), Ap (Max <$> p)))
 
 -- | A version of 'boundingBox' that works for normal possibly-empty lists.
 boundingBox' :: Foldable f => f Point -> Maybe (V2 Point)
