@@ -24,23 +24,15 @@
 </span><a name="line-24"></a><span class="hs-comment">--     will recommend what should go in place of the underscores.</span><span>
 </span><a name="line-25"></a><span>
 </span><a name="line-26"></a><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">AOC.Challenge.Day25</span><span> </span><span class="hs-special">(</span><span>
-</span><a name="line-27"></a><span>    </span><span class="hs-comment">-- day25a</span><span>
-</span><a name="line-28"></a><span>  </span><span class="hs-comment">-- , day25b</span><span>
-</span><a name="line-29"></a><span>  </span><span class="hs-special">)</span><span> </span><span class="hs-keyword">where</span><span>
-</span><a name="line-30"></a><span>
-</span><a name="line-31"></a><span class="hs-keyword">import</span><span>           </span><a href="AOC.Prelude.html"><span class="hs-identifier">AOC.Prelude</span></a><span>
-</span><a name="line-32"></a><span>
-</span><a name="line-33"></a><span class="hs-identifier">day25a</span><span> </span><span class="hs-glyph">::</span><span> </span><a href="AOC.Solver.html#%3A~%3E"><span class="hs-identifier hs-type">_</span></a><span> </span><a href="AOC.Solver.html#%3A~%3E"><span class="hs-operator hs-type">:~&gt;</span></a><span> </span><a href="AOC.Solver.html#%3A~%3E"><span class="hs-identifier hs-type">_</span></a><span>
-</span><a name="line-34"></a><a name="day25a"><a href="AOC.Challenge.Day25.html#day25a"><span class="hs-identifier">day25a</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><a href="AOC.Solver.html#MkSol"><span class="hs-identifier hs-var">MkSol</span></a><span>
-</span><a name="line-35"></a><span>    </span><span class="hs-special">{</span><span> </span><span class="hs-identifier">sParse</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-identifier hs-var">Just</span><span>
-</span><a name="line-36"></a><span>    </span><span class="hs-special">,</span><span> </span><span class="hs-identifier">sShow</span><span>  </span><span class="hs-glyph">=</span><span> </span><span class="hs-identifier hs-var">id</span><span>
-</span><a name="line-37"></a><span>    </span><span class="hs-special">,</span><span> </span><span class="hs-identifier">sSolve</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-identifier hs-var">Just</span><span>
-</span><a name="line-38"></a><span>    </span><span class="hs-special">}</span><span>
-</span><a name="line-39"></a><span>
-</span><a name="line-40"></a><span class="hs-identifier">day25b</span><span> </span><span class="hs-glyph">::</span><span> </span><a href="AOC.Solver.html#%3A~%3E"><span class="hs-identifier hs-type">_</span></a><span> </span><a href="AOC.Solver.html#%3A~%3E"><span class="hs-operator hs-type">:~&gt;</span></a><span> </span><a href="AOC.Solver.html#%3A~%3E"><span class="hs-identifier hs-type">_</span></a><span>
-</span><a name="line-41"></a><a name="day25b"><a href="AOC.Challenge.Day25.html#day25b"><span class="hs-identifier">day25b</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><a href="AOC.Solver.html#MkSol"><span class="hs-identifier hs-var">MkSol</span></a><span>
-</span><a name="line-42"></a><span>    </span><span class="hs-special">{</span><span> </span><span class="hs-identifier">sParse</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-identifier hs-var">Just</span><span>
-</span><a name="line-43"></a><span>    </span><span class="hs-special">,</span><span> </span><span class="hs-identifier">sShow</span><span>  </span><span class="hs-glyph">=</span><span> </span><span class="hs-identifier hs-var">id</span><span>
-</span><a name="line-44"></a><span>    </span><span class="hs-special">,</span><span> </span><span class="hs-identifier">sSolve</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-identifier hs-var">Just</span><span>
-</span><a name="line-45"></a><span>    </span><span class="hs-special">}</span><span>
-</span><a name="line-46"></a></pre></body></html>
+</span><a name="line-27"></a><span>    </span><a href="AOC.Challenge.Day25.html#day25a"><span class="hs-identifier hs-var">day25a</span></a><span>
+</span><a name="line-28"></a><span>  </span><span class="hs-special">)</span><span> </span><span class="hs-keyword">where</span><span>
+</span><a name="line-29"></a><span>
+</span><a name="line-30"></a><span class="hs-keyword">import</span><span>           </span><a href="AOC.Prelude.html"><span class="hs-identifier">AOC.Prelude</span></a><span>
+</span><a name="line-31"></a><span>
+</span><a name="line-32"></a><span class="hs-identifier">day25a</span><span> </span><span class="hs-glyph">::</span><span> </span><a href="AOC.Solver.html#%3A~%3E"><span class="hs-identifier hs-type">_</span></a><span> </span><a href="AOC.Solver.html#%3A~%3E"><span class="hs-operator hs-type">:~&gt;</span></a><span> </span><a href="AOC.Solver.html#%3A~%3E"><span class="hs-identifier hs-type">_</span></a><span>
+</span><a name="line-33"></a><a name="day25a"><a href="AOC.Challenge.Day25.html#day25a"><span class="hs-identifier">day25a</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><a href="AOC.Solver.html#MkSol"><span class="hs-identifier hs-var">MkSol</span></a><span>
+</span><a name="line-34"></a><span>    </span><span class="hs-special">{</span><span> </span><span class="hs-identifier">sParse</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-identifier hs-var">Just</span><span>
+</span><a name="line-35"></a><span>    </span><span class="hs-special">,</span><span> </span><span class="hs-identifier">sShow</span><span>  </span><span class="hs-glyph">=</span><span> </span><span class="hs-identifier hs-var">id</span><span>
+</span><a name="line-36"></a><span>    </span><span class="hs-special">,</span><span> </span><span class="hs-identifier">sSolve</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-identifier hs-var">Just</span><span>
+</span><a name="line-37"></a><span>    </span><span class="hs-special">}</span><span>
+</span><a name="line-38"></a></pre></body></html>
