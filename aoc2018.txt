@@ -240,7 +240,7 @@ memoPoint :: Memo Point
 -- | Find the minimum and maximum x and y from a collection of points.
 --   
 --   Returns <tt><a>V2</a> (V2 xMin yMin) (V2 xMax yMax)</tt>.
-boundingBox :: Foldable1 f => f Point -> V2 Point
+boundingBox :: (Foldable1 f, Applicative g, Ord a) => f (g a) -> V2 (g a)
 
 -- | A version of <a>boundingBox</a> that works for normal possibly-empty
 --   lists.
@@ -6594,7 +6594,7 @@ meanVar :: Fractional a => Fold a (a, a)
 -- | Find the minimum and maximum x and y from a collection of points.
 --   
 --   Returns <tt><a>V2</a> (V2 xMin yMin) (V2 xMax yMax)</tt>.
-boundingBox :: Foldable1 f => f Point -> V2 Point
+boundingBox :: (Foldable1 f, Applicative g, Ord a) => f (g a) -> V2 (g a)
 
 -- | A version of <a>boundingBox</a> that works for normal possibly-empty
 --   lists.
@@ -6714,28 +6714,6 @@ dyno_ :: forall a. (Typeable a, ?dyno :: DynoMap) => String -> a -> a
 module AOC.Challenge.Day25
 
 
--- | Day 23. See <a>AOC.Solver</a> for the types used in this module!
---   
---   After completing the challenge, it is recommended to:
---   
---   <ul>
---   <li>Replace <a>AOC.Prelude</a> imports to specific modules (with
---   explicit imports) for readability.</li>
---   <li>Remove the <tt>-Wno-unused-imports</tt> and
---   <tt>-Wno-unused-top-binds</tt> pragmas.</li>
---   <li>Replace the partial type signatures underscores in the solution
---   types <tt>_ :~&gt; _</tt> with the actual types of inputs and outputs
---   of the solution. You can delete the type signatures completely and GHC
---   will recommend what should go in place of the underscores.</li>
---   </ul>
-module AOC.Challenge.Day23
-day23a :: _ :~> _
-day23b :: _ :~> _
-instance GHC.Classes.Ord AOC.Challenge.Day23.Sphere
-instance GHC.Classes.Eq AOC.Challenge.Day23.Sphere
-instance GHC.Show.Show AOC.Challenge.Day23.Sphere
-
-
 -- | Template Haskell for discovering all named challenges in a given
 --   directory.
 module AOC.Discover
@@ -6797,6 +6775,15 @@ instance GHC.Show.Show AOC.Challenge.Day24.Team
 instance GHC.Classes.Ord AOC.Challenge.Day24.Resist
 instance GHC.Classes.Eq AOC.Challenge.Day24.Resist
 instance GHC.Show.Show AOC.Challenge.Day24.Resist
+
+
+-- | Day 23. See <a>AOC.Solver</a> for the types used in this module!
+module AOC.Challenge.Day23
+day23a :: _ :~> _
+day23b :: _ :~> _
+instance GHC.Classes.Ord AOC.Challenge.Day23.Sphere
+instance GHC.Classes.Eq AOC.Challenge.Day23.Sphere
+instance GHC.Show.Show AOC.Challenge.Day23.Sphere
 
 
 module AOC.Challenge.Day22
@@ -7162,13 +7149,13 @@ MRO :: !TestSpec -> !Bool -> !Bool -> !Bool -> !Finite 25 -> Part -> IO (Maybe S
 
 -- | Manually supply input (Default: always return Nothing)
 [_mroInput] :: MainRunOpts -> !Finite 25 -> Part -> IO (Maybe String)
-class HasMainRunOpts c_a2iVL
-mainRunOpts :: HasMainRunOpts c_a2iVL => Lens' c_a2iVL MainRunOpts
-mroBench :: HasMainRunOpts c_a2iVL => Lens' c_a2iVL Bool
-mroInput :: HasMainRunOpts c_a2iVL => Lens' c_a2iVL (Finite 25 -> Part -> IO (Maybe String))
-mroLock :: HasMainRunOpts c_a2iVL => Lens' c_a2iVL Bool
-mroSpec :: HasMainRunOpts c_a2iVL => Lens' c_a2iVL TestSpec
-mroTest :: HasMainRunOpts c_a2iVL => Lens' c_a2iVL Bool
+class HasMainRunOpts c_a2iNF
+mainRunOpts :: HasMainRunOpts c_a2iNF => Lens' c_a2iNF MainRunOpts
+mroBench :: HasMainRunOpts c_a2iNF => Lens' c_a2iNF Bool
+mroInput :: HasMainRunOpts c_a2iNF => Lens' c_a2iNF (Finite 25 -> Part -> IO (Maybe String))
+mroLock :: HasMainRunOpts c_a2iNF => Lens' c_a2iNF Bool
+mroSpec :: HasMainRunOpts c_a2iNF => Lens' c_a2iNF TestSpec
+mroTest :: HasMainRunOpts c_a2iNF => Lens' c_a2iNF Bool
 
 -- | Run, test, bench.
 mainRun :: (MonadIO m, MonadError [String] m) => Config -> MainRunOpts -> m (Map (Finite 25) (Map Part (Maybe Bool, Either [String] String)))
@@ -7181,10 +7168,10 @@ data MainViewOpts
 MVO :: !TestSpec -> !Bool -> MainViewOpts
 [_mvoSpec] :: MainViewOpts -> !TestSpec
 [_mvoWait] :: MainViewOpts -> !Bool
-class HasMainViewOpts c_a2j2N
-mainViewOpts :: HasMainViewOpts c_a2j2N => Lens' c_a2j2N MainViewOpts
-mvoSpec :: HasMainViewOpts c_a2j2N => Lens' c_a2j2N TestSpec
-mvoWait :: HasMainViewOpts c_a2j2N => Lens' c_a2j2N Bool
+class HasMainViewOpts c_a2iUH
+mainViewOpts :: HasMainViewOpts c_a2iUH => Lens' c_a2iUH MainViewOpts
+mvoSpec :: HasMainViewOpts c_a2iUH => Lens' c_a2iUH TestSpec
+mvoWait :: HasMainViewOpts c_a2iUH => Lens' c_a2iUH Bool
 
 -- | View prompt
 mainView :: (MonadIO m, MonadError [String] m) => Config -> MainViewOpts -> m (Map (Finite 25) (Map Part Text))
@@ -7205,12 +7192,12 @@ MSO :: !ChallengeSpec -> !Bool -> !Bool -> !Bool -> MainSubmitOpts
 
 -- | Lock answer if submission succeeded? (Default: True)
 [_msoLock] :: MainSubmitOpts -> !Bool
-class HasMainSubmitOpts c_a2j76
-mainSubmitOpts :: HasMainSubmitOpts c_a2j76 => Lens' c_a2j76 MainSubmitOpts
-msoForce :: HasMainSubmitOpts c_a2j76 => Lens' c_a2j76 Bool
-msoLock :: HasMainSubmitOpts c_a2j76 => Lens' c_a2j76 Bool
-msoSpec :: HasMainSubmitOpts c_a2j76 => Lens' c_a2j76 ChallengeSpec
-msoTest :: HasMainSubmitOpts c_a2j76 => Lens' c_a2j76 Bool
+class HasMainSubmitOpts c_a2iZ0
+mainSubmitOpts :: HasMainSubmitOpts c_a2iZ0 => Lens' c_a2iZ0 MainSubmitOpts
+msoForce :: HasMainSubmitOpts c_a2iZ0 => Lens' c_a2iZ0 Bool
+msoLock :: HasMainSubmitOpts c_a2iZ0 => Lens' c_a2iZ0 Bool
+msoSpec :: HasMainSubmitOpts c_a2iZ0 => Lens' c_a2iZ0 ChallengeSpec
+msoTest :: HasMainSubmitOpts c_a2iZ0 => Lens' c_a2iZ0 Bool
 
 -- | Submit and analyze result
 mainSubmit :: (MonadIO m, MonadError [String] m) => Config -> MainSubmitOpts -> m (Text, SubmitRes)
