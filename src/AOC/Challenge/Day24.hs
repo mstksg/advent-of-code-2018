@@ -176,7 +176,7 @@ groupParser _gTeam = do
     P.skipMany (P.satisfy (not . isDigit))
     _gHP <- decimal <* P.space
     "hit points" <* P.space
-    _gResist <- fmap fold . P.optional . P.try $ ("(" `P.between` ")") resistanceParser
+    _gResist <- fmap fold . P.optional . P.try $ (P.char '(' `P.between` P.char ')') resistanceParser
     P.skipMany (P.satisfy (not . isDigit))
     _gAtk <- decimal <* P.space
     _gAtkType <- P.some (P.satisfy isLetter)
@@ -185,12 +185,12 @@ groupParser _gTeam = do
     pure (G{..}, n)
 
 resistanceParser :: Parser_ Resistance
-resistanceParser = M.unions <$> (resistSpec `P.sepBy1` (";" *> P.space))
+resistanceParser = M.unions <$> (resistSpec `P.sepBy1` (P.char ';' *> P.space))
   where
     res   = (RImmune <$ P.try "immune")
       P.<|> (RWeak   <$ P.try "weak")
     resistSpec = do
       r <- res <* P.space
       "to" <* P.space
-      ts <- P.some (P.satisfy isLetter) `P.sepBy1` (",")
+      ts <- P.some (P.satisfy isLetter) `P.sepBy1` (P.char ',' *> P.space)
       pure . M.fromList $ (,r) <$> ts
