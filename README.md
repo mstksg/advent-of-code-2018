@@ -42,6 +42,8 @@ Check out reflections and commentary at the [package haddocks][haddock]!
 *   **[Day 20 Reflections][d20r]** *[code][d20g]* / *[rendered][d20h]* / *[benchmarks][d20b]*
 *   **Day 21 Reflections** *[code][d21g]* / *[rendered][d21h]*
 *   **Day 22 Reflections** *[code][d22g]* / *[rendered][d22h]*
+*   **Day 23 Reflections** *[code][d23g]* / *[rendered][d23h]*
+*   **Day 24 Reflections** *[code][d24g]* / *[rendered][d24h]*
 
 "Rendered" links go to haddock source renders for code, with reflections in the
 documentation.  Haddock source renders have hyperlinked identifiers,
@@ -371,3 +373,8 @@ All networking features are powered by *[advent-of-code-api][]*.
 [d22g]: https://github.com/mstksg/advent-of-code-2018/blob/master/src/AOC/Challenge/Day22.hs
 [d22h]: https://mstksg.github.io/advent-of-code-2018/src/AOC.Challenge.Day22.html
 
+[d23g]: https://github.com/mstksg/advent-of-code-2018/blob/master/src/AOC/Challenge/Day23.hs
+[d23h]: https://mstksg.github.io/advent-of-code-2018/src/AOC.Challenge.Day23.html
+
+[d24g]: https://github.com/mstksg/advent-of-code-2018/blob/master/src/AOC/Challenge/Day24.hs
+[d24h]: https://mstksg.github.io/advent-of-code-2018/src/AOC.Challenge.Day24.html
