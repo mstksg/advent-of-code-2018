@@ -6697,24 +6697,6 @@ dyno :: forall a. (Typeable a, ?dyno :: DynoMap) => String -> Maybe a
 dyno_ :: forall a. (Typeable a, ?dyno :: DynoMap) => String -> a -> a
 
 
--- | Day 25. See <a>AOC.Solver</a> for the types used in this module!
---   
---   After completing the challenge, it is recommended to:
---   
---   <ul>
---   <li>Replace <a>AOC.Prelude</a> imports to specific modules (with
---   explicit imports) for readability.</li>
---   <li>Remove the <tt>-Wno-unused-imports</tt> and
---   <tt>-Wno-unused-top-binds</tt> pragmas.</li>
---   <li>Replace the partial type signatures underscores in the solution
---   types <tt>_ :~&gt; _</tt> with the actual types of inputs and outputs
---   of the solution. You can delete the type signatures completely and GHC
---   will recommend what should go in place of the underscores.</li>
---   </ul>
-module AOC.Challenge.Day25
-day25a :: _ :~> _
-
-
 -- | Template Haskell for discovering all named challenges in a given
 --   directory.
 module AOC.Discover
@@ -6761,6 +6743,11 @@ charPart :: Char -> Maybe Part
 instance GHC.Classes.Ord AOC.Discover.ChallengeSpec
 instance GHC.Classes.Eq AOC.Discover.ChallengeSpec
 instance GHC.Show.Show AOC.Discover.ChallengeSpec
+
+
+-- | Day 25. See <a>AOC.Solver</a> for the types used in this module!
+module AOC.Challenge.Day25
+day25a :: [V4 Int] :~> Int
 
 
 -- | Day 24. See <a>AOC.Solver</a> for the types used in this module!
@@ -7150,13 +7137,13 @@ MRO :: !TestSpec -> !Bool -> !Bool -> !Bool -> !Finite 25 -> Part -> IO (Maybe S
 
 -- | Manually supply input (Default: always return Nothing)
 [_mroInput] :: MainRunOpts -> !Finite 25 -> Part -> IO (Maybe String)
-class HasMainRunOpts c_a2iPq
-mainRunOpts :: HasMainRunOpts c_a2iPq => Lens' c_a2iPq MainRunOpts
-mroBench :: HasMainRunOpts c_a2iPq => Lens' c_a2iPq Bool
-mroInput :: HasMainRunOpts c_a2iPq => Lens' c_a2iPq (Finite 25 -> Part -> IO (Maybe String))
-mroLock :: HasMainRunOpts c_a2iPq => Lens' c_a2iPq Bool
-mroSpec :: HasMainRunOpts c_a2iPq => Lens' c_a2iPq TestSpec
-mroTest :: HasMainRunOpts c_a2iPq => Lens' c_a2iPq Bool
+class HasMainRunOpts c_a2j9f
+mainRunOpts :: HasMainRunOpts c_a2j9f => Lens' c_a2j9f MainRunOpts
+mroBench :: HasMainRunOpts c_a2j9f => Lens' c_a2j9f Bool
+mroInput :: HasMainRunOpts c_a2j9f => Lens' c_a2j9f (Finite 25 -> Part -> IO (Maybe String))
+mroLock :: HasMainRunOpts c_a2j9f => Lens' c_a2j9f Bool
+mroSpec :: HasMainRunOpts c_a2j9f => Lens' c_a2j9f TestSpec
+mroTest :: HasMainRunOpts c_a2j9f => Lens' c_a2j9f Bool
 
 -- | Run, test, bench.
 mainRun :: (MonadIO m, MonadError [String] m) => Config -> MainRunOpts -> m (Map (Finite 25) (Map Part (Maybe Bool, Either [String] String)))
@@ -7169,10 +7156,10 @@ data MainViewOpts
 MVO :: !TestSpec -> !Bool -> MainViewOpts
 [_mvoSpec] :: MainViewOpts -> !TestSpec
 [_mvoWait] :: MainViewOpts -> !Bool
-class HasMainViewOpts c_a2iWs
-mainViewOpts :: HasMainViewOpts c_a2iWs => Lens' c_a2iWs MainViewOpts
-mvoSpec :: HasMainViewOpts c_a2iWs => Lens' c_a2iWs TestSpec
-mvoWait :: HasMainViewOpts c_a2iWs => Lens' c_a2iWs Bool
+class HasMainViewOpts c_a2jgh
+mainViewOpts :: HasMainViewOpts c_a2jgh => Lens' c_a2jgh MainViewOpts
+mvoSpec :: HasMainViewOpts c_a2jgh => Lens' c_a2jgh TestSpec
+mvoWait :: HasMainViewOpts c_a2jgh => Lens' c_a2jgh Bool
 
 -- | View prompt
 mainView :: (MonadIO m, MonadError [String] m) => Config -> MainViewOpts -> m (Map (Finite 25) (Map Part Text))
@@ -7193,12 +7180,12 @@ MSO :: !ChallengeSpec -> !Bool -> !Bool -> !Bool -> MainSubmitOpts
 
 -- | Lock answer if submission succeeded? (Default: True)
 [_msoLock] :: MainSubmitOpts -> !Bool
-class HasMainSubmitOpts c_a2j0L
-mainSubmitOpts :: HasMainSubmitOpts c_a2j0L => Lens' c_a2j0L MainSubmitOpts
-msoForce :: HasMainSubmitOpts c_a2j0L => Lens' c_a2j0L Bool
-msoLock :: HasMainSubmitOpts c_a2j0L => Lens' c_a2j0L Bool
-msoSpec :: HasMainSubmitOpts c_a2j0L => Lens' c_a2j0L ChallengeSpec
-msoTest :: HasMainSubmitOpts c_a2j0L => Lens' c_a2j0L Bool
+class HasMainSubmitOpts c_a2jkA
+mainSubmitOpts :: HasMainSubmitOpts c_a2jkA => Lens' c_a2jkA MainSubmitOpts
+msoForce :: HasMainSubmitOpts c_a2jkA => Lens' c_a2jkA Bool
+msoLock :: HasMainSubmitOpts c_a2jkA => Lens' c_a2jkA Bool
+msoSpec :: HasMainSubmitOpts c_a2jkA => Lens' c_a2jkA ChallengeSpec
+msoTest :: HasMainSubmitOpts c_a2jkA => Lens' c_a2jkA Bool
 
 -- | Submit and analyze result
 mainSubmit :: (MonadIO m, MonadError [String] m) => Config -> MainSubmitOpts -> m (Text, SubmitRes)
