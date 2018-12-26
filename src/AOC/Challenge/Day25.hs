@@ -25,7 +25,7 @@ constellationGraph :: [V4 Int] -> Graph
 constellationGraph xs = g
   where
     (g, _, _) = G.graphFromEdges (map collect xs)
-    collect x = (x,x,filter ((<= 3) . mannDist x) xs)
+    collect x = ((), x, filter ((<= 3) . mannDist x) xs)
 
 day25a :: [V4 Int] :~> Int
 day25a = MkSol

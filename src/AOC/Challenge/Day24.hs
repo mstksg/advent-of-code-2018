@@ -16,7 +16,8 @@ module AOC.Challenge.Day24 (
   , day24b
   ) where
 
-import           AOC.Common                 (eitherToMaybe, findMaybe)
+import           AOC.Common                 (eitherToMaybe)
+import           AOC.Common.Search          (exponentialFindMin)
 import           AOC.Solver                 ((:~>)(..))
 import           Control.Lens               (ix, at, uses, (.~), (.=), non)
 import           Control.Monad.State        (evalState)
@@ -150,7 +151,7 @@ day24b = MkSol
         let goodEnough i = case fightBattle (boost i a) of
               Right (TImm, b) -> Just (sum b)
               _               -> Nothing
-        in  findMaybe goodEnough [1..]    -- not monotonic, so we can't do anything clever
+        in  exponentialFindMin goodEnough 1   -- note: this might fail for some inputs
     }
   where
     boost :: Int -> Arena -> Arena
