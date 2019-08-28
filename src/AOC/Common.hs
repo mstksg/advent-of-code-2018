@@ -59,6 +59,7 @@ import           Control.Parallel.Strategies
 import           Data.Finite
 import           Data.Foldable
 import           Data.Function
+import           Data.Hashable
 import           Data.List
 import           Data.List.NonEmpty                 (NonEmpty)
 import           Data.Map                           (Map)
@@ -68,6 +69,7 @@ import           Data.Monoid                        (Ap(..))
 import           Data.Ord
 import           Data.Semigroup
 import           Data.Semigroup.Foldable
+import           GHC.Generics                       (Generic)
 import           GHC.TypeNats
 import           Linear                             (V2(..), _x, _y)
 import qualified Control.Foldl                      as F
@@ -266,7 +268,9 @@ mannDist x y = sum . abs $ x - y
 -- | It's 'Point', but with a newtype wrapper so we have an 'Ord' that
 -- sorts by y first, then x
 newtype ScanPoint = SP { _getSP :: Point }
-  deriving (Eq, Show, Num)
+  deriving (Eq, Show, Num, Generic)
+
+instance Hashable ScanPoint
 
 instance Ord ScanPoint where
     compare = comparing (view _y . _getSP)

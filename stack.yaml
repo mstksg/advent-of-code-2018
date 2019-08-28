@@ -17,7 +17,7 @@
 #
 # resolver: ./custom-snapshot.yaml
 # resolver: https://example.com/snapshots/2018-01-01.yaml
-resolver: nightly-2018-11-30
+resolver: nightly-2019-08-28
 
 # User packages to be built.
 # Various formats can be used as shown in the example below.
@@ -38,14 +38,10 @@ packages:
 # using the same syntax as the packages field.
 # (e.g., acme-missiles-0.3)
 extra-deps:
-- advent-of-code-api-0.1.2.3
-- fgl-5.7.0.1
 - natural-numbers-0.1.2.0
-- nonempty-containers-0.1.0.0
 - pure-fft-0.2.0
 - astar-0.3.0.0
-- github: mstksg/free-algebras
-  commit: 547a7e80b0845ac1cff6052ad24d10a9665cffde
+- free-algebras-0.0.7.2
 
 allow-newer: true
 

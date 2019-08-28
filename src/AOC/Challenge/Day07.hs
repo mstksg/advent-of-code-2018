@@ -14,7 +14,7 @@ module AOC.Challenge.Day07 (
   , day07b
   ) where
 
-import           AOC.Solver     ((:~>)(..), dyno_)
+import           AOC.Solver         ((:~>)(..), dyno_)
 import           Control.Lens
 import           Control.Monad.RWS  (MonadReader(..), MonadWriter(..), MonadState(..), runRWS)
 import           Data.Bifunctor     (second)
@@ -165,4 +165,3 @@ stepScheduler new = do
                        )
         tell $ Sum popTime
         pure $ S.fromDistinctAscList . map fst . toList $ toPop
-
