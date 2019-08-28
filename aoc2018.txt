@@ -254,9 +254,11 @@ newtype ScanPoint
 SP :: Point -> ScanPoint
 [_getSP] :: ScanPoint -> Point
 displayAsciiMap :: Char -> Map Point Char -> String
+instance GHC.Generics.Generic AOC.Common.ScanPoint
 instance GHC.Num.Num AOC.Common.ScanPoint
 instance GHC.Show.Show AOC.Common.ScanPoint
 instance GHC.Classes.Eq AOC.Common.ScanPoint
+instance Data.Hashable.Class.Hashable AOC.Common.ScanPoint
 instance GHC.Classes.Ord AOC.Common.ScanPoint
 instance (Control.Lens.At.Ixed (v a), Control.Lens.At.Index (v a) Data.Type.Equality.~ GHC.Types.Int, Control.Lens.At.IxValue (v a) Data.Type.Equality.~ a) => Control.Lens.At.Ixed (Data.Vector.Generic.Sized.Internal.Vector v n a)
 instance (GHC.Classes.Ord k, GHC.Classes.Ord p) => Control.Lens.At.Ixed (Data.OrdPSQ.Internal.OrdPSQ k p v)
@@ -2788,6 +2790,18 @@ infixl 4 <$!>
 --   </pre>
 mfilter :: MonadPlus m => (a -> Bool) -> m a -> m a
 
+-- | <a>delete</a> <tt>x</tt> removes the first occurrence of <tt>x</tt>
+--   from its list argument. For example,
+--   
+--   <pre>
+--   &gt;&gt;&gt; delete 'a' "banana"
+--   "bnana"
+--   </pre>
+--   
+--   It is a special case of <a>deleteBy</a>, which allows the programmer
+--   to supply their own equality test.
+delete :: Eq a => a -> [a] -> [a]
+
 -- | Minimal definition is either both of <tt>get</tt> and <tt>put</tt> or
 --   just <tt>state</tt>
 class Monad m => MonadState s (m :: Type -> Type) | m -> s
@@ -2825,99 +2839,6 @@ UTCTime :: Day -> DiffTime -> UTCTime
 -- | the time from midnight, 0 &lt;= t &lt; 86401s (because of
 --   leap-seconds)
 [utctDayTime] :: UTCTime -> DiffTime
-
--- | If <a>Void</a> is uninhabited then any <a>Functor</a> that holds only
---   values of type <a>Void</a> is holding no values.
-vacuous :: Functor f => f Void -> f a
-
--- | Since <a>Void</a> values logically don't exist, this witnesses the
---   logical reasoning tool of "ex falso quodlibet".
---   
---   <pre>
---   &gt;&gt;&gt; let x :: Either Void Int; x = Right 5
---   
---   &gt;&gt;&gt; :{
---   case x of
---       Right r -&gt; r
---       Left l  -&gt; absurd l
---   :}
---   5
---   </pre>
-absurd :: () => Void -> a
-
--- | Uninhabited data type
-data Void
-
--- | Fold an <a>Option</a> case-wise, just like <a>maybe</a>.
-option :: () => b -> (a -> b) -> Option a -> b
-
--- | Repeat a value <tt>n</tt> times.
---   
---   <pre>
---   mtimesDefault n a = a &lt;&gt; a &lt;&gt; ... &lt;&gt; a  -- using &lt;&gt; (n-1) times
---   </pre>
---   
---   Implemented using <a>stimes</a> and <a>mempty</a>.
---   
---   This is a suitable definition for an <tt>mtimes</tt> member of
---   <a>Monoid</a>.
-mtimesDefault :: (Integral b, Monoid a) => b -> a -> a
-
--- | This lets you use a difference list of a <a>Semigroup</a> as a
---   <a>Monoid</a>.
-diff :: Semigroup m => m -> Endo m
-
--- | A generalization of <a>cycle</a> to an arbitrary <a>Semigroup</a>. May
---   fail to terminate for some values in some semigroups.
-cycle1 :: Semigroup m => m -> m
-newtype Min a
-Min :: a -> Min a
-[getMin] :: Min a -> a
-newtype Max a
-Max :: a -> Max a
-[getMax] :: Max a -> a
-
--- | <a>Arg</a> isn't itself a <a>Semigroup</a> in its own right, but it
---   can be placed inside <a>Min</a> and <a>Max</a> to compute an arg min
---   or arg max.
-data Arg a b
-Arg :: a -> b -> Arg a b
-type ArgMin a b = Min Arg a b
-type ArgMax a b = Max Arg a b
-
--- | Use <tt><a>Option</a> (<a>First</a> a)</tt> to get the behavior of
---   <a>First</a> from <a>Data.Monoid</a>.
-newtype First a
-First :: a -> First a
-[getFirst] :: First a -> a
-
--- | Provide a Semigroup for an arbitrary Monoid.
---   
---   <b>NOTE</b>: This is not needed anymore since <a>Semigroup</a> became
---   a superclass of <a>Monoid</a> in <i>base-4.11</i> and this newtype be
---   deprecated at some point in the future.
-newtype WrappedMonoid m
-WrapMonoid :: m -> WrappedMonoid m
-[unwrapMonoid] :: WrappedMonoid m -> m
-
--- | <a>Option</a> is effectively <a>Maybe</a> with a better instance of
---   <a>Monoid</a>, built off of an underlying <a>Semigroup</a> instead of
---   an underlying <a>Monoid</a>.
---   
---   Ideally, this type would not exist at all and we would just fix the
---   <a>Monoid</a> instance of <a>Maybe</a>.
---   
---   In GHC 8.4 and higher, the <a>Monoid</a> instance for <a>Maybe</a> has
---   been corrected to lift a <a>Semigroup</a> instance instead of a
---   <a>Monoid</a> instance. Consequently, this type is no longer useful.
---   It will be marked deprecated in GHC 8.8 and removed in GHC 8.10.
-newtype Option a
-Option :: Maybe a -> Option a
-[getOption] :: Option a -> Maybe a
-
--- | The <a>sortWith</a> function sorts a list of elements using the user
---   supplied function to project something out of each element
-sortWith :: Ord b => (a -> b) -> [a] -> [a]
 
 -- | A bifunctor is a type constructor that takes two type arguments and is
 --   a functor in <i>both</i> arguments. That is, unlike with
@@ -3024,6 +2945,99 @@ first :: Bifunctor p => (a -> b) -> p a c -> p b c
 --   Right 4
 --   </pre>
 second :: Bifunctor p => (b -> c) -> p a b -> p a c
+
+-- | If <a>Void</a> is uninhabited then any <a>Functor</a> that holds only
+--   values of type <a>Void</a> is holding no values.
+vacuous :: Functor f => f Void -> f a
+
+-- | Since <a>Void</a> values logically don't exist, this witnesses the
+--   logical reasoning tool of "ex falso quodlibet".
+--   
+--   <pre>
+--   &gt;&gt;&gt; let x :: Either Void Int; x = Right 5
+--   
+--   &gt;&gt;&gt; :{
+--   case x of
+--       Right r -&gt; r
+--       Left l  -&gt; absurd l
+--   :}
+--   5
+--   </pre>
+absurd :: () => Void -> a
+
+-- | Uninhabited data type
+data Void
+
+-- | Fold an <a>Option</a> case-wise, just like <a>maybe</a>.
+option :: () => b -> (a -> b) -> Option a -> b
+
+-- | Repeat a value <tt>n</tt> times.
+--   
+--   <pre>
+--   mtimesDefault n a = a &lt;&gt; a &lt;&gt; ... &lt;&gt; a  -- using &lt;&gt; (n-1) times
+--   </pre>
+--   
+--   Implemented using <a>stimes</a> and <a>mempty</a>.
+--   
+--   This is a suitable definition for an <tt>mtimes</tt> member of
+--   <a>Monoid</a>.
+mtimesDefault :: (Integral b, Monoid a) => b -> a -> a
+
+-- | This lets you use a difference list of a <a>Semigroup</a> as a
+--   <a>Monoid</a>.
+diff :: Semigroup m => m -> Endo m
+
+-- | A generalization of <a>cycle</a> to an arbitrary <a>Semigroup</a>. May
+--   fail to terminate for some values in some semigroups.
+cycle1 :: Semigroup m => m -> m
+newtype Min a
+Min :: a -> Min a
+[getMin] :: Min a -> a
+newtype Max a
+Max :: a -> Max a
+[getMax] :: Max a -> a
+
+-- | <a>Arg</a> isn't itself a <a>Semigroup</a> in its own right, but it
+--   can be placed inside <a>Min</a> and <a>Max</a> to compute an arg min
+--   or arg max.
+data Arg a b
+Arg :: a -> b -> Arg a b
+type ArgMin a b = Min Arg a b
+type ArgMax a b = Max Arg a b
+
+-- | Use <tt><a>Option</a> (<a>First</a> a)</tt> to get the behavior of
+--   <a>First</a> from <a>Data.Monoid</a>.
+newtype First a
+First :: a -> First a
+[getFirst] :: First a -> a
+
+-- | Provide a Semigroup for an arbitrary Monoid.
+--   
+--   <b>NOTE</b>: This is not needed anymore since <a>Semigroup</a> became
+--   a superclass of <a>Monoid</a> in <i>base-4.11</i> and this newtype be
+--   deprecated at some point in the future.
+newtype WrappedMonoid m
+WrapMonoid :: m -> WrappedMonoid m
+[unwrapMonoid] :: WrappedMonoid m -> m
+
+-- | <a>Option</a> is effectively <a>Maybe</a> with a better instance of
+--   <a>Monoid</a>, built off of an underlying <a>Semigroup</a> instead of
+--   an underlying <a>Monoid</a>.
+--   
+--   Ideally, this type would not exist at all and we would just fix the
+--   <a>Monoid</a> instance of <a>Maybe</a>.
+--   
+--   In GHC 8.4 and higher, the <a>Monoid</a> instance for <a>Maybe</a> has
+--   been corrected to lift a <a>Semigroup</a> instance instead of a
+--   <a>Monoid</a> instance. Consequently, this type is no longer useful.
+--   It will be marked deprecated in GHC 8.8 and removed in GHC 8.10.
+newtype Option a
+Option :: Maybe a -> Option a
+[getOption] :: Option a -> Maybe a
+
+-- | The <a>sortWith</a> function sorts a list of elements using the user
+--   supplied function to project something out of each element
+sortWith :: Ord b => (a -> b) -> [a] -> [a]
 
 -- | <a>nonEmpty</a> efficiently turns a normal list into a <a>NonEmpty</a>
 --   stream, producing <a>Nothing</a> if the input is empty.
@@ -3901,18 +3915,6 @@ infix 5 \\
 --   [1,2,3,5,6,7,8,9,10]
 --   </pre>
 deleteBy :: () => (a -> a -> Bool) -> a -> [a] -> [a]
-
--- | <a>delete</a> <tt>x</tt> removes the first occurrence of <tt>x</tt>
---   from its list argument. For example,
---   
---   <pre>
---   &gt;&gt;&gt; delete 'a' "banana"
---   "bnana"
---   </pre>
---   
---   It is a special case of <a>deleteBy</a>, which allows the programmer
---   to supply their own equality test.
-delete :: Eq a => a -> [a] -> [a]
 
 -- | The <a>findIndices</a> function extends <a>findIndex</a>, by returning
 --   the indices of all elements satisfying the predicate, in ascending
@@ -6351,6 +6353,20 @@ ordNubOf :: Ord a => FilterLike' (State (Set a)) s a -> s -> s
 --   </pre>
 forMaybe :: (Witherable t, Applicative f) => t a -> (a -> f (Maybe b)) -> f (t b)
 
+-- | Flipped version of <a>&lt;$?&gt;</a>, the <a>Filterable</a> version of
+--   <a>&lt;&amp;&gt;</a>. It has the same fixity as <a>&lt;&amp;&gt;</a>.
+--   
+--   <pre>
+--   (<a>&lt;&amp;?&gt;</a>) = <a>flip</a> <a>mapMaybe</a>
+--   </pre>
+(<&?>) :: Filterable f => f a -> (a -> Maybe b) -> f b
+infixl 1 <&?>
+
+-- | An infix alias for <a>mapMaybe</a>. The name of the operator alludes
+--   to <a>&lt;$&gt;</a>, and has the same fixity.
+(<$?>) :: Filterable f => (a -> Maybe b) -> f a -> f b
+infixl 4 <$?>
+
 -- | Filter each element of a structure targeted by a <a>Filter</a>.
 filterOf :: () => FilterLike' Identity s a -> (a -> Bool) -> s -> s
 
@@ -6395,7 +6411,8 @@ newtype Peat a b t
 Peat :: (forall (f :: Type -> Type). Applicative f => (a -> f (Maybe b)) -> f t) -> Peat a b t
 [runPeat] :: Peat a b t -> forall (f :: Type -> Type). Applicative f => (a -> f (Maybe b)) -> f t
 
--- | Like <a>Functor</a>, but it include <a>Maybe</a> effects.
+-- | Like <a>Functor</a>, but you can remove elements instead of updating
+--   them.
 --   
 --   Formally, the class <a>Filterable</a> represents a functor from
 --   <tt>Kleisli Maybe</tt> to <tt>Hask</tt>.
@@ -6403,7 +6420,6 @@ Peat :: (forall (f :: Type -> Type). Applicative f => (a -> f (Maybe b)) -> f t)
 --   A definition of <a>mapMaybe</a> must satisfy the following laws:
 --   
 --   <ul>
---   <li><i><i>identity</i></i> <tt><a>mapMaybe</a> Just ≡ id</tt></li>
 --   <li><i><i>conservation</i></i> <tt><a>mapMaybe</a> (Just . f) ≡
 --   <a>fmap</a> f</tt></li>
 --   <li><i><i>composition</i></i> <tt><a>mapMaybe</a> f . <a>mapMaybe</a>
@@ -6419,14 +6435,11 @@ mapMaybe :: Filterable f => (a -> Maybe b) -> f a -> f b
 --   </pre>
 catMaybes :: Filterable f => f (Maybe a) -> f a
 
--- | Like <a>Traversable</a>, but you can remove elements instead of
---   updating them.
+-- | An enhancement of <a>Traversable</a> with <a>Filterable</a>
 --   
 --   A definition of <a>wither</a> must satisfy the following laws:
 --   
 --   <ul>
---   <li><i><i>identity</i></i> <tt><a>wither</a> (<a>pure</a> . Just) ≡
---   <a>pure</a></tt></li>
 --   <li><i><i>conservation</i></i> <tt><a>wither</a> (<a>fmap</a>
 --   <a>Just</a> . f) ≡ <a>traverse</a> f</tt></li>
 --   <li><i><i>composition</i></i> <tt><a>Compose</a> . <a>fmap</a>
@@ -6441,8 +6454,10 @@ catMaybes :: Filterable f => f (Maybe a) -> f a
 --   </pre>
 class (Traversable t, Filterable t) => Witherable (t :: Type -> Type)
 
--- | <pre>
---   <a>traverse</a> f ≡ <a>wither</a> (<a>fmap</a> <a>Just</a> . f)
+-- | Effectful <a>mapMaybe</a>.
+--   
+--   <pre>
+--   <a>wither</a> (<a>pure</a> . f) ≡ <a>pure</a> . <a>mapMaybe</a> f
 --   </pre>
 wither :: (Witherable t, Applicative f) => (a -> f (Maybe b)) -> t a -> f (t b)
 
@@ -6450,10 +6465,6 @@ wither :: (Witherable t, Applicative f) => (a -> f (Maybe b)) -> t a -> f (t b)
 --   Monadic variant of <a>wither</a>. This may have more efficient implementation.
 --   </pre>
 witherM :: (Witherable t, Monad m) => (a -> m (Maybe b)) -> t a -> m (t b)
-
--- | <pre>
---   <a>Compose</a> . <a>fmap</a> (<a>filterA</a> f) . <a>filterA</a> g ≡ <a>filterA</a> (x -&gt; <a>Compose</a> $ <a>fmap</a> (b -&gt; (b&amp;&amp;) <a>$</a> f x) (g x)
---   </pre>
 filterA :: (Witherable t, Applicative f) => (a -> f Bool) -> t a -> f (t a)
 
 -- | A* Search
@@ -7137,13 +7148,13 @@ MRO :: !TestSpec -> !Bool -> !Bool -> !Bool -> !Finite 25 -> Part -> IO (Maybe S
 
 -- | Manually supply input (Default: always return Nothing)
 [_mroInput] :: MainRunOpts -> !Finite 25 -> Part -> IO (Maybe String)
-class HasMainRunOpts c_a2j8I
-mainRunOpts :: HasMainRunOpts c_a2j8I => Lens' c_a2j8I MainRunOpts
-mroBench :: HasMainRunOpts c_a2j8I => Lens' c_a2j8I Bool
-mroInput :: HasMainRunOpts c_a2j8I => Lens' c_a2j8I (Finite 25 -> Part -> IO (Maybe String))
-mroLock :: HasMainRunOpts c_a2j8I => Lens' c_a2j8I Bool
-mroSpec :: HasMainRunOpts c_a2j8I => Lens' c_a2j8I TestSpec
-mroTest :: HasMainRunOpts c_a2j8I => Lens' c_a2j8I Bool
+class HasMainRunOpts c_a2koN
+mainRunOpts :: HasMainRunOpts c_a2koN => Lens' c_a2koN MainRunOpts
+mroBench :: HasMainRunOpts c_a2koN => Lens' c_a2koN Bool
+mroInput :: HasMainRunOpts c_a2koN => Lens' c_a2koN (Finite 25 -> Part -> IO (Maybe String))
+mroLock :: HasMainRunOpts c_a2koN => Lens' c_a2koN Bool
+mroSpec :: HasMainRunOpts c_a2koN => Lens' c_a2koN TestSpec
+mroTest :: HasMainRunOpts c_a2koN => Lens' c_a2koN Bool
 
 -- | Run, test, bench.
 mainRun :: (MonadIO m, MonadError [String] m) => Config -> MainRunOpts -> m (Map (Finite 25) (Map Part (Maybe Bool, Either [String] String)))
@@ -7156,10 +7167,10 @@ data MainViewOpts
 MVO :: !TestSpec -> !Bool -> MainViewOpts
 [_mvoSpec] :: MainViewOpts -> !TestSpec
 [_mvoWait] :: MainViewOpts -> !Bool
-class HasMainViewOpts c_a2jfK
-mainViewOpts :: HasMainViewOpts c_a2jfK => Lens' c_a2jfK MainViewOpts
-mvoSpec :: HasMainViewOpts c_a2jfK => Lens' c_a2jfK TestSpec
-mvoWait :: HasMainViewOpts c_a2jfK => Lens' c_a2jfK Bool
+class HasMainViewOpts c_a2kvP
+mainViewOpts :: HasMainViewOpts c_a2kvP => Lens' c_a2kvP MainViewOpts
+mvoSpec :: HasMainViewOpts c_a2kvP => Lens' c_a2kvP TestSpec
+mvoWait :: HasMainViewOpts c_a2kvP => Lens' c_a2kvP Bool
 
 -- | View prompt
 mainView :: (MonadIO m, MonadError [String] m) => Config -> MainViewOpts -> m (Map (Finite 25) (Map Part Text))
@@ -7180,12 +7191,12 @@ MSO :: !ChallengeSpec -> !Bool -> !Bool -> !Bool -> MainSubmitOpts
 
 -- | Lock answer if submission succeeded? (Default: True)
 [_msoLock] :: MainSubmitOpts -> !Bool
-class HasMainSubmitOpts c_a2jk3
-mainSubmitOpts :: HasMainSubmitOpts c_a2jk3 => Lens' c_a2jk3 MainSubmitOpts
-msoForce :: HasMainSubmitOpts c_a2jk3 => Lens' c_a2jk3 Bool
-msoLock :: HasMainSubmitOpts c_a2jk3 => Lens' c_a2jk3 Bool
-msoSpec :: HasMainSubmitOpts c_a2jk3 => Lens' c_a2jk3 ChallengeSpec
-msoTest :: HasMainSubmitOpts c_a2jk3 => Lens' c_a2jk3 Bool
+class HasMainSubmitOpts c_a2kA8
+mainSubmitOpts :: HasMainSubmitOpts c_a2kA8 => Lens' c_a2kA8 MainSubmitOpts
+msoForce :: HasMainSubmitOpts c_a2kA8 => Lens' c_a2kA8 Bool
+msoLock :: HasMainSubmitOpts c_a2kA8 => Lens' c_a2kA8 Bool
+msoSpec :: HasMainSubmitOpts c_a2kA8 => Lens' c_a2kA8 ChallengeSpec
+msoTest :: HasMainSubmitOpts c_a2kA8 => Lens' c_a2kA8 Bool
 
 -- | Submit and analyze result
 mainSubmit :: (MonadIO m, MonadError [String] m) => Config -> MainSubmitOpts -> m (Text, SubmitRes)
