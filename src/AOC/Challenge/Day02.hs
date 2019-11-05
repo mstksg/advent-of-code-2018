@@ -45,15 +45,6 @@ day02a = MkSol
   where
     mulTwoThree m = (*) <$> M.lookup 2 m <*> M.lookup 3 m
 
--- newtype TrieF = 
--- newtype TrieF a = TF (Map Char a)       -- invariant: all a's are unique
---   deriving (Functor, Foldable, Traversable, Show, Eq)
-
--- data TrieF k v a = TNowF   v (Map k a)
---                  | TLaterF (NEMap k a)
---   deriving (Functor, Foldable, Traversable, Show, Eq)
-
-
 -- | The main work is in 'firstNeighbor', which looks thorugh a list of
 -- items and finds the first item whose neighbor was already seen.
 --

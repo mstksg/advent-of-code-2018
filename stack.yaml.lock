@@ -26,12 +26,12 @@ packages:
   original:
     hackage: free-algebras-0.0.8.0
 - completed:
-    hackage: advent-of-code-api-0.2.0.0@sha256:e1693ef344598d5773f35a9a6ba9fd2268af57f446eb5b0ad76db34ee04d9259,2286
+    hackage: advent-of-code-api-0.2.1.0@sha256:b6faf929af0f2cbdccfe4f5bf8da62a23fffb2c380649259ecabf4b870c04a56,2286
     pantry-tree:
       size: 1124
-      sha256: d4ea3c16ffde4cc903fd5980b7b6c2346c79a12cd81724035a24702a70ca510d
+      sha256: bed11884d641cc8af7d14d46b6d482935e6116c59dc30ed6ad733367a91d8cdc
   original:
-    hackage: advent-of-code-api-0.2.0.0
+    hackage: advent-of-code-api-0.2.1.0
 snapshots:
 - completed:
     size: 525876

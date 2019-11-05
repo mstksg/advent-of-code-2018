@@ -32,7 +32,6 @@ import           Data.Data
 import           Data.Finite
 import           Data.Map                   (Map)
 import           Data.Maybe
-import           Advent.API
 import           Data.Traversable
 import           Data.Void
 import           Language.Haskell.Exts      as E
