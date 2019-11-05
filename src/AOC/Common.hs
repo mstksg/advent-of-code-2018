@@ -22,6 +22,7 @@ module AOC.Common (
   , scanlT
   , scanrT
   , firstRepeated
+  , fixedPoint
   , freqs
   , perturbations
   , clearOut
@@ -124,6 +125,16 @@ firstRepeated = go S.empty
       | x `S.member` seen = Just x
       | otherwise         = go (x `S.insert` seen) xs
     go _ []     = Nothing
+
+-- | Repeat a function until you get the same result twice.
+fixedPoint :: Eq a => (a -> a) -> a -> a
+fixedPoint f = go
+  where
+    go !x
+        | x == y    = x
+        | otherwise = go y
+      where
+        y = f x
 
 -- | Build a frequency map
 freqs :: (Foldable f, Ord a) => f a -> Map a Int

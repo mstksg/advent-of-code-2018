@@ -12,6 +12,8 @@
 module AOC.Challenge.Day15 (
     day15a
   , day15b
+  , paintBucket
+  , inRangeOf
   ) where
 
 import           AOC.Common            (boundingBox, ScanPoint(..), asciiGrid, cardinalNeighbs, mannDist, minimumVal, minimumValBy)
@@ -20,7 +22,6 @@ import           AOC.Solver            ((:~>)(..))
 import           Control.Lens          (makeLenses, ifoldMapOf, (.~), (-~))
 import           Control.Monad         (guard)
 import           Data.Coerce           (coerce)
-import           Data.Foldable         (toList)
 import           Data.Function         ((&))
 import           Data.Functor.Foldable (Fix, cata, ana, hylo)
 import           Data.List             (intercalate)
@@ -90,15 +91,32 @@ stepEntity w es sp e
     | sp `M.member` candidates = Just sp    -- we already here
     | otherwise                = stepTo w' sp <$> destination
   where
-    candidates = M.mapMaybe (fmap length)
-               . M.fromSet (actualLiteralAStar w' sp)
-               . (`S.intersection` w')
+    candidates = M.fromSet ( maybe (error "paintBucket") length
+                           . actualLiteralAStar fullRange sp
+                           )
+               . (`S.intersection` fullRange)
                . inRangeOf
                . M.keysSet
                . M.filter ((/= _eType e) . _eType)
                $ es
     destination = fst <$> minimumVal candidates
     w' = w `S.difference` M.keysSet es
+    fullRange = paintBucket w' sp
+
+-- | Find the continuous allowed region
+paintBucket
+    :: Set ScanPoint    -- ^ allowed
+    -> ScanPoint        -- ^ start
+    -> Set ScanPoint    -- ^ paintBucketed
+paintBucket w = go S.empty . S.singleton
+  where
+    go inner outer
+        | S.null outer' = inner'
+        | otherwise     = go inner' outer'
+      where
+        inner'   = S.union inner outer
+        expanded = inRangeOf outer `S.intersection` w
+        outer'   = expanded `S.difference` inner'
 
 makeAttack
     :: World
