@@ -14,7 +14,7 @@ module AOC.Challenge.Day15 (
   , day15b
   ) where
 
-import           AOC.Common            (boundingBox, ScanPoint(..), asciiGrid, cardinalNeighbs, mannDist)
+import           AOC.Common            (boundingBox, ScanPoint(..), asciiGrid, cardinalNeighbs, mannDist, minimumVal, minimumValBy)
 import           AOC.Common.Search     (aStar, exponentialFindMin)
 import           AOC.Solver            ((:~>)(..))
 import           Control.Lens          (makeLenses, ifoldMapOf, (.~), (-~))
@@ -25,10 +25,9 @@ import           Data.Function         ((&))
 import           Data.Functor.Foldable (Fix, cata, ana, hylo)
 import           Data.List             (intercalate)
 import           Data.Map              (Map)
-import           Data.Maybe            (catMaybes)
-import           Data.Semigroup        (First(..))
+import           Data.Ord              (comparing)
+import           Data.Semigroup        (First(..), Min(..))
 import           Data.Set              (Set)
-import           Data.Tuple            (swap)
 import           Linear                (V2(..))
 import           Text.Printf           (printf)
 import qualified Data.Map              as M
@@ -74,11 +73,8 @@ stepTo
     -> ScanPoint
     -> ScanPoint
     -> ScanPoint
-stepTo w x dest = snd
-                . head
-                . catMaybes
-                . toList
-                . S.map (\n -> (,n) . length <$> actualLiteralAStar w' n dest)
+stepTo w x dest = maybe (error "stepTo") (snd . getMin)
+                . foldMap (\n -> Min . (,n) . length <$> actualLiteralAStar w' n dest)
                 . (`S.intersection` w')
                 $ neighbs x
   where
@@ -101,12 +97,7 @@ stepEntity w es sp e
                . M.keysSet
                . M.filter ((/= _eType e) . _eType)
                $ es
-    destination = fmap snd
-                . S.lookupMin
-                . S.fromList
-                . map swap
-                . M.toList
-                $ candidates
+    destination = fst <$> minimumVal candidates
     w' = w `S.difference` M.keysSet es
 
 makeAttack
@@ -115,10 +106,7 @@ makeAttack
     -> ScanPoint
     -> Entity
     -> Maybe ScanPoint
-makeAttack w es sp e = fmap snd
-                     . S.lookupMin
-                     . M.foldMapWithKey (\p e' -> S.singleton (_eHP e', p))
-                     $ candidates
+makeAttack w es sp e = fst <$> minimumValBy (comparing _eHP) candidates
   where
     candidates = M.delete sp
                . (`M.restrictKeys` w)
