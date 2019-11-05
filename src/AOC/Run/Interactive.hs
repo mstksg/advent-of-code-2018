@@ -40,7 +40,6 @@ import           AOC.Run.Load
 import           AOC.Util
 import           Advent
 import           Control.Monad.Except
-import           Data.Finite
 import           Data.Text            (Text)
 import           Text.Printf
 
@@ -153,7 +152,7 @@ loadTests cs = do
 --
 -- Is undefined if given a day number out of range (1-25).
 mkSpec :: Integer -> Part -> ChallengeSpec
-mkSpec i c = maybe e (`CS` c) . packFinite $ i - 1
+mkSpec i c = maybe e (`CS` c) . mkDay $ i
   where
     e = errorWithoutStackTrace $ printf "Day out of range: %d" i
 

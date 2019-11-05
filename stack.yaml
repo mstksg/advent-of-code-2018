@@ -17,7 +17,7 @@
 #
 # resolver: ./custom-snapshot.yaml
 # resolver: https://example.com/snapshots/2018-01-01.yaml
-resolver: nightly-2019-08-28
+resolver: lts-14.13
 
 # User packages to be built.
 # Various formats can be used as shown in the example below.
@@ -38,12 +38,26 @@ packages:
 # using the same syntax as the packages field.
 # (e.g., acme-missiles-0.3)
 extra-deps:
-- natural-numbers-0.1.2.0
 - pure-fft-0.2.0
 - astar-0.3.0.0
-- free-algebras-0.0.7.2
+- free-algebras-0.0.8.0
+- advent-of-code-api-0.2.0.0
+# - hpack-0.33.0
+# - pandoc-2.7.3
+# - show-prettyprint-0.3.0.1
+# - witherable-0.3.4
+# - monoidal-containers-0.6
+# - HTTP-4000.3.14
+# - HsYAML-0.1.2.0
+# - cmark-gfm-0.2.0
+# - doctemplates-0.2.2.1
+# - haddock-library-1.7.0
+# - ipynb-0.1
+# - pandoc-types-1.17.6.1
+# - semialign-1
+# - textmath-0.11.3
 
-allow-newer: true
+# allow-newer: true
 
 # Override default flag values for local packages and extra-deps
 # flags: {}

@@ -20,9 +20,9 @@ module AOC.Challenge (
   , ChallengeSpec(..), Part(..)
   , challengeMap
   , lookupSolution
-  , dayToInt
   , solSpec
   , charPart
+  , Day(..), dayInt, mkDay, mkDay_
   ) where
 
 import           AOC.Challenge.Day01 as AOC
@@ -56,13 +56,13 @@ import           AOC.Solver
 import           Advent
 import           Control.Monad
 import           Data.Finite
-import           Data.Map         (Map)
-import qualified Data.Map         as M
+import           Data.Map      (Map)
+import qualified Data.Map      as M
 
 -- | A map of all challenges.
 challengeMap :: ChallengeMap
 challengeMap = mkChallengeMap $$(solutionList "src/AOC/Challenge")
 
 -- | Lookup up a solution from a 'ChallengeMap'
-lookupSolution :: ChallengeSpec -> Map (Finite 25) (Map Part a) -> Maybe a
+lookupSolution :: ChallengeSpec -> Map Day (Map Part a) -> Maybe a
 lookupSolution CS{..} = M.lookup _csPart <=< M.lookup _csDay

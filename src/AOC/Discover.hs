@@ -18,7 +18,8 @@ module AOC.Discover (
   , solutionList
   , ChallengeMap
   , ChallengeSpec(..)
-  , dayToInt
+  , Day(..), mkDay, mkDay_
+  , dayInt
   , solSpec
   , charPart
   ) where
@@ -31,6 +32,7 @@ import           Data.Data
 import           Data.Finite
 import           Data.Map                   (Map)
 import           Data.Maybe
+import           Advent.API
 import           Data.Traversable
 import           Data.Void
 import           Language.Haskell.Exts      as E
@@ -49,13 +51,13 @@ import qualified Text.Megaparsec.Char       as P
 
 -- | A specification for a specific challenge.  Should consist of a day and
 -- a lowercase character.
-data ChallengeSpec = CS { _csDay  :: Finite 25
+data ChallengeSpec = CS { _csDay  :: Day
                         , _csPart :: Part
                         }
   deriving (Show, Eq, Ord)
 
 -- | A map of days to parts to solutions.
-type ChallengeMap = Map (Finite 25) (Map Part SomeSolution)
+type ChallengeMap = Map Day (Map Part SomeSolution)
 
 -- | Get a 'ChallengeSpec' from a given reified solution (name).
 --
@@ -71,14 +73,9 @@ solSpec n = either error id $ do
     d1 <- subtract 1 <$> maybeToEither "Could not parse day" (readMaybe d0)
     d2 <- maybeToEither "Day out of range" (packFinite d1)
     p  <- maybeToEither "Could not parse part" . charPart $ p'
-    pure $ CS d2 p
+    pure $ CS (Day d2) p
 
 type Parser = P.Parsec Void String
-
--- | Turn a day represented by a @'Finite' 25@ into an integer day (1
--- - 25).
-dayToInt :: Finite 25 -> Int
-dayToInt = fromIntegral . (+ 1) . getFinite
 
 -- | Template Haskell splice to produce a list of all named solutions in
 -- a directory. Expects solutions as function names following the format
@@ -86,7 +83,7 @@ dayToInt = fromIntegral . (+ 1) . getFinite
 -- a lower-case letter corresponding to the part of the challenge.
 --
 -- See 'mkChallengeMap' for a description of usage.
-solutionList :: FilePath -> Q (TExp [(Finite 25, (Part, SomeSolution))])
+solutionList :: FilePath -> Q (TExp [(Day, (Part, SomeSolution))])
 solutionList dir = TExp
                   . ListE
                   . map (unType . specExp)
@@ -98,14 +95,14 @@ solutionList dir = TExp
 -- @
 -- mkChallengeMap $$(solutionList "src\/AOC\/Challenge")
 -- @
-mkChallengeMap :: [(Finite 25, (Part, SomeSolution))] -> ChallengeMap
+mkChallengeMap :: [(Day, (Part, SomeSolution))] -> ChallengeMap
 mkChallengeMap = M.unionsWith M.union
                . map (uncurry M.singleton . second (uncurry M.singleton))
 
 
-specExp :: ChallengeSpec -> TExp (Finite 25, (Part, SomeSolution))
-specExp s@(CS d p) = TExp $ TupE
-    [ LitE (IntegerL (getFinite d))
+specExp :: ChallengeSpec -> TExp (Day, (Part, SomeSolution))
+specExp s@(CS (Day d) p) = TExp $ TupE
+    [ ConE 'Day `AppE` LitE (IntegerL (getFinite d))
     , TupE
         [ ConE (partCon p)
         , ConE 'MkSomeSol `AppE` VarE (mkName (specName s))
@@ -116,7 +113,7 @@ specExp s@(CS d p) = TExp $ TupE
     partCon Part2 = 'Part2
 
 specName :: ChallengeSpec -> String
-specName (CS d p) = printf "day%02d%c" (dayToInt d) (partChar p)
+specName (CS d p) = printf "day%02d%c" (dayInt d) (partChar p)
 
 getChallengeSpecs
     :: FilePath                 -- ^ directory of modules
@@ -163,7 +160,7 @@ challengeName = do
     c    <- P.lowerChar
     p    <- maybe (fail $ printf "Part not parsed: %c" c) pure $
                 charPart c
-    pure $ CS dFin p
+    pure $ CS (Day dFin) p
 
 -- | Parse a 'Char' into a 'Part'
 charPart :: Char -> Maybe Part

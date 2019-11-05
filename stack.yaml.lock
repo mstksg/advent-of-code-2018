@@ -5,13 +5,6 @@
 
 packages:
 - completed:
-    hackage: natural-numbers-0.1.2.0@sha256:0fcbe1220979b83fa612fca73a1adb1a99ff43c84f9652b3ff32b2323309b43c,1407
-    pantry-tree:
-      size: 220
-      sha256: bd4beb677280f4586265c5657ab4e4a599c16f9e624df43d8edda6bf1e46dcdf
-  original:
-    hackage: natural-numbers-0.1.2.0
-- completed:
     hackage: pure-fft-0.2.0@sha256:1af30d9f06e42e1a8c1930faf0eac467fe91787556c99f8a8c920e1950c24c29,659
     pantry-tree:
       size: 211
@@ -26,15 +19,22 @@ packages:
   original:
     hackage: astar-0.3.0.0
 - completed:
-    hackage: free-algebras-0.0.7.2@sha256:3796d89793727177f5e0292b52ce240db90aa565fd31ced2f7f54e3f03738c0b,2719
+    hackage: free-algebras-0.0.8.0@sha256:057ad477199ec68005ce029dd5f5d14e3cd52e67f769f412904fb8fd6e22a29a,2482
     pantry-tree:
-      size: 1138
-      sha256: f944d3be35376b275a1a2b58ef3e0f431d9b786bab01c65b55f10fe0a673a4c9
+      size: 1139
+      sha256: 64c04b6b08f6f666d6c925ca38dc2985abfc07c5382ef3e04d386acb4f924114
   original:
-    hackage: free-algebras-0.0.7.2
+    hackage: free-algebras-0.0.8.0
+- completed:
+    hackage: advent-of-code-api-0.2.0.0@sha256:e1693ef344598d5773f35a9a6ba9fd2268af57f446eb5b0ad76db34ee04d9259,2286
+    pantry-tree:
+      size: 1124
+      sha256: d4ea3c16ffde4cc903fd5980b7b6c2346c79a12cd81724035a24702a70ca510d
+  original:
+    hackage: advent-of-code-api-0.2.0.0
 snapshots:
 - completed:
-    size: 528005
-    url: https://raw.githubusercontent.com/commercialhaskell/stackage-snapshots/master/nightly/2019/8/28.yaml
-    sha256: 75048edb79139e9e011ad9dec3b2f5d1692ec59c923ff521e9140242b23e025c
-  original: nightly-2019-08-28
+    size: 525876
+    url: https://raw.githubusercontent.com/commercialhaskell/stackage-snapshots/master/lts/14/13.yaml
+    sha256: 4a0e79eb194c937cc2a1852ff84d983c63ac348dc6bad5f38d20cab697036eef
+  original: lts-14.13
