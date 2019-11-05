@@ -12,11 +12,9 @@
 module AOC.Challenge.Day15 (
     day15a
   , day15b
-  , paintBucket
-  , inRangeOf
   ) where
 
-import           AOC.Common            (boundingBox, ScanPoint(..), asciiGrid, cardinalNeighbs, mannDist, minimumVal, minimumValBy)
+import           AOC.Common            (boundingBox, ScanPoint(..), asciiGrid, cardinalNeighbs, mannDist, minimumVal, minimumValBy, floodFill)
 import           AOC.Common.Search     (aStar, exponentialFindMin)
 import           AOC.Solver            ((:~>)(..))
 import           Control.Lens          (makeLenses, ifoldMapOf, (.~), (-~))
@@ -51,9 +49,6 @@ type Entities = Map ScanPoint Entity
 
 neighbs :: ScanPoint -> Set ScanPoint
 neighbs = S.fromList . coerce cardinalNeighbs
-
-inRangeOf :: Set ScanPoint -> Set ScanPoint
-inRangeOf = foldMap neighbs
 
 type Path = [ScanPoint]
 
@@ -95,28 +90,14 @@ stepEntity w es sp e
                            . actualLiteralAStar fullRange sp
                            )
                . (`S.intersection` fullRange)
-               . inRangeOf
+               . foldMap neighbs
                . M.keysSet
                . M.filter ((/= _eType e) . _eType)
                $ es
     destination = fst <$> minimumVal candidates
-    w' = w `S.difference` M.keysSet es
-    fullRange = paintBucket w' sp
-
--- | Find the continuous allowed region
-paintBucket
-    :: Set ScanPoint    -- ^ allowed
-    -> ScanPoint        -- ^ start
-    -> Set ScanPoint    -- ^ paintBucketed
-paintBucket w = go S.empty . S.singleton
-  where
-    go inner outer
-        | S.null outer' = inner'
-        | otherwise     = go inner' outer'
-      where
-        inner'   = S.union inner outer
-        expanded = inRangeOf outer `S.intersection` w
-        outer'   = expanded `S.difference` inner'
+    w'          = w `S.difference` M.keysSet es
+    fullRange   = floodFill ((`S.intersection` w') . neighbs)
+                            (S.singleton sp)
 
 makeAttack
     :: World

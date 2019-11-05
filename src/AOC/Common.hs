@@ -40,6 +40,7 @@ module AOC.Common (
   , meanVar
   , eitherItem
   , getDown
+  , floodFill
   -- * 2D Maps
   , Point
   , cardinalNeighbs
@@ -70,6 +71,7 @@ import           Data.Monoid                        (Ap(..))
 import           Data.Ord
 import           Data.Semigroup
 import           Data.Semigroup.Foldable
+import           Data.Set                           (Set)
 import           GHC.Generics                       (Generic)
 import           GHC.TypeNats
 import           Linear                             (V2(..), _x, _y)
@@ -244,6 +246,22 @@ meanVar = do
                σ2 = x2 / n - μ * μ
            in  (μ, σ2)
 
+-- | Flood fill from a starting set
+floodFill
+    :: Ord a
+    => (a -> Set a)     -- ^ Expansion (be sure to limit allowed points)
+    -> Set a            -- ^ Start points
+    -> Set a            -- ^ Flood filled
+floodFill f = go S.empty
+  where
+    go !inner !outer
+        | S.null outer' = inner'
+        | otherwise     = go inner' outer'
+      where
+        inner' = S.union inner outer
+        outer' = foldMap f outer `S.difference` inner'
+
+
 -- | 2D Coordinate
 type Point = V2 Int
 
@@ -266,7 +284,6 @@ fullNeighbs p = [ p + V2 dx dy
                 | dx <- [-1 .. 1]
                 , dy <- if dx == 0 then [-1,1] else [-1..1]
                 ]
-
 
 memoPoint :: Memo Point
 memoPoint = Memo.wrap (uncurry V2) (\(V2 x y) -> (x, y)) $
