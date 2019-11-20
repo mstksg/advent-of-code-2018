@@ -41,6 +41,7 @@ import           Control.Applicative
 import           Control.Concurrent
 import           Control.DeepSeq
 import           Control.Exception
+import           Control.Lens
 import           Control.Monad
 import           Control.Monad.Except
 import           Criterion
@@ -50,7 +51,6 @@ import           Data.Map                 (Map)
 import           Data.Maybe
 import           Data.Text                (Text)
 import           Data.Time hiding         (Day)
-import           Lens.Micro.TH
 import           Text.Printf
 import qualified Data.Map                 as M
 import qualified Data.Set                 as S
