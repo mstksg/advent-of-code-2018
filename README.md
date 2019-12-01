@@ -1,6 +1,12 @@
 Advent of Code 2018
 ===================
 
+*[2016][]* / *[2017][]* / *2018* / *[2019][]*
+
+[2016]: https://github.com/mstksg/advent-of-code-2016
+[2017]: https://github.com/mstksg/advent-of-code-2017
+[2019]: https://github.com/mstksg/advent-of-code-2019
+
 It's the most wonderful time of the year!
 
 My [Advent of Code 2018][aoc2018] Haskell solutions here, along with an automated
