@@ -39,6 +39,8 @@ packages:
 # (e.g., acme-missiles-0.3)
 extra-deps:
 - advent-of-code-api-0.2.7.0
+- megaparsec-8.0.0
+- parser-combinators-1.2.1
 
 allow-newer: true
 

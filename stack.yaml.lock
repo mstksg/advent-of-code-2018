@@ -11,6 +11,20 @@ packages:
       sha256: 1688c03a530c5eaf1581e1d5104e8481d3b2199ce973eb8599eb64168edc3908
   original:
     hackage: advent-of-code-api-0.2.7.0
+- completed:
+    hackage: megaparsec-8.0.0@sha256:362f85e243ecbcb550e1de6e5c74ba5a50c09edaa1208c99bc5b9fd242227fc6,3808
+    pantry-tree:
+      size: 1446
+      sha256: 955117c00a86970f2d0c215f33cf5293b16589c04678a0a790c03368ab6fd0aa
+  original:
+    hackage: megaparsec-8.0.0
+- completed:
+    hackage: parser-combinators-1.2.1@sha256:16c3490e007ec10b1255a2b36fb483d000156d555269107131241d9e0fa96412,1788
+    pantry-tree:
+      size: 725
+      sha256: 7b7cc6bb088f536691c4088ac6abe9f4dd0399feffc26bdb2cbec695f7259737
+  original:
+    hackage: parser-combinators-1.2.1
 snapshots:
 - completed:
     size: 532832
