@@ -17,7 +17,7 @@
 #
 # resolver: ./custom-snapshot.yaml
 # resolver: https://example.com/snapshots/2018-01-01.yaml
-resolver: lts-14.13
+resolver: lts-14.16
 
 # User packages to be built.
 # Various formats can be used as shown in the example below.
@@ -42,6 +42,7 @@ extra-deps:
 - astar-0.3.0.0
 - free-algebras-0.0.8.0
 - advent-of-code-api-0.2.1.0
+- megaparsec-8.0.0
 # - hpack-0.33.0
 # - pandoc-2.7.3
 # - show-prettyprint-0.3.0.1

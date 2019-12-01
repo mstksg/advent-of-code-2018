@@ -14,37 +14,38 @@ module AOC.Challenge.Day08 (
   , day08b
   ) where
 
-import           AOC.Solver ((:~>)(..))
-import           AOC.Util   (eitherToMaybe)
-import           Control.Lens   ((^?), ix)
-import           Control.Monad  (replicateM)
-import           Data.Maybe     (mapMaybe)
-import           Text.Read      (readMaybe)
-import qualified Text.Parsec    as P
+import           AOC.Common      (TokStream, parseTokStream_)
+import           AOC.Solver      ((:~>)(..))
+import           Control.Lens    ((^?), ix)
+import           Control.Monad   (replicateM)
+import           Data.Maybe      (mapMaybe)
+import           Data.Void       (Void)
+import           Text.Read       (readMaybe)
+import qualified Text.Megaparsec as P
 
-type Parser = P.Parsec [Int] ()
+type Parser = P.Parsec Void (TokStream Int)
 
 sum1 :: Parser Int
 sum1 = do
-    numChild <- P.anyToken
-    numMeta  <- P.anyToken
+    numChild <- P.anySingle
+    numMeta  <- P.anySingle
     childs   <- sum <$> replicateM numChild sum1
-    metas    <- sum <$> replicateM numMeta  P.anyToken
+    metas    <- sum <$> replicateM numMeta  P.anySingle
     pure $ childs + metas
 
 day08a :: [Int] :~> Int
 day08a = MkSol
     { sParse = traverse readMaybe . words
     , sShow  = show
-    , sSolve = eitherToMaybe . P.parse sum1 ""
+    , sSolve = parseTokStream_ sum1
     }
 
 sum2 :: Parser Int
 sum2 = do
-    numChild <- P.anyToken
-    numMeta  <- P.anyToken
+    numChild <- P.anySingle
+    numMeta  <- P.anySingle
     childs   <- replicateM numChild sum2
-    metas    <- replicateM numMeta  P.anyToken
+    metas    <- replicateM numMeta  P.anySingle
     pure $ if null childs
       then sum metas
       else sum . mapMaybe (\i -> childs ^? ix (i - 1)) $ metas
@@ -53,5 +54,5 @@ day08b :: [Int] :~> Int
 day08b = MkSol
     { sParse = traverse readMaybe . words
     , sShow  = show
-    , sSolve = eitherToMaybe . P.parse sum2 ""
+    , sSolve = parseTokStream_ sum2
     }

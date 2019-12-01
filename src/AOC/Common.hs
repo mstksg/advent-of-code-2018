@@ -41,6 +41,11 @@ module AOC.Common (
   , eitherItem
   , getDown
   , floodFill
+  , TokStream(..)
+  , parseTokStream
+  , parseTokStream_
+  , parseTokStreamT
+  , parseTokStreamT_
   -- * 2D Maps
   , Point
   , cardinalNeighbs
@@ -56,8 +61,11 @@ module AOC.Common (
   ) where
 
 import           AOC.Util
+import           Control.Applicative
 import           Control.Lens
+import           Control.Monad
 import           Control.Parallel.Strategies
+import           Data.Coerce
 import           Data.Finite
 import           Data.Foldable
 import           Data.Function
@@ -71,6 +79,7 @@ import           Data.Monoid                        (Ap(..))
 import           Data.Ord
 import           Data.Semigroup
 import           Data.Semigroup.Foldable
+import           Data.Sequence                      (Seq(..))
 import           Data.Set                           (Set)
 import           GHC.Generics                       (Generic)
 import           GHC.TypeNats
@@ -81,8 +90,10 @@ import qualified Data.Map                           as M
 import qualified Data.Map.NonEmpty                  as NEM
 import qualified Data.MemoCombinators               as Memo
 import qualified Data.OrdPSQ                        as OrdPSQ
+import qualified Data.Sequence                      as Seq
 import qualified Data.Set                           as S
 import qualified Data.Vector.Generic.Sized.Internal as SVG
+import qualified Text.Megaparsec                    as P
 
 -- | Strict (!!)
 (!!!) :: [a] -> Int -> a
@@ -343,3 +354,61 @@ instance (Ord k, Ord p) => Ixed (OrdPSQ.OrdPSQ k p v) where
     ix i f q = case OrdPSQ.lookup i q of
       Nothing    -> pure q
       Just (p,x) -> flip (OrdPSQ.insert i p) q <$> f x
+
+newtype TokStream a = TokStream { getTokStream :: [a] }
+  deriving (Ord, Eq, Show, Generic, Functor)
+
+instance Hashable a => Hashable (TokStream a)
+
+instance (Ord a, Show a) => P.Stream (TokStream a) where
+    type Token  (TokStream a) = a
+    type Tokens (TokStream a) = Seq a
+
+    tokensToChunk _ = Seq.fromList
+    chunkToTokens _ = toList
+    chunkLength   _ = Seq.length
+    take1_          = coerce . Data.List.uncons . getTokStream
+    takeN_        n (TokStream xs) = bimap Seq.fromList TokStream (splitAt n xs)
+                                  <$ guard (not (null xs))
+    takeWhile_ p = bimap Seq.fromList TokStream . span p . getTokStream
+    showTokens _ = show
+    reachOffset o ps = ("<token stream>", ps')
+      where
+        step = o - P.pstateOffset ps
+        ps' = ps { P.pstateOffset    = o
+                 , P.pstateInput     = TokStream ys
+                 , P.pstateSourcePos = (P.pstateSourcePos ps) {
+                      P.sourceColumn = P.sourceColumn (P.pstateSourcePos ps)
+                                    <> P.mkPos step
+                    }
+                 }
+        ys = drop step (getTokStream (P.pstateInput ps))
+
+
+parseTokStream
+    :: Foldable t
+    => P.Parsec e (TokStream s) a
+    -> t s
+    -> Either (P.ParseErrorBundle (TokStream s) e) a
+parseTokStream p = runIdentity . parseTokStreamT p
+
+parseTokStream_
+    :: (Alternative m, Foldable t)
+    => P.Parsec e (TokStream s) a
+    -> t s
+    -> m a
+parseTokStream_ p = runIdentity . parseTokStreamT_ p
+
+parseTokStreamT
+    :: (Foldable t, Monad m)
+    => P.ParsecT e (TokStream s) m a
+    -> t s
+    -> m (Either (P.ParseErrorBundle (TokStream s) e) a)
+parseTokStreamT p = P.runParserT p "" . TokStream . toList
+
+parseTokStreamT_
+    :: (Alternative f, Foldable t, Monad m)
+    => P.ParsecT e (TokStream s) m a
+    -> t s
+    -> m (f a)
+parseTokStreamT_ p = fmap eitherToMaybe . parseTokStreamT p

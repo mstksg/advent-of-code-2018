@@ -14,14 +14,16 @@ module AOC.Challenge.Day20 (
   , day20b
   ) where
 
-import           AOC.Common    (Point, eitherToMaybe, cardinalNeighbs)
-import           AOC.Solver    ((:~>)(..))
-import           Control.Monad (guard)
-import           Data.Maybe    (mapMaybe)
-import           Data.Set      (Set)
-import           Linear        (V2(..))
-import qualified Data.Set      as S
-import qualified Text.Parsec   as P
+import           AOC.Common          (Point, cardinalNeighbs, TokStream, parseTokStreamT_)
+import           AOC.Solver          ((:~>)(..))
+import           Control.Monad       (guard)
+import           Control.Monad.State (State, evalState, put, get)
+import           Data.Maybe          (mapMaybe)
+import           Data.Set            (Set)
+import           Data.Void
+import           Linear              (V2(..))
+import qualified Data.Set            as S
+import qualified Text.Megaparsec     as P
 
 data Edge = E Point Point
   deriving (Show, Eq, Ord)
@@ -32,7 +34,7 @@ mkEdge x y
   | otherwise = E y x
 
 -- | Parse a stream of 'RegTok'.
-type Parser_ = P.Parsec [RegTok] Point
+type Parser_ = P.ParsecT Void (TokStream RegTok) (State Point)
 
 data Dir = DN | DE | DS | DW
   deriving (Eq, Show, Ord, Enum, Bounded)
@@ -46,7 +48,7 @@ data RegTok = RTStart
   deriving (Show, Eq, Ord)
 
 tok :: RegTok -> Parser_ ()
-tok t = P.try $ guard . (== t) =<< P.anyToken
+tok t = P.try $ guard . (== t) =<< P.anySingle
 
 -- | From a stream of 'RegTok', parse a set of all edges.
 buildEdges :: Parser_ (Set Edge)
@@ -55,19 +57,19 @@ buildEdges = (tok RTStart `P.between` tok RTEnd) anySteps
     anySteps = fmap S.unions . P.many $
             P.try basicStep P.<|> branchStep
     branchStep = (tok RTRParen `P.between` tok RTLParen) $ do
-      initPos <- P.getState
+      initPos <- get
       fmap S.unions . (`P.sepBy` tok RTOr) $ do
-        P.setState initPos
+        put initPos
         anySteps
     basicStep = do
-      currPos <- P.getState
-      RTDir d <- P.anyToken
+      currPos <- get
+      RTDir d <- P.anySingle
       let newPos = currPos + case d of
             DN -> V2   0 (-1)
             DE -> V2   1   0
             DS -> V2   0   1
             DW -> V2 (-1)  0
-      P.setState newPos
+      put newPos
       S.insert (mkEdge currPos newPos) <$> anySteps
 
 farthestRoom :: Set Edge -> Int
@@ -87,8 +89,8 @@ day20a = MkSol
     { sParse = Just . parseToks
     , sShow  = show
     , sSolve = fmap farthestRoom
-             . eitherToMaybe
-             . P.runParser buildEdges (V2 0 0) ""
+             . flip evalState (V2 0 0)
+             . parseTokStreamT_ buildEdges
     }
 
 roomDistances :: Set Edge -> [Int]
@@ -107,8 +109,8 @@ day20b = MkSol
     { sParse = Just . parseToks
     , sShow  = show
     , sSolve = fmap (length . filter (>= 1000) . roomDistances)
-             . eitherToMaybe
-             . P.runParser buildEdges (V2 0 0) ""
+             . flip evalState (V2 0 0)
+             . parseTokStreamT_ buildEdges
     }
 
 
