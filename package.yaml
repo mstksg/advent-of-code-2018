@@ -72,7 +72,7 @@ dependencies:
 library:
   source-dirs: src
   dependencies:
-  - advent-of-code-api >= 0.2.1
+  - advent-of-code-api >= 0.2.7
   - aeson
   - ansi-terminal
   - astar
@@ -80,7 +80,6 @@ library:
   - conduit
   - containers
   - criterion
-  - curl
   - data-default
   - data-default-class
   - data-memocombinators

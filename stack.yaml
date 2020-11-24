@@ -41,7 +41,7 @@ extra-deps:
 - pure-fft-0.2.0
 - astar-0.3.0.0
 - free-algebras-0.0.8.0
-- advent-of-code-api-0.2.1.0
+- advent-of-code-api-0.2.7.0
 - megaparsec-8.0.0
 # - hpack-0.33.0
 # - pandoc-2.7.3
