@@ -73,6 +73,7 @@ library:
   source-dirs: src
   dependencies:
   - advent-of-code-api >= 0.2.7
+  - advent-of-code-ocr
   - aeson
   - ansi-terminal
   - astar
