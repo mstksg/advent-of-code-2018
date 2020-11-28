@@ -29,15 +29,14 @@ constellationGraph xs = g
 
 day25a :: [V4 Int] :~> Int
 day25a = MkSol
-    { sParse = Just . parse25
+    { sParse = Just
     , sShow  = show
-    , sSolve = Just . length . G.scc . constellationGraph
+    , sSolve = Just
     }
 
-parse25 :: String -> [V4 Int]
-parse25 = mapMaybe (go . map read . words . clearOut d) . lines
-  where
-    d '-' = False
-    d c   = not (isDigit c)
-    go [x,y,z,r] = Just $ V4 x y z r
-    go _         = Nothing
+day25b :: _ :~> _
+day25b = MkSol
+    { sParse = Just
+    , sShow  = show
+    , sSolve = Just
+    }

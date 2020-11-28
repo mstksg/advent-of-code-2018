@@ -72,21 +72,9 @@ lexicoTopo childs = go (makeDeps childs) (findRoots childs)
 
 day07a :: Map Char (Set Char) :~> String
 day07a = MkSol
-    { sParse = parseAll
-    , sShow  = id
-    , sSolve = Just . lexicoTopo
-    }
-
-
-data Env a = Env { _envCap    :: Int
-                 , _envWaiter :: a -> Natural
-                 }
-
-makeLenses ''Env
-
-data Scheduler a = MkSched
-    { _schedQueue  :: !(Set a)
-    , _schedActive :: !(Map a Natural)
+    { sParse = Just
+    , sShow  = show
+    , sSolve = Just
     }
 
 makeClassy ''Scheduler
@@ -114,18 +102,9 @@ buildSleigh childs = go (findRoots childs) (makeDeps childs)
 
 day07b :: Map Char (Set Char) :~> Natural
 day07b = MkSol
-    { sParse = parseAll
+    { sParse = Just
     , sShow  = show
-    , sSolve = \mp -> Just $
-        let env = Env
-              { _envCap    = dyno_ "cap" 5
-              , _envWaiter = fromIntegral
-                           . (+ 1)
-                           . (+ dyno_ "wait" 60)
-                           . subtract (ord 'A')
-                           . ord
-              }
-        in  getSum . view _3 . runRWS (buildSleigh mp) env $ emptyScheduler
+    , sSolve = Just
     }
 
 

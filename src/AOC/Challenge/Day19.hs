@@ -23,21 +23,16 @@ import qualified Data.Vector.Unboxed.Sized as V
 
 day19a :: (Finite 6, ECProg) :~> Int
 day19a = MkSol
-    { sParse = parseElfcode
+    { sParse = Just
     , sShow  = show
-    , sSolve = \(i, p) -> Just . V.head
-                        . execECProg i p
-                        $ V.replicate 0
+    , sSolve = Just
     }
 
 day19b :: (Finite 6, ECProg) :~> Int
 day19b = MkSol
-    { sParse = parseElfcode
+    { sParse = Just
     , sShow  = show
-    , sSolve = \(i, p) -> Just . V.head
-                        . execECProg i (optimizeEC [addIfIsFactor i] p)
-                        . set (V.ix 0) 1
-                        $ V.replicate 0
+    , sSolve = Just
     }
 
 

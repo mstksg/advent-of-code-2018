@@ -56,16 +56,16 @@ findWord (centralize->vs) (centralize->xs) =
 
 day10a :: ([Point], [Point]) :~> Set Lattice
 day10a = MkSol
-    { sParse = fmap unzip . traverse parsePoint . lines
-    , sShow  = fromMaybe "" . parseLettersWith (view _x) (view _y)
-    , sSolve = Just . fst . uncurry findWord
+    { sParse = Just
+    , sShow  = show
+    , sSolve = Just
     }
 
 day10b :: ([Point], [Point]) :~> Int
 day10b = MkSol
-    { sParse = fmap unzip . traverse parsePoint . lines
+    { sParse = Just
     , sShow  = show
-    , sSolve = Just . snd . uncurry findWord
+    , sSolve = Just
     }
 
 parsePoint :: String -> Maybe (Point, Point)

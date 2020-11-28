@@ -22,7 +22,7 @@ import           AOC.Common.Search         as P
 import           AOC.Solver                as P
 import           Control.Applicative       as P
 import           Control.DeepSeq           as P
-import           Control.Lens              as P (over, view, set)
+import           Control.Lens              as P hiding (uncons)
 import           Control.Monad             as P
 import           Control.Monad.Except      as P
 import           Control.Monad.Primitive   as P
@@ -31,27 +31,29 @@ import           Data.Bifunctor            as P
 import           Data.Char                 as P
 import           Data.Containers.ListUtils as P
 import           Data.Either               as P
-import           Data.Finite               as P (Finite, packFinite, getFinite, finites)
+import           Data.Finite               as P (Finite, packFinite, getFinite, modulo, finites)
 import           Data.Foldable             as P
 import           Data.Function             as P
 import           Data.Functor              as P
 import           Data.IntMap               as P (IntMap)
+import           Data.IntMap.NonEmpty      as P (NEIntMap)
 import           Data.IntSet               as P (IntSet)
-import           Data.Ix                   as P
+import           Data.IntSet.NonEmpty      as P (NEIntSet)
 import           Data.Kind                 as P
 import           Data.List                 as P
 import           Data.List.NonEmpty        as P (NonEmpty(..), nonEmpty)
-import           Data.List.PointedList     as P (PointedList)
+import           Data.List.Split           as P
 import           Data.Map                  as P (Map)
 import           Data.Map.NonEmpty         as P (NEMap)
-import           Data.Maybe                as P hiding (mapMaybe, catMaybes)
+import           Data.Maybe                as P
 import           Data.Ord                  as P
-import           Data.Profunctor           as P (Profunctor(..))
 import           Data.Semigroup            as P
 import           Data.Semigroup.Foldable   as P
 import           Data.Set                  as P (Set)
 import           Data.Set.NonEmpty         as P (NESet)
-import           Data.Time                 as P
+import           Data.Text                 as P (Text)
+import           Data.Text.Encoding        as P (encodeUtf8, decodeUtf8)
+import           Data.Time                 as P hiding (Day)
 import           Data.Traversable          as P
 import           Data.Tuple                as P
 import           Data.Void                 as P

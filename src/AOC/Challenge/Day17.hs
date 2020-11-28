@@ -84,9 +84,9 @@ fillWater cl = S.filter (\p -> p ^. _y >= yMin && p ^. _y <= yMax)
 
 day17a :: NESet Point :~> Int
 day17a = MkSol
-    { sParse = NES.nonEmptySet . foldMap parseVein . lines
+    { sParse = Just
     , sShow  = show
-    , sSolve = Just . S.size . fillWater
+    , sSolve = Just
     }
 
 drainWater :: NESet Point -> Set Point
@@ -100,9 +100,9 @@ drainWater cl = S.filter (\p -> p ^. _y >= yMin && p ^. _y <= yMax)
 
 day17b :: NESet Point :~> Int
 day17b = MkSol
-    { sParse = NES.nonEmptySet . foldMap parseVein . lines
+    { sParse = Just
     , sShow  = show
-    , sSolve = Just . S.size . drainWater
+    , sSolve = Just
     }
 
 

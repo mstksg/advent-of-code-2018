@@ -46,10 +46,11 @@ default-extensions:
 - KindSignatures
 - LambdaCase
 - MonadComprehensions
-- MonoLocalBinds
 - MultiParamTypeClasses
 - MultiWayIf
 - NumDecimals
+- NumericUnderscores
+- OverloadedLabels
 - PartialTypeSignatures
 - PatternGuards
 - PatternSynonyms
@@ -57,12 +58,14 @@ default-extensions:
 - RankNTypes
 - RecordWildCards
 - ScopedTypeVariables
+- StandaloneDeriving
 - TemplateHaskell
 - TransformListComp
 - TupleSections
 - TypeApplications
 - TypeInType
 - TypeOperators
+- UndecidableInstances
 - ViewPatterns
 
 dependencies:
@@ -73,7 +76,6 @@ library:
   source-dirs: src
   dependencies:
   - advent-of-code-api >= 0.2.7
-  - advent-of-code-ocr
   - aeson
   - ansi-terminal
   - astar
@@ -89,10 +91,9 @@ library:
   - dlist
   - fgl
   - filepath
+  - finitary
   - finite-typelits
   - foldl
-  - free
-  - free-algebras
   - groups
   - hashable
   - haskeline
@@ -102,40 +103,27 @@ library:
   - hpack
   - lens
   - linear
-  - megaparsec
-  - microlens-th
+  - megaparsec >= 8.0
   - mtl
   - nonempty-containers
   - pandoc
   - parallel
-  - parsec
-  - parser-combinators
-  - pointedlist
-  - primitive
+  - parser-combinators >= 1.2.0
   - profunctors
   - psqueues
-  - pure-fft
-  - recursion-schemes
   - semigroupoids
-  - show-prettyprint
-  - singletons
   - split
-  - statistics
-  - tagsoup
   - template-haskell
   - text
-  - these
+  - th-abstraction
   - time
   - transformers
-  - unordered-containers
-  - vector
   - vector-sized
-  - witherable
   - yaml
 
 executables:
-  aoc2018:
-    main:                Main.hs
+  aoc-dev:
+    main:                aoc.hs
     source-dirs:         app
     ghc-options:
     - -threaded
@@ -149,7 +137,8 @@ executables:
     - deepseq
     - lens
     - finite-typelits
-    - ansi-terminal
+    - lens
+    - optparse-applicative
 
 tests:
   aoc2018-test:

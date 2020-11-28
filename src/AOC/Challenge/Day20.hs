@@ -86,11 +86,9 @@ farthestRoom es = go 0 S.empty (V2 0 0)
 
 day20a :: [RegTok] :~> Int
 day20a = MkSol
-    { sParse = Just . parseToks
+    { sParse = Just
     , sShow  = show
-    , sSolve = fmap farthestRoom
-             . flip evalState (V2 0 0)
-             . parseTokStreamT_ buildEdges
+    , sSolve = Just
     }
 
 roomDistances :: Set Edge -> [Int]
@@ -106,11 +104,9 @@ roomDistances es = go 0 S.empty (V2 0 0)
 
 day20b :: [RegTok] :~> Int
 day20b = MkSol
-    { sParse = Just . parseToks
+    { sParse = Just
     , sShow  = show
-    , sSolve = fmap (length . filter (>= 1000) . roomDistances)
-             . flip evalState (V2 0 0)
-             . parseTokStreamT_ buildEdges
+    , sSolve = Just
     }
 
 

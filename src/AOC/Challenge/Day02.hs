@@ -29,18 +29,9 @@ import qualified Data.Set                    as S
 -- Then we build a frequency map of the frequencies!
 day02a :: [String] :~> Int
 day02a = MkSol
-    { sParse = Just . lines
+    { sParse = Just
     , sShow  = show
-    , sSolve = mulTwoThree                   -- > lookup how many times
-                                             --     2 and 3 occurred, and
-                                             --     multiply
-             . freqs                         -- > build a frequency map of
-                                             --     all seen frequencies
-             . concatMap                     -- > get the frequency map of
-                (nubOrd . M.elems . freqs)   --     each string, and then
-                                             --     combine all of the
-                                             --     frequencies into a big
-                                             --     list of frequencies
+    , sSolve = Just
     }
   where
     mulTwoThree m = (*) <$> M.lookup 2 m <*> M.lookup 3 m
@@ -52,10 +43,9 @@ day02a = MkSol
 -- characters that aren't the same, using 'zipWith' and 'catMaybes'.
 day02b :: [String] :~> String
 day02b = MkSol
-    { sParse = Just . lines
-    , sShow  = id
-    , sSolve = fmap (uncurry onlySame)
-             . firstNeighbor
+    { sParse = Just
+    , sShow  = show
+    , sSolve = Just
     }
   where
     onlySame xs = catMaybes . zipWith (\x y -> x <$ guard (x == y)) xs

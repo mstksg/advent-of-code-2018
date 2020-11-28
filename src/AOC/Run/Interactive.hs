@@ -28,7 +28,9 @@ module AOC.Run.Interactive (
   , submitSolution_
   -- * Load Inputs
   , loadInput
+  , loadParseInput
   , loadTests
+  , loadParseTests
   -- * Util
   , mkSpec
   ) where
@@ -37,11 +39,12 @@ import           AOC.Challenge
 import           AOC.Run
 import           AOC.Run.Config
 import           AOC.Run.Load
+import           AOC.Solver
 import           AOC.Util
 import           Advent
 import           Control.Monad.Except
+import           Data.Bifunctor
 import           Data.Text            (Text)
-import           Text.Printf
 
 -- | Run the solution indicated by the challenge spec on the official
 -- puzzle input.  Get answer as result.
@@ -134,6 +137,24 @@ waitForPrompt_ = void . waitForPrompt
 submitSolution_ :: ChallengeSpec -> IO ()
 submitSolution_ = void . submitSolution
 
+-- | Run the parser of a solution, given its 'ChallengeSpec'.
+--
+-- @
+-- 'loadParseInput' (solSpec 'day01a) day01a
+-- @
+loadParseInput :: ChallengeSpec -> a :~> b -> IO a
+loadParseInput cs s = eitherIO $ do
+    i <- liftIO $ loadInput cs
+    maybeToEither ["No parse"] $ sParse s i
+
+-- | Run the parser of a solution on test data, given its 'ChallengeSpec'.
+--
+-- @
+-- 'loadParseTests' (solSpec 'day01a) day01a
+-- @
+loadParseTests :: ChallengeSpec -> a :~> b -> IO [(Maybe a, TestMeta)]
+loadParseTests cs s = (map . first) (sParse s) <$> loadTests cs
+
 -- | Load input for a given challenge
 loadInput :: ChallengeSpec -> IO String
 loadInput cs = eitherIO $ do
@@ -152,9 +173,7 @@ loadTests cs = do
 --
 -- Is undefined if given a day number out of range (1-25).
 mkSpec :: Integer -> Part -> ChallengeSpec
-mkSpec i c = maybe e (`CS` c) . mkDay $ i
-  where
-    e = errorWithoutStackTrace $ printf "Day out of range: %d" i
+mkSpec i = CS (mkDay_ i)
 
 eitherIO :: ExceptT [String] IO a -> IO a
 eitherIO act = runExceptT act >>= \case

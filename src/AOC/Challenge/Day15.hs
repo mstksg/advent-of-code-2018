@@ -160,12 +160,9 @@ getOutcome (BLOver   !s)       = (0, s)
 
 day15a :: (World, Entities) :~> Int
 day15a = MkSol
-    { sParse = Just . parseWorld
+    { sParse = Just
     , sShow  = show
-    , sSolve = \(w, e) -> Just
-                        . uncurry (*)
-                        . hylo getOutcome (stepBattle w)
-                        $ (e, M.empty)
+    , sSolve = Just
     }
 
 totalVictory :: BattleLog Bool -> Bool
@@ -176,14 +173,9 @@ totalVictory (BLOver  _             ) = True
 
 day15b :: (World, Entities) :~> Int
 day15b = MkSol
-    { sParse = Just . parseWorld
+    { sParse = Just
     , sShow  = show
-    , sSolve = \(w, es) ->
-        let goodEnough i = blog <$ guard (cata totalVictory blog)
-              where
-                blog :: Fix BattleLog
-                blog = ana (stepBattle w) (powerUp i es, M.empty)
-        in  uncurry (*) . cata getOutcome <$> exponentialFindMin goodEnough 4
+    , sSolve = Just
     }
   where
     powerUp :: Int -> Entities -> Entities

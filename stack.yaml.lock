@@ -5,27 +5,6 @@
 
 packages:
 - completed:
-    hackage: pure-fft-0.2.0@sha256:1af30d9f06e42e1a8c1930faf0eac467fe91787556c99f8a8c920e1950c24c29,659
-    pantry-tree:
-      size: 211
-      sha256: 461363d5c37839fc03ac7a8130dae096869aba4582ab6757c2f50ddfb0094235
-  original:
-    hackage: pure-fft-0.2.0
-- completed:
-    hackage: astar-0.3.0.0@sha256:8bf6350542e9db9451490e8993560ee843dc48a61d46a206985430f9b62461c8,967
-    pantry-tree:
-      size: 213
-      sha256: c4176cc3fc9ad39f2a9fc7eb4346c87b6e60b70ba23d8e2adbdfc81fe544b808
-  original:
-    hackage: astar-0.3.0.0
-- completed:
-    hackage: free-algebras-0.0.8.0@sha256:057ad477199ec68005ce029dd5f5d14e3cd52e67f769f412904fb8fd6e22a29a,2482
-    pantry-tree:
-      size: 1139
-      sha256: 64c04b6b08f6f666d6c925ca38dc2985abfc07c5382ef3e04d386acb4f924114
-  original:
-    hackage: free-algebras-0.0.8.0
-- completed:
     hackage: advent-of-code-api-0.2.7.0@sha256:d16c39e5f149bb046b05adf94ba2c3232a24d21587cb75b3c4c4480f1e270564,2351
     pantry-tree:
       size: 1185
@@ -33,22 +12,50 @@ packages:
   original:
     hackage: advent-of-code-api-0.2.7.0
 - completed:
-    hackage: advent-of-code-ocr-0.1.0.0@sha256:997fa1608b61d908d2cc0acf15bb8327831a9a1a6a587254148078395a4e906e,2927
-    pantry-tree:
-      size: 614
-      sha256: 81c307cd6eeab113677a9aa638a6c1732641ed5b17a46f7c06806d164464c5ae
-  original:
-    hackage: advent-of-code-ocr-0.1.0.0
-- completed:
     hackage: megaparsec-8.0.0@sha256:362f85e243ecbcb550e1de6e5c74ba5a50c09edaa1208c99bc5b9fd242227fc6,3808
     pantry-tree:
       size: 1446
       sha256: 955117c00a86970f2d0c215f33cf5293b16589c04678a0a790c03368ab6fd0aa
   original:
     hackage: megaparsec-8.0.0
+- completed:
+    hackage: parser-combinators-1.2.1@sha256:16c3490e007ec10b1255a2b36fb483d000156d555269107131241d9e0fa96412,1788
+    pantry-tree:
+      size: 725
+      sha256: 7b7cc6bb088f536691c4088ac6abe9f4dd0399feffc26bdb2cbec695f7259737
+  original:
+    hackage: parser-combinators-1.2.1
+- completed:
+    hackage: finitary-2.0.0.0@sha256:1044c9048ef920787fc9600634e6a66c890dada612cfda1d4820669306324c43,2373
+    pantry-tree:
+      size: 438
+      sha256: 8b6df70650871d989a55702619ee94ac6a646157d0ef294511fa7e6297b26c89
+  original:
+    hackage: finitary-2.0.0.0
+- completed:
+    hackage: typelits-witnesses-0.4.0.0@sha256:1d7092ba98fdc33f4b413e04144eb3ead7b105f74b2998e3c74a8a0feee685a9,1985
+    pantry-tree:
+      size: 403
+      sha256: 2ee741f6bb4dba710e6449da335fdcf8940adb767798b29fdb8ae2606d22e0cb
+  original:
+    hackage: typelits-witnesses-0.4.0.0
+- completed:
+    hackage: dependent-sum-0.7.1.0@sha256:5599aa89637db434431b1dd3fa7c34bc3d565ee44f0519bfbc877be1927c2531,2068
+    pantry-tree:
+      size: 290
+      sha256: 9cbfb32b5a8a782b7a1c941803fd517633cb699159b851c1d82267a9e9391b50
+  original:
+    hackage: dependent-sum-0.7.1.0
+- completed:
+    hackage: constraints-extras-0.3.0.2@sha256:013b8d0392582c6ca068e226718a4fe8be8e22321cc0634f6115505bf377ad26,1853
+    pantry-tree:
+      size: 594
+      sha256: 3ce1012bfb02e4d7def9df19ce80b8cd2b472c691b25b181d9960638673fecd1
+  original:
+    hackage: constraints-extras-0.3.0.2
 snapshots:
 - completed:
-    size: 524804
-    url: https://raw.githubusercontent.com/commercialhaskell/stackage-snapshots/master/lts/14/16.yaml
-    sha256: 4d1519a4372d051d47a5eae2241cf3fb54e113d7475f89707ddb6ec06add2888
-  original: lts-14.16
+    size: 532832
+    url: https://raw.githubusercontent.com/commercialhaskell/stackage-snapshots/master/lts/16/23.yaml
+    sha256: fbb2a0519008533924c7753bd7164ddd1009f09504eb06674acad6049b46db09
+  original: lts-16.23

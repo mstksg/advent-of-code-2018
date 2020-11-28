@@ -53,16 +53,16 @@ mkMap i = M.fromSet (powerLevel i) . S.fromList $ range (V2 1 1, V2 300 300)
 
 day11a :: Int :~> Point
 day11a = MkSol
-    { sParse = readMaybe
-    , sShow  = \(V2 x y) -> show x ++ "," ++ show y
-    , sSolve = Just . findMaxThree . mkMap
+    { sParse = Just
+    , sShow  = show
+    , sSolve = Just
     }
 
 day11b :: Int :~> (Point, Int)
 day11b = MkSol
-    { sParse = readMaybe
-    , sShow  = \(V2 x y, s) -> show x ++ "," ++ show y ++ "," ++ show s
-    , sSolve = Just . findMaxAny . mkMap
+    { sParse = Just
+    , sShow  = show
+    , sSolve = Just
     }
 
 findMaxAny :: Map Point Int -> (Point, Int)

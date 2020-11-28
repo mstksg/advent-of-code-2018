@@ -23,9 +23,9 @@ parseItem = readMaybe . filter (/= '+')
 -- | Here we have a basic sum of numbers.
 day01a :: [Int] :~> Int
 day01a = MkSol
-    { sParse = traverse parseItem . lines
+    { sParse = Just
     , sShow  = show
-    , sSolve = Just . sum
+    , sSolve = Just
     }
 
 -- | Here we compute a running sum on an infinitely repeated list of
@@ -33,9 +33,7 @@ day01a = MkSol
 -- the list of running sums.
 day01b :: [Int] :~> Int
 day01b = MkSol
-    { sParse = traverse parseItem . lines
+    { sParse = Just
     , sShow  = show
-    , sSolve = firstRepeated        -- > get first repeated sum
-             . scanl (+) 0          -- > compute running sum
-             . cycle                -- > infinitely cycle input
+    , sSolve = Just
     }

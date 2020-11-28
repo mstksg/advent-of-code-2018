@@ -20,6 +20,7 @@ module AOC.Challenge (
   , ChallengeSpec(..), Part(..)
   , challengeMap
   , lookupSolution
+  , Day(..), dayInt, mkDay, mkDay_
   , solSpec
   , charPart
   , Day(..), dayInt, mkDay, mkDay_

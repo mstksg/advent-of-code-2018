@@ -115,11 +115,11 @@ are automatically updated when you hit `:r` in ghci.
 [interactive]: https://mstksg.github.io/advent-of-code-2018/AOC2018-Run-Interactive.html
 
 ```haskell
-ghci> execSolution_   $ mkCS 2 'a'  -- get answer for challenge based on solution
-ghci> testSolution_   $ mkCS 2 'a'  -- run solution against test suite
-ghci> viewPrompt_     $ mkCS 2 'a'  -- view the prompt for a part
-ghci> waitForPrompt_  $ mkCS 2 'a'  -- count down to the prompt for a part
-ghci> submitSolution_ $ mkCS 2 'a'  -- submit a solution
+ghci> execSolution_   $ solSpec 'day02a  -- get answer for challenge based on solution
+ghci> testSolution_   $ solSpec 'day02a  -- run solution against test suite
+ghci> viewPrompt_     $ solSpec 'day02a  -- view the prompt for a part
+ghci> waitForPrompt_  $ solSpec 'day02a  -- count down to the prompt for a part
+ghci> submitSolution_ $ solSpec 'day02a  -- submit a solution
 ```
 
 These are loaded with session key stored in the configuration file (see next

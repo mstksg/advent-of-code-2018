@@ -53,16 +53,16 @@ run numPlayers maxPiece = fst
 
 day09a :: (Int, Int) :~> Int
 day09a = MkSol
-    { sParse = parse
+    { sParse = Just
     , sShow  = show
-    , sSolve = Just . V.maximum . uncurry run
+    , sSolve = Just
     }
 
 day09b :: _ :~> _
 day09b = MkSol
-    { sParse = parse
+    { sParse = Just
     , sShow  = show
-    , sSolve = Just . V.maximum . uncurry run . second (*100)
+    , sSolve = Just
     }
 
 parse :: String -> Maybe (Int, Int)

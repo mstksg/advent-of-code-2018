@@ -89,9 +89,9 @@ plausible T{..} = S.fromDistinctAscList . filter tryTrial $ [OAddR ..]
 
 day16a :: [Trial] :~> Int
 day16a = MkSol
-    { sParse = eitherToMaybe . P.parse (trialParser `sepEndBy1` P.newline) ""
+    { sParse = Just
     , sShow  = show
-    , sSolve = Just . length . filter ((>= 3) . S.size . plausible)
+    , sSolve = Just
     }
 
 -- | Our search for a unique configuration of op codes.
@@ -105,19 +105,9 @@ fromClues m = listToMaybe . flip evalStateT S.empty . V.generateM $ \i -> do
 
 day16b :: ([Trial], [Instr (Finite 16)]) :~> Int
 day16b = MkSol
-    { sParse = eitherToMaybe . P.parse
-         ((,) <$> (trialParser `sepEndBy1` P.newline) <* P.some P.newline
-              <*> (instrParser `sepEndBy1` P.newline)
-         ) ""
+    { sParse = Just
     , sShow  = show
-    , sSolve = \(ts, is) -> do
-        opMap <- fromClues . M.fromListWith S.intersection
-               $ [ (_iOp (_tInstr t), plausible t)
-                 | t <- ts
-                 ]
-        pure . V.head
-             . foldl' (step opMap) (V.replicate 0)
-             $ is
+    , sSolve = Just
     }
   where
     step opMap r i = runOp i' r

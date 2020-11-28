@@ -65,7 +65,7 @@ layTiles = freqs . concatMap tiles
 -- 4. Count them
 day03a :: [Rect] :~> Int
 day03a = MkSol
-    { sParse = traverse (fmap _cRect . parseLine) . lines
+    { sParse = Just
     , sShow  = show
     , sSolve = Just
              . length           -- > how many?
@@ -77,11 +77,9 @@ day03a = MkSol
 -- | Once we lay our tiles, we find the first claim that has no overlaps.
 day03b :: [Claim] :~> Int
 day03b = MkSol
-    { sParse = traverse parseLine . lines
+    { sParse = Just
     , sShow  = show
-    , sSolve = \ts ->
-        let tilesClaimed = layTiles (_cRect <$> ts) -- > get all tiles claimed frequency map
-        in  findMaybe (noOverlap tilesClaimed) ts   -- > find the ID that is not overlapping
+    , sSolve = Just
     }
 
 -- | Given a map of tiles claimed (and how many are claiming that spot) and

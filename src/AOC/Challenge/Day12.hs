@@ -70,16 +70,16 @@ stepN n w ctx = goN extra
 
 day12a :: (Set Pos, Set Ctx) :~> Int
 day12a = MkSol
-    { sParse = Just . bimap makeState makeCtxs . span (/= '\n')
+    { sParse = Just
     , sShow  = show
-    , sSolve = \(w, ctx) -> Just . sum $ iterate (step ctx) w !!! 20
+    , sSolve = Just
     }
 
 day12b :: (Set Pos, Set Ctx) :~> Int
 day12b = MkSol
-    { sParse = Just . bimap makeState makeCtxs . span (/= '\n')
+    { sParse = Just
     , sShow  = show
-    , sSolve = Just . sum . uncurry (stepN 50000000000)
+    , sSolve = Just
     }
 
 

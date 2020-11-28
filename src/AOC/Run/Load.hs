@@ -16,12 +16,14 @@
 module AOC.Run.Load (
     ChallengePaths(..), challengePaths
   , ChallengeData(..), challengeData
+  , Day(..)
   , countdownConsole
   , timeToRelease
   , showNominalDiffTime
   , charPart
   , showAoCError
   , htmlToMarkdown
+  , mkDay, mkDay_, dayInt
   , TestMeta(..)
   -- * Parsers
   , parseMeta
@@ -281,8 +283,8 @@ parseMeta = do
   where
     parseAnswer = MP.string ">>>"
                *> MP.space1
-               *> MP.some (MP.try (asum [MP.alphaNumChar, MP.punctuationChar, MP.symbolChar]))
-               <* MP.newline
+               *> MP.many (MP.noneOf ['\n'])
+               <* "\n"
     parseData = do
       MP.string ">>>"
       sym <- MP.manyTill (MP.try MP.letterChar)   (MP.try (MP.char ':'))

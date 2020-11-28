@@ -94,9 +94,9 @@ simulateWith f w c = (f `hylo` stepCarts w) (c, M.empty)
 
 day13a :: (World, Carts) :~> Point
 day13a = MkSol
-    { sParse = Just . parseWorld
-    , sShow  = \(V2 x y) -> show x ++ "," ++ show y
-    , sSolve = uncurry (simulateWith firstCrash)
+    { sParse = Just
+    , sShow  = show
+    , sSolve = Just
     }
   where
     firstCrash (CLCrash p _) = Just p
@@ -106,9 +106,9 @@ day13a = MkSol
 
 day13b :: (World, Carts) :~> Point
 day13b = MkSol
-    { sParse = Just . parseWorld
-    , sShow  = \(V2 x y) -> show x ++ "," ++ show y
-    , sSolve = Just . uncurry (simulateWith lastPoint)
+    { sParse = Just
+    , sShow  = show
+    , sSolve = Just
     }
   where
     lastPoint (CLCrash _ p) = p

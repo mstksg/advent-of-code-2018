@@ -35,9 +35,9 @@ sum1 = do
 
 day08a :: [Int] :~> Int
 day08a = MkSol
-    { sParse = traverse readMaybe . words
+    { sParse = Just
     , sShow  = show
-    , sSolve = parseTokStream_ sum1
+    , sSolve = Just
     }
 
 sum2 :: Parser Int
@@ -52,7 +52,7 @@ sum2 = do
 
 day08b :: [Int] :~> Int
 day08b = MkSol
-    { sParse = traverse readMaybe . words
+    { sParse = Just
     , sShow  = show
-    , sSolve = parseTokStream_ sum2
+    , sSolve = Just
     }

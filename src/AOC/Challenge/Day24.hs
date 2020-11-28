@@ -138,20 +138,16 @@ fightBattle a
 
 day24a :: Arena :~> Int
 day24a = MkSol
-    { sParse = P.parseMaybe parse24
+    { sParse = Just
     , sShow  = show
-    , sSolve = fmap (sum . snd) . eitherToMaybe . fightBattle
+    , sSolve = Just
     }
 
 day24b :: Arena :~> Int
 day24b = MkSol
-    { sParse = P.parseMaybe parse24
+    { sParse = Just
     , sShow  = show
-    , sSolve = \a ->
-        let goodEnough i = case fightBattle (boost i a) of
-              Right (TImm, b) -> Just (sum b)
-              _               -> Nothing
-        in  exponentialFindMin goodEnough 1   -- note: this might fail for some inputs
+    , sSolve = Just
     }
   where
     boost :: Int -> Arena -> Arena
