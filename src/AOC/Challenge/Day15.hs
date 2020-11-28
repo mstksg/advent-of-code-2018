@@ -58,11 +58,11 @@ actualLiteralAStar
     -> ScanPoint
     -> ScanPoint
     -> Maybe Path
-actualLiteralAStar w p0 dest =
+actualLiteralAStar w p0 dest = snd <$>
       aStar (mannDist (_getSP dest) . _getSP)
             (M.fromSet (const 1) . (`S.intersection` w) . neighbs)
             p0
-            dest
+            (== dest)
 
 stepTo
     :: Set ScanPoint      -- ^ legal points
@@ -160,9 +160,12 @@ getOutcome (BLOver   !s)       = (0, s)
 
 day15a :: (World, Entities) :~> Int
 day15a = MkSol
-    { sParse = Just
+    { sParse = Just . parseWorld
     , sShow  = show
-    , sSolve = Just
+    , sSolve = \(w, e) -> Just
+                        . uncurry (*)
+                        . hylo getOutcome (stepBattle w)
+                        $ (e, M.empty)
     }
 
 totalVictory :: BattleLog Bool -> Bool
@@ -173,9 +176,14 @@ totalVictory (BLOver  _             ) = True
 
 day15b :: (World, Entities) :~> Int
 day15b = MkSol
-    { sParse = Just
+    { sParse = Just . parseWorld
     , sShow  = show
-    , sSolve = Just
+    , sSolve = \(w, es) ->
+        let goodEnough i = blog <$ guard (cata totalVictory blog)
+              where
+                blog :: Fix BattleLog
+                blog = ana (stepBattle w) (powerUp i es, M.empty)
+        in  uncurry (*) . cata getOutcome <$> exponentialFindMin goodEnough 4
     }
   where
     powerUp :: Int -> Entities -> Entities

@@ -39,12 +39,17 @@ packages:
 # (e.g., acme-missiles-0.3)
 extra-deps:
 - advent-of-code-api-0.2.7.0
-- megaparsec-8.0.0
-- parser-combinators-1.2.1
-- finitary-2.0.0.0
-- typelits-witnesses-0.4.0.0
-- dependent-sum-0.7.1.0
+- advent-of-code-ocr-0.1.0.0
+- astar-0.3.0.0
 - constraints-extras-0.3.0.2
+- dependent-sum-0.7.1.0
+- finitary-2.0.0.0
+- free-algebras-0.1.0.0
+- megaparsec-8.0.0
+- monoidal-containers-0.6.0.1
+- parser-combinators-1.2.1
+- typelits-witnesses-0.4.0.0
+- witherable-0.3.5
 
 # allow-newer: true
 

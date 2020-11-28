@@ -15,8 +15,8 @@ module AOC.Challenge.Day16 (
   , trialParser
   ) where
 
-import           AOC.Common                 (eitherToMaybe)
 import           AOC.Solver                 ((:~>)(..))
+import           AOC.Util                   (eitherToMaybe)
 import           Control.Lens               ((^.), (.~), enum)
 import           Control.Monad              ((<=<))
 import           Control.Monad.Combinators  (between, sepBy1, sepEndBy1)
@@ -89,9 +89,9 @@ plausible T{..} = S.fromDistinctAscList . filter tryTrial $ [OAddR ..]
 
 day16a :: [Trial] :~> Int
 day16a = MkSol
-    { sParse = Just
+    { sParse = eitherToMaybe . P.parse (trialParser `sepEndBy1` P.newline) ""
     , sShow  = show
-    , sSolve = Just
+    , sSolve = Just . length . filter ((>= 3) . S.size . plausible)
     }
 
 -- | Our search for a unique configuration of op codes.
@@ -105,9 +105,19 @@ fromClues m = listToMaybe . flip evalStateT S.empty . V.generateM $ \i -> do
 
 day16b :: ([Trial], [Instr (Finite 16)]) :~> Int
 day16b = MkSol
-    { sParse = Just
+    { sParse = eitherToMaybe . P.parse
+         ((,) <$> (trialParser `sepEndBy1` P.newline) <* P.some P.newline
+              <*> (instrParser `sepEndBy1` P.newline)
+         ) ""
     , sShow  = show
-    , sSolve = Just
+    , sSolve = \(ts, is) -> do
+        opMap <- fromClues . M.fromListWith S.intersection
+               $ [ (_iOp (_tInstr t), plausible t)
+                 | t <- ts
+                 ]
+        pure . V.head
+             . foldl' (step opMap) (V.replicate 0)
+             $ is
     }
   where
     step opMap r i = runOp i' r

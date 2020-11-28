@@ -49,9 +49,20 @@ labelVoronoi sites p = do
 
 day06a :: NonEmpty Point :~> Int
 day06a = MkSol
-    { sParse = Just
+    { sParse = (NE.nonEmpty <=< traverse parseLine) . lines
     , sShow  = show
-    , sSolve = Just
+    , sSolve = \sites -> Just $
+        let bb    = boundingBox sites
+            voron = catMaybes
+                  . M.fromSet (labelVoronoi sites)
+                  . S.fromList
+                  . bbPoints
+                  $ bb
+            edges = S.fromList
+                  . mapMaybe (\(point, site) -> site <$ guard (onEdge bb point))
+                  . M.toList
+                  $ voron
+        in  maximum . freqs . M.filter (`S.notMember` edges) $ voron
     }
   where
     onEdge :: Box -> Point -> Bool
@@ -61,9 +72,15 @@ day06a = MkSol
 
 day06b :: NonEmpty Point :~> Int
 day06b = MkSol
-    { sParse = Just
+    { sParse = (NE.nonEmpty <=< traverse parseLine) . lines
     , sShow  = show
-    , sSolve = Just
+    , sSolve = \sites ->
+            Just
+          . length
+          . filter ((< dyno_ "lim" 10000) . (`totalDist` sites))
+          . bbPoints
+          . boundingBox
+          $ sites
     }
   where
     totalDist p = sum . fmap (mannDist p)

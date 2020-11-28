@@ -52,9 +52,12 @@ stepMap mp = M.mapWithKey go mp
 
 day18a :: World :~> Int
 day18a = MkSol
-    { sParse = Just
+    { sParse = Just . parseForest
     , sShow  = show
-    , sSolve = Just
+    , sSolve = \m0 -> Just $
+        let mp = iterate stepMap m0 !!! 10
+        in  lengthOf (folded . only TTree) mp
+              * lengthOf (folded . only TYard) mp
     }
 
 findLoop
@@ -80,9 +83,12 @@ stepN n m0 = goN extra . goN ttl $ m0
 
 day18b :: World :~> Int
 day18b = MkSol
-    { sParse = Just
+    { sParse = Just . parseForest
     , sShow  = show
-    , sSolve = Just
+    , sSolve = \m0 -> Just $
+        let mp = stepN 1000000000 m0
+        in  lengthOf (folded . only TTree) mp
+              * lengthOf (folded . only TYard) mp
     }
 
 parseForest :: String -> World

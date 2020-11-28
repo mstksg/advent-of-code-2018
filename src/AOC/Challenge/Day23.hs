@@ -37,9 +37,12 @@ data Sphere = S { _sCenter :: !Point3
 
 day23a :: _ :~> _
 day23a = MkSol
-    { sParse = Just
+    { sParse = Just . parse23
     , sShow  = show
-    , sSolve = Just
+    , sSolve = \ps -> Just
+                    . (`go` map _sCenter ps)
+                    . maximumBy (comparing _sRadius)
+                    $ ps
     }
   where
     go c = length . filter (`inRangeOf` c)
@@ -107,9 +110,9 @@ boundingCube = traverse (\(V2 mn mx) -> [mn,mx]) . L.transpose
 
 day23b :: _ :~> _
 day23b = MkSol
-    { sParse = Just
+    { sParse = Just . parse23
     , sShow  = show
-    , sSolve = Just
+    , sSolve = fmap (mannDist 0 . drillDown) . NE.nonEmpty
     }
 
 circleBounds :: Sphere -> [Point3]

@@ -14,8 +14,9 @@ module AOC.Challenge.Day04 (
   , day04b
   ) where
 
-import           AOC.Common          (maximumVal, maximumValBy, clearOut, eitherToMaybe, freqs)
+import           AOC.Common          (maximumVal, maximumValBy, clearOut, freqs)
 import           AOC.Solver          ((:~>)(..))
+import           AOC.Util            (eitherToMaybe)
 import           Control.Applicative (many)
 import           Data.Char           (isAlphaNum)
 import           Data.Finite         (Finite, packFinite)
@@ -78,16 +79,25 @@ buildTimeCards = eitherToMaybe . P.parse fullLog "" . M.toList
 
 day04a :: Map Time Action :~> Int
 day04a = MkSol
-    { sParse = Just
+    { sParse = fmap M.fromList . traverse parseLine . lines
     , sShow  = show
-    , sSolve = Just
+    , sSolve = \logs -> do
+        timeCards               <- buildTimeCards logs
+        (worstGuard , timeCard) <- maximumValBy (comparing sum) timeCards
+        (worstMinute, _       ) <- maximumVal timeCard
+        pure $ _gId worstGuard * fromIntegral worstMinute
     }
 
 day04b :: Map Time Action :~> Int
 day04b = MkSol
-    { sParse = Just
+    { sParse = fmap M.fromList . traverse parseLine . lines
     , sShow  = show
-    , sSolve = Just
+    , sSolve = \logs -> do
+        timeCards                      <- buildTimeCards logs
+        let worstMinutes :: Map Guard (Minute, Int)
+            worstMinutes = M.mapMaybe maximumVal timeCards
+        (worstGuard, (worstMinute, _)) <- maximumValBy (comparing snd) worstMinutes
+        pure $ _gId worstGuard * fromIntegral worstMinute
     }
 
 

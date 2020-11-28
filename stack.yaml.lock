@@ -12,33 +12,26 @@ packages:
   original:
     hackage: advent-of-code-api-0.2.7.0
 - completed:
-    hackage: megaparsec-8.0.0@sha256:362f85e243ecbcb550e1de6e5c74ba5a50c09edaa1208c99bc5b9fd242227fc6,3808
+    hackage: advent-of-code-ocr-0.1.0.0@sha256:997fa1608b61d908d2cc0acf15bb8327831a9a1a6a587254148078395a4e906e,2927
     pantry-tree:
-      size: 1446
-      sha256: 955117c00a86970f2d0c215f33cf5293b16589c04678a0a790c03368ab6fd0aa
+      size: 614
+      sha256: 81c307cd6eeab113677a9aa638a6c1732641ed5b17a46f7c06806d164464c5ae
   original:
-    hackage: megaparsec-8.0.0
+    hackage: advent-of-code-ocr-0.1.0.0
 - completed:
-    hackage: parser-combinators-1.2.1@sha256:16c3490e007ec10b1255a2b36fb483d000156d555269107131241d9e0fa96412,1788
+    hackage: astar-0.3.0.0@sha256:8bf6350542e9db9451490e8993560ee843dc48a61d46a206985430f9b62461c8,967
     pantry-tree:
-      size: 725
-      sha256: 7b7cc6bb088f536691c4088ac6abe9f4dd0399feffc26bdb2cbec695f7259737
+      size: 213
+      sha256: c4176cc3fc9ad39f2a9fc7eb4346c87b6e60b70ba23d8e2adbdfc81fe544b808
   original:
-    hackage: parser-combinators-1.2.1
+    hackage: astar-0.3.0.0
 - completed:
-    hackage: finitary-2.0.0.0@sha256:1044c9048ef920787fc9600634e6a66c890dada612cfda1d4820669306324c43,2373
+    hackage: constraints-extras-0.3.0.2@sha256:013b8d0392582c6ca068e226718a4fe8be8e22321cc0634f6115505bf377ad26,1853
     pantry-tree:
-      size: 438
-      sha256: 8b6df70650871d989a55702619ee94ac6a646157d0ef294511fa7e6297b26c89
+      size: 594
+      sha256: 3ce1012bfb02e4d7def9df19ce80b8cd2b472c691b25b181d9960638673fecd1
   original:
-    hackage: finitary-2.0.0.0
-- completed:
-    hackage: typelits-witnesses-0.4.0.0@sha256:1d7092ba98fdc33f4b413e04144eb3ead7b105f74b2998e3c74a8a0feee685a9,1985
-    pantry-tree:
-      size: 403
-      sha256: 2ee741f6bb4dba710e6449da335fdcf8940adb767798b29fdb8ae2606d22e0cb
-  original:
-    hackage: typelits-witnesses-0.4.0.0
+    hackage: constraints-extras-0.3.0.2
 - completed:
     hackage: dependent-sum-0.7.1.0@sha256:5599aa89637db434431b1dd3fa7c34bc3d565ee44f0519bfbc877be1927c2531,2068
     pantry-tree:
@@ -47,12 +40,54 @@ packages:
   original:
     hackage: dependent-sum-0.7.1.0
 - completed:
-    hackage: constraints-extras-0.3.0.2@sha256:013b8d0392582c6ca068e226718a4fe8be8e22321cc0634f6115505bf377ad26,1853
+    hackage: finitary-2.0.0.0@sha256:1044c9048ef920787fc9600634e6a66c890dada612cfda1d4820669306324c43,2373
     pantry-tree:
-      size: 594
-      sha256: 3ce1012bfb02e4d7def9df19ce80b8cd2b472c691b25b181d9960638673fecd1
+      size: 438
+      sha256: 8b6df70650871d989a55702619ee94ac6a646157d0ef294511fa7e6297b26c89
   original:
-    hackage: constraints-extras-0.3.0.2
+    hackage: finitary-2.0.0.0
+- completed:
+    hackage: free-algebras-0.1.0.0@sha256:59c6496581fef0483f4eb42ab2fc637dffa8dfeb692d00ced8070a80c2be6013,2485
+    pantry-tree:
+      size: 1139
+      sha256: bc586bc74af137489399aed36ff845a27cacdb9df0ad9002c90eb2bf8fe07b53
+  original:
+    hackage: free-algebras-0.1.0.0
+- completed:
+    hackage: megaparsec-8.0.0@sha256:362f85e243ecbcb550e1de6e5c74ba5a50c09edaa1208c99bc5b9fd242227fc6,3808
+    pantry-tree:
+      size: 1446
+      sha256: 955117c00a86970f2d0c215f33cf5293b16589c04678a0a790c03368ab6fd0aa
+  original:
+    hackage: megaparsec-8.0.0
+- completed:
+    hackage: monoidal-containers-0.6.0.1@sha256:ffdfae0fde7a08e9e314667a78d86454d2d23137d85f226ec6e757c190fb28ad,2583
+    pantry-tree:
+      size: 569
+      sha256: 61d5a73cb768aa4d59db7365418a2fc1bb24b8c3e53ca496372656b6ba4d31ab
+  original:
+    hackage: monoidal-containers-0.6.0.1
+- completed:
+    hackage: parser-combinators-1.2.1@sha256:16c3490e007ec10b1255a2b36fb483d000156d555269107131241d9e0fa96412,1788
+    pantry-tree:
+      size: 725
+      sha256: 7b7cc6bb088f536691c4088ac6abe9f4dd0399feffc26bdb2cbec695f7259737
+  original:
+    hackage: parser-combinators-1.2.1
+- completed:
+    hackage: typelits-witnesses-0.4.0.0@sha256:1d7092ba98fdc33f4b413e04144eb3ead7b105f74b2998e3c74a8a0feee685a9,1985
+    pantry-tree:
+      size: 403
+      sha256: 2ee741f6bb4dba710e6449da335fdcf8940adb767798b29fdb8ae2606d22e0cb
+  original:
+    hackage: typelits-witnesses-0.4.0.0
+- completed:
+    hackage: witherable-0.3.5@sha256:6590a15735b50ac14dcc138d4265ff1585d5f3e9d3047d5ebc5abf4cd5f50084,1476
+    pantry-tree:
+      size: 271
+      sha256: b99f21dbac28da031eb7c787fbffbe5e77e0aee42b64b5dda082470e907d5ab5
+  original:
+    hackage: witherable-0.3.5
 snapshots:
 - completed:
     size: 532832

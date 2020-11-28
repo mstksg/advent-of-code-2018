@@ -14,7 +14,7 @@ module AOC.Challenge.Day03 (
   , day03b
   ) where
 
-import           AOC.Common    (freqs, findMaybe, clearOut)
+import           AOC.Common    (freqs, firstJust, clearOut)
 import           AOC.Solver    ((:~>)(..))
 import           Control.Monad (guard)
 import           Data.Char     (isDigit)
@@ -65,7 +65,7 @@ layTiles = freqs . concatMap tiles
 -- 4. Count them
 day03a :: [Rect] :~> Int
 day03a = MkSol
-    { sParse = Just
+    { sParse = traverse (fmap _cRect . parseLine) . lines
     , sShow  = show
     , sSolve = Just
              . length           -- > how many?
@@ -77,9 +77,11 @@ day03a = MkSol
 -- | Once we lay our tiles, we find the first claim that has no overlaps.
 day03b :: [Claim] :~> Int
 day03b = MkSol
-    { sParse = Just
+    { sParse = traverse parseLine . lines
     , sShow  = show
-    , sSolve = Just
+    , sSolve = \ts ->
+        let tilesClaimed = layTiles (_cRect <$> ts) -- > get all tiles claimed frequency map
+        in  firstJust (noOverlap tilesClaimed) ts   -- > find the ID that is not overlapping
     }
 
 -- | Given a map of tiles claimed (and how many are claiming that spot) and

@@ -40,16 +40,24 @@ zeroChecks iPtr prog = mapMaybe checksZero
 
 day21a :: (Finite 6, ECProg) :~> Int
 day21a = MkSol
-    { sParse = Just
+    { sParse = parseElfcode
     , sShow  = show
-    , sSolve = Just
+    , sSolve = \(i, optimizeEC [division i] -> p) ->
+            listToMaybe
+          . zeroChecks i p
+          . traceECProg_ i p
+          $ V.replicate 0
     }
 
 day21b :: (Finite 6, ECProg) :~> Int
 day21b = MkSol
-    { sParse = Just
+    { sParse = parseElfcode
     , sShow  = show
-    , sSolve = Just
+    , sSolve = \(i, optimizeEC [division i] -> p) ->
+            listToMaybe . reverse . uniqRun
+          . zeroChecks i p
+          . traceECProg_ i p
+          $ V.replicate 0
     }
 
 uniqRun :: [Int] -> [Int]

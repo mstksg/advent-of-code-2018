@@ -23,7 +23,6 @@ module AOC.Challenge (
   , Day(..), dayInt, mkDay, mkDay_
   , solSpec
   , charPart
-  , Day(..), dayInt, mkDay, mkDay_
   ) where
 
 import           AOC.Challenge.Day01 as AOC

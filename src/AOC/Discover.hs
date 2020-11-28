@@ -182,7 +182,7 @@ challengeName = do
     c    <- P.lowerChar
     p    <- maybe (fail $ printf "Part not parsed: %c" c) pure $
                 charPart c
-    pure $ CS (Day dFin) p
+    pure $ CS dFin p
 
 -- | Parse a 'Char' into a 'Part'
 charPart :: Char -> Maybe Part

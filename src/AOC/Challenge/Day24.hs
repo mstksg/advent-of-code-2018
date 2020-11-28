@@ -16,9 +16,10 @@ module AOC.Challenge.Day24 (
   , day24b
   ) where
 
-import           AOC.Common                 (eitherToMaybe)
+import           AOC.Common                 ()
 import           AOC.Common.Search          (exponentialFindMin)
 import           AOC.Solver                 ((:~>)(..))
+import           AOC.Util                   (eitherToMaybe)
 import           Control.Lens               (ix, at, uses, (.~), (.=), non)
 import           Control.Monad.State        (evalState)
 import           Data.Char                  (isDigit, isLetter)
@@ -138,16 +139,20 @@ fightBattle a
 
 day24a :: Arena :~> Int
 day24a = MkSol
-    { sParse = Just
+    { sParse = P.parseMaybe parse24
     , sShow  = show
-    , sSolve = Just
+    , sSolve = fmap (sum . snd) . eitherToMaybe . fightBattle
     }
 
 day24b :: Arena :~> Int
 day24b = MkSol
-    { sParse = Just
+    { sParse = P.parseMaybe parse24
     , sShow  = show
-    , sSolve = Just
+    , sSolve = \a ->
+        let goodEnough i = case fightBattle (boost i a) of
+              Right (TImm, b) -> Just (sum b)
+              _               -> Nothing
+        in  exponentialFindMin goodEnough 1   -- note: this might fail for some inputs
     }
   where
     boost :: Int -> Arena -> Arena

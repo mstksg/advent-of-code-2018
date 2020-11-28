@@ -49,16 +49,19 @@ inject = foldMap (either returnFree (invert . returnFree)) . charElem
 
 day05a :: FreeGroupL Elem :~> Int
 day05a = MkSol
-    { sParse = Just
+    { sParse = Just . foldMap inject
     , sShow  = show
-    , sSolve = Just
+    , sSolve = Just . length . G.toList
     }
 
 day05b :: FreeGroupL Elem :~> Int
 day05b = MkSol
-    { sParse = Just
+    { sParse = Just . foldMap inject
     , sShow  = show
-    , sSolve = Just
+    , sSolve = \xs -> Just $ minimum
+        [ length . G.toList $ foldMapFree (ghomo c) xs
+        | c <- finites
+        ]
     }
   where
     -- | Delete a letter from the group

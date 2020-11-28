@@ -35,9 +35,9 @@ chocolatePractice = 3 : 7 : go 0 1 (Seq.fromList [3,7])
 
 day14a :: Int :~> [Int]
 day14a = MkSol
-    { sParse = Just
-    , sShow  = show
-    , sSolve = Just
+    { sParse = readMaybe
+    , sShow  = concatMap show
+    , sSolve = Just . take 10 . (`drop` chocolatePractice)
     }
 
 substrLoc :: [Int] -> [Int] -> Int
@@ -47,7 +47,7 @@ substrLoc xs = length
 
 day14b :: [Int] :~> Int
 day14b = MkSol
-    { sParse = Just
+    { sParse = Just . mapMaybe (readMaybe . (:[]))
     , sShow  = show
-    , sSolve = Just
+    , sSolve = Just . (`substrLoc` chocolatePractice)
     }

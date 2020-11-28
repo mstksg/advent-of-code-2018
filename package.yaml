@@ -76,10 +76,13 @@ library:
   source-dirs: src
   dependencies:
   - advent-of-code-api >= 0.2.7
+  - advent-of-code-ocr
   - aeson
   - ansi-terminal
+  - pointedlist
   - astar
   - bytestring
+  - free-algebras
   - conduit
   - containers
   - criterion
@@ -108,17 +111,24 @@ library:
   - nonempty-containers
   - pandoc
   - parallel
+  - parsec
   - parser-combinators >= 1.2.0
+  - primitive
   - profunctors
   - psqueues
+  - recursion-schemes
   - semigroupoids
   - split
+  - statistics
   - template-haskell
   - text
   - th-abstraction
   - time
   - transformers
+  - unordered-containers
+  - vector
   - vector-sized
+  - witherable
   - yaml
 
 executables:
@@ -139,6 +149,7 @@ executables:
     - finite-typelits
     - lens
     - optparse-applicative
+    - ansi-terminal
 
 tests:
   aoc2018-test:

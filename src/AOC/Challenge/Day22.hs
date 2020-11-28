@@ -49,9 +49,9 @@ terrainTypes d l = fmap (toEnum . (`mod` 3) . fromIntegral) . erosionLevels d l
 
 day22a :: (Int, Point) :~> Int
 day22a = MkSol
-    { sParse = Just
+    { sParse = parse22
     , sShow  = show
-    , sSolve = Just
+    , sSolve = \(d, p) -> Just . sum . fmap fromEnum $ terrainTypes d p p
     }
 
 data Equipment = EGear
@@ -101,9 +101,11 @@ climbDist1 (e0,_) (e1,_)
 
 day22b :: (Int, Point) :~> Int
 day22b = MkSol
-    { sParse = Just
+    { sParse = parse22
     , sShow  = show
-    , sSolve = Just
+    , sSolve = \(d, p) ->
+        let mp      = terrainTypes d (pad p) p
+        in  pathTime <$> journey mp p
     }
   where
     pad (V2 x y)
