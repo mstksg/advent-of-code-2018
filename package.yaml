@@ -132,7 +132,7 @@ library:
   - yaml
 
 executables:
-  aoc-dev:
+  aoc2018:
     main:                aoc.hs
     source-dirs:         app
     ghc-options:
